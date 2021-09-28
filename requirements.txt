@@ -4,3 +4,4 @@ matplotlib
 pybamm
 pandas
 plotly
+openpyxl
