@@ -1,10 +1,24 @@
+# .readthedocs.yaml
+# Read the Docs configuration file
+# See https://docs.readthedocs.io/en/stable/config-file/v2.html for details
+
+# Required
 version: 2
 
-python:
-  version: 3.8
-  install:
-   - requirements: docs/requirements.txt
+formats: all
 
 mkdocs:
   configuration: mkdocs.yml
-  fail_on_warning: false
+  fail_on_warning: true
+
+# Optionally set the version of Python and requirements required to build your docs
+python:
+   version: "3.8"
+   install:
+   - requirements: requirements.txt
+   - requirements: docs/requirements.txt
+   - method: pip
+     path: .
+     extra_requirements:
+       - docs
+   

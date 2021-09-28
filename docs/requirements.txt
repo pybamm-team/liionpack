@@ -1,9 +1,2 @@
-numpy
-scipy
-matplotlib
-pybamm
-pandas
-plotly
-openpyxl
 mkdocstrings
 mkdocs-material
