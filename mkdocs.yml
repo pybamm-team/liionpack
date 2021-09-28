@@ -6,3 +6,10 @@ theme:
 plugins:
 - search
 - mkdocstrings
+
+nav:
+    - Home: 'index.md'
+    - About: 'about.md'
+    - Reference: 'reference.md'
+    - Code of conduct: 'conduct.md'
+    - Contributing: 'contributing.md'
