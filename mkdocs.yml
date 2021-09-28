@@ -1,4 +1,8 @@
 site_name: liionpack
 
 theme:
-    name: readthedocs
+    name: material
+
+plugins:
+- search
+- mkdocstrings
