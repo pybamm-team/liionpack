@@ -6,9 +6,7 @@
 the configuration e.g. 16 cells in parallel and 2 in series (16p2s) or load a
 netlist
 
-===============================================================================
-Example Usage
-===============================================================================
+## Example Usage
 
 The following code block illustrates how to use liionpack to perform a simulation:
 
