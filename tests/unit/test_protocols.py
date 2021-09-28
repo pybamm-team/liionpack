@@ -1,10 +1,9 @@
 import liionpack as lp
 import numpy as np
+import unittest
 
 
-class protocolsTest():
-    def setup_class(self):
-        pass
+class protocolsTest(unittest.TestCase):
 
     def test_generate_protocol(self):
         p = lp.generate_protocol()
@@ -17,7 +16,4 @@ class protocolsTest():
         assert len(p) == 90
 
 if __name__ == '__main__':
-    t = protocolsTest()
-    t.setup_class()
-    t.test_generate_protocol()
-    t.test_test_protocol()
+    unittest.main()

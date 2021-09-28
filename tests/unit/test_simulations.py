@@ -1,10 +1,9 @@
 import liionpack as lp
 import pybamm
+import unittest
 
 
-class simulationsTest():
-    def setup_class(self):
-        pass
+class simulationsTest(unittest.TestCase):
 
     def test_create_simulation(self):
         sim = lp.create_simulation()
@@ -13,7 +12,5 @@ class simulationsTest():
 
 
 if __name__ == '__main__':
-    t = simulationsTest()
-    t.setup_class()
-    t.test_create_simulation()
+    unittest.main()
 

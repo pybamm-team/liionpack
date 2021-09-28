@@ -2,10 +2,11 @@ import liionpack as lp
 import pybamm
 import os
 import matplotlib.pyplot as plt
+import unittest
 
 
-class sim_utilsTest():
-    def setup_class(self):
+class sim_utilsTest(unittest.TestCase):
+    def setUp(self):
         chemistry = pybamm.parameter_sets.Chen2020
         self.param = pybamm.ParameterValues(chemistry=chemistry)
         self.fname = os.path.join(lp.INIT_FUNCS, 'init_funcs.pickle')
@@ -36,8 +37,4 @@ class sim_utilsTest():
         assert a_p > b_p
 
 if __name__ == '__main__':
-    t = sim_utilsTest()
-    t.setup_class()
-    t.test_create_init_funcs()
-    t.test_update_init_conc()
-    t.test_initial_conditions()
+    unittest.main()

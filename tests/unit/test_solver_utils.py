@@ -2,10 +2,12 @@ import liionpack as lp
 import pybamm
 import numpy as np
 import matplotlib.pyplot as plt
+import unittest
 
 
-class solver_utilsTest():
-    def setup_class(self):
+class solver_utilsTest(unittest.TestCase):
+
+    def setUp(self):
         Np=16
         Ns=2
         Nspm = Np * Ns
@@ -57,9 +59,4 @@ class solver_utilsTest():
         plt.close('all')
 
 if __name__ == '__main__':
-    t = solver_utilsTest()
-    t.setup_class()
-    t.test_mapped_step()
-    t.test_create_casadi_objects()
-    t.test_solve()
-    t.test_solve_output_variables()
+    unittest.main()

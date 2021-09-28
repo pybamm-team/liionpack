@@ -1,12 +1,10 @@
 import liionpack as lp
 import numpy as np
 import matplotlib.pyplot as plt
+import unittest
 
 
-class netlist_utilsTest():
-
-    def setup_class(self):
-        pass
+class netlist_utilsTest(unittest.TestCase):
 
     def test_read_netlist(self):
         netlist = lp.read_netlist("AMMBa", I=50.0)
@@ -34,9 +32,4 @@ class netlist_utilsTest():
         assert np.all(I_batt) == 1.0
         
 if __name__ == '__main__':
-    t = netlist_utilsTest()
-    t.setup_class()
-    t.test_read_netlist()
-    t.test_setup_circuit()
-    t.test_setup_circuit_plot()
-    t.test_solve_circuit()
+    unittest.main()

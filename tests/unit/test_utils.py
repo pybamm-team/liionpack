@@ -1,9 +1,10 @@
 import liionpack as lp
 import pandas as pd
 import numpy as np
+import unittest
 
 
-class utilsTest():
+class utilsTest(unittest.TestCase):
     def setup_class(self):
         pass
 
