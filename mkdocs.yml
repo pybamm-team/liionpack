@@ -1,0 +1,8 @@
+site_name: liionpack
+
+theme:
+    name: material
+
+plugins:
+- search
+- mkdocstrings
