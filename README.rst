@@ -28,5 +28,6 @@ The following code block illustrates how to use liionpack to perform a simulatio
 .. code-block:: python
 
   >>> import liionpack as lp
+  >>> netlist = lp.setup_circuit(Np=16, Ns=2, Rb=1e-4, Rc=1e-2, Ri=1e-3, V=4.0, I=80.0)
   >>> protocol = lp.generate_protocol()
   >>> output = lp.solve(protocol=protocol)
