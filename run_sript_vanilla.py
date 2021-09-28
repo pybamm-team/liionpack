@@ -7,22 +7,11 @@ Created on Thu Sep 23 10:27:40 2021
 
 
 import liionpack as lp
-import matplotlib.pyplot as plt
 import numpy as np
 import pybamm
 
-plt.close('all')
-# Circuit parameters
-Np=16
-Ns=2
-Nspm = Np * Ns
-R_bus=1e-4
-R_series=1e-2
-R_int=5e-2
-I_app=80.0
-ref_voltage = 3.2
 # Generate the netlist
-netlist = lp.setup_circuit(Np, Ns, Rb=R_bus, Rc=R_series, Ri=R_int, V=ref_voltage, I=I_app)
+netlist = lp.setup_circuit(Np=16, Ns=2, Rb=1e-4, Rc=1e-2, Ri=5e-2, V=3.2, I=80.0)
 output_variables = [  
     'X-averaged total heating [W.m-3]',
     'Volume-averaged cell temperature [K]',
@@ -30,7 +19,7 @@ output_variables = [
     'X-averaged positive particle surface concentration [mol.m-3]',
     ]
 # Heat transfer coefficients
-htc = np.ones(Nspm) * 10
+htc = np.ones(32) * 10
 # Cycling protocol
 protocol = lp.generate_protocol()
 # PyBaMM parameters
