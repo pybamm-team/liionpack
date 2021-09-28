@@ -5,4 +5,3 @@ theme:
 
 plugins:
 - search
-- mkdocstrings
