@@ -27,6 +27,7 @@ jobs:
           texlive-latex-base \
           texlive-latex-extra \
           texlive-pictures
+        sudo apt-get install imagemagick
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
