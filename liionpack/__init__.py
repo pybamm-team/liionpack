@@ -15,5 +15,6 @@ from .netlist_utils import *
 from .sim_utils import *
 from .solver_utils import *
 from .protocols import *
+from .plots import *
 
 __version__ = "0.0.1"

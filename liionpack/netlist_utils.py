@@ -163,21 +163,13 @@ def setup_circuit(Np, Ns, Ri=1e-2, Rc=1e-2, Rb=1e-4, Rl=5e-4, I=80.0, V=4.2, plo
     node2 = []
     value = []
     
-    # Current source - same end
-    # netline = []
-    # terminal_nodes = [, ]
-    desc.append('I' + str(num_I))
-    num_I += 1
-    node1.append(grid[0, 0])
-    node2.append(grid[-1, 0])
-    value.append(I)
 
-    # +ve & -ve busbars
-    bus_nodes = [grid[-1, :], grid[0, :]]
+    # -ve busbars
+    bus_nodes = [grid[-1, :]]
     for nodes in bus_nodes:
         for i in range(len(nodes) - 1):
             # netline = []
-            desc.append('Rb' + str(num_Rb))
+            desc.append('Rbn' + str(num_Rb))
             num_Rb += 1
             node1.append(nodes[i])
             node2.append(nodes[i + 1])
@@ -214,6 +206,27 @@ def setup_circuit(Np, Ns, Ri=1e-2, Rc=1e-2, Rb=1e-4, Rl=5e-4, I=80.0, V=4.2, plo
                 node2.append(nodes[row])
             value.append(val)
             # netlist.append(netline)
+
+    # +ve busbar
+    bus_nodes = [grid[0, :]]
+    for nodes in bus_nodes:
+        for i in range(len(nodes) - 1):
+            # netline = []
+            desc.append('Rbp' + str(num_Rb))
+            num_Rb += 1
+            node1.append(nodes[i + 1])
+            node2.append(nodes[i])
+            value.append(Rb)
+
+    # Current source - same end
+    # netline = []
+    # terminal_nodes = [, ]
+    desc.append('I' + str(num_I))
+    num_I += 1
+    node1.append(grid[0, 0])
+    node2.append(grid[-1, 0])
+    value.append(I)
+
 
     coords = np.indices(grid.shape)
     y = coords[0, :, :].flatten()
