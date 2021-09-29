@@ -7,3 +7,4 @@ plotly
 openpyxl
 tqdm
 lcapy
+Ipython
