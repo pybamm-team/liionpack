@@ -112,7 +112,7 @@ def _make_contiguous(node1, node2):
     return nodes_copy[:, 0], nodes_copy[:, 1]
 
 
-def setup_circuit(Np, Ns, Ri=1e-2, Rc=1e-2, Rb=1e-4, Rl=5e-4, I=80.0, V=4.2, plot=False):
+def setup_circuit(Np=1, Ns=1, Ri=1e-2, Rc=1e-2, Rb=1e-4, Rl=5e-4, I=80.0, V=4.2, plot=False):
     r'''
     
     Define a netlist from a number of batteries in parallel and series
@@ -120,9 +120,9 @@ def setup_circuit(Np, Ns, Ri=1e-2, Rc=1e-2, Rb=1e-4, Rl=5e-4, I=80.0, V=4.2, plo
     Parameters
     ----------
     Np : int
-        Number of batteries in parallel.
+        Number of batteries in parallel. The default is 1.
     Ns : int
-        Number of batteries in series.
+        Number of batteries in series. The default is 1.
     Ri : float
         Internal resistance (:math:`\Omega`). The default is 1e-2.
     Rc : float

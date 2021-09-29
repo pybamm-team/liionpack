@@ -1,6 +1,6 @@
 from lcapy import Circuit
 
-def draw_circuit(netlist):
+def draw_circuit(netlist, **kwargs):
     r'''
     Draw a latex version of netlist circuit
 
@@ -50,5 +50,5 @@ def draw_circuit(netlist):
     
         string = string + '; ' + direction
         cct.add(string)
-    
-    cct.draw(node_spacing=3.0, dpi=300)
+
+    cct.draw(**kwargs)
