@@ -7,4 +7,3 @@ plotly
 openpyxl
 tqdm
 lcapy
-pdflatex
