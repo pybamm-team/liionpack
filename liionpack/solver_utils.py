@@ -10,6 +10,7 @@ import numpy as np
 import time as ticker
 import liionpack as lp
 import matplotlib.pyplot as plt
+from tqdm import tqdm
 
 
 def _mapped_step(model, solutions, inputs_dict, integrator, variables, t_eval):
@@ -233,7 +234,7 @@ def solve(netlist=None, parameter_values=None, protocol=None,
 
 
     time = 0
-    step = 0
+    # step = 0
     end_time = dt*Nsteps
     step_solutions = [None] * Nspm
     V_terminal = []
@@ -247,11 +248,7 @@ def solve(netlist=None, parameter_values=None, protocol=None,
 
  
     sim_start_time = ticker.time()
-    while time < end_time:
-        
-        print(step, 'Time', time)
-        tic = ticker.time()
-        
+    for step in tqdm(range(Nsteps), desc='Solving Pack'):
         step_solutions, var_eval = _mapped_step(sim.built_model, step_solutions,
                                                 lp.build_inputs_dict(shm_i_app[step, :], htc),
                                                 integrator, variables_fn, t_eval)
@@ -269,18 +266,18 @@ def solve(netlist=None, parameter_values=None, protocol=None,
         netlist.loc[Ri_map, ('value')] = temp_Ri
         netlist.loc[I_map, ('value')] = protocol[step]
 
-        print('Stepping time', np.around(ticker.time()-tic, 2), 's')
+        # print('Stepping time', np.around(ticker.time()-tic, 2), 's')
         if np.any(temp_v < v_cut_lower):
             print('Low V limit reached')
             break
         if np.any(temp_v > v_cut_higher):
             print('High V limit reached')
             break
-        step += 1
+        # step += 1
         if time < end_time:
             record_times.append(time)
             V_node, I_batt = lp.solve_circuit(netlist)
-            shm_i_app[step, :] = I_batt[:] * -1
+            shm_i_app[step+1, :] = I_batt[:] * -1
             V_terminal.append(V_node.max())  
 
     # Plots
@@ -302,5 +299,6 @@ def solve(netlist=None, parameter_values=None, protocol=None,
     plt.title('Pack terminal voltage [V]')
     plt.legend()
     toc = ticker.time()
-    print('Solve circuit time', np.around(toc-sim_start_time, 3))
+    pybamm.logger.notice('Solve circuit time '+
+                          str(np.around(toc-sim_start_time, 3)) + 's')
     return output

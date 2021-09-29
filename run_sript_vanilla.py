@@ -9,6 +9,10 @@ Created on Thu Sep 23 10:27:40 2021
 import liionpack as lp
 import numpy as np
 import pybamm
+import matplotlib.pyplot as plt
+
+plt.close('all')
+pybamm.logger.setLevel('NOTICE')
 
 # Generate the netlist
 netlist = lp.setup_circuit(Np=16, Ns=2, Rb=1e-4, Rc=1e-2, Ri=5e-2, V=3.2, I=80.0)

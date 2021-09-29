@@ -12,6 +12,7 @@ import matplotlib.pyplot as plt
 import liionpack as lp
 import os
 from scipy.linalg import solve
+import pybamm
 
 def read_netlist(filepath, Ri=1e-2, Rc=1e-2, Rb=1e-4, Rl=5e-4, I=80.0, V=4.2):
     r'''
@@ -77,6 +78,7 @@ def read_netlist(filepath, Ri=1e-2, Rc=1e-2, Rb=1e-4, Rl=5e-4, I=80.0, V=4.2):
     netlist.loc[Rl_map, ('value')] = Rl
     netlist.loc[I_map, ('value')] = I
     netlist.loc[V_map, ('value')] = V
+    pybamm.logger.notice('netlist ' + filepath + ' loaded')
     return netlist
 
 
@@ -140,7 +142,6 @@ def setup_circuit(Np, Ns, Ri=1e-2, Rc=1e-2, Rb=1e-4, Rl=5e-4, I=80.0, V=4.2, plo
         DESCRIPTION.
 
     '''
-    tic = ticker.time()
     Nc = Np + 1
     Nr = Ns * 3 + 1
 
@@ -170,15 +171,6 @@ def setup_circuit(Np, Ns, Ri=1e-2, Rc=1e-2, Rb=1e-4, Rl=5e-4, I=80.0, V=4.2, plo
     node1.append(grid[0, 0])
     node2.append(grid[-1, 0])
     value.append(I)
-    # netlist.append(netline)
-
-    # Infinite Resistor
-    # netline = []
-    # terminal_nodes = [grid[0, -1], grid[-1, -1]]
-    # netline.append('R_inf')
-    # netline += terminal_nodes
-    # netline.append(1e6)
-    # netlist.append(netline)
 
     # +ve & -ve busbars
     bus_nodes = [grid[-1, :], grid[0, :]]
@@ -190,7 +182,6 @@ def setup_circuit(Np, Ns, Ri=1e-2, Rc=1e-2, Rb=1e-4, Rl=5e-4, I=80.0, V=4.2, plo
             node1.append(nodes[i])
             node2.append(nodes[i + 1])
             value.append(Rb)
-            # netlist.append(netline)
     num_Rs = 0
     num_Ri = 0
     # Series resistors and voltage sources
@@ -247,7 +238,6 @@ def setup_circuit(Np, Ns, Ri=1e-2, Rc=1e-2, Rb=1e-4, Rl=5e-4, I=80.0, V=4.2, plo
             x2 = x[n2]
             y1 = y[n1]
             y2 = y[n2]
-    #        print(n1, n2)
             plt.scatter([x1, x2], [y1, y2], c='k')
             plt.plot([x1, x2], [y1, y2], c=color)
 
@@ -255,11 +245,12 @@ def setup_circuit(Np, Ns, Ri=1e-2, Rc=1e-2, Rb=1e-4, Rl=5e-4, I=80.0, V=4.2, plo
     node1 = np.asarray(node1)
     node2 = np.asarray(node2)
     value = np.asarray(value)
-    # netlist = np.asarray(netlist, dtype='<U16')
+
     node1, node2 = _make_contiguous(node1, node2)
-    netlist = pd.DataFrame({'desc': desc, 'node1': node1, 'node2': node2, 'value': value})
-    toc = ticker.time()
-    print('Setup circuit time', np.around(toc-tic, 3))
+    netlist = pd.DataFrame({'desc': desc, 'node1': node1,
+                            'node2': node2, 'value': value})
+
+    pybamm.logger.notice("Circuit created")
     return netlist
 
 def solve_circuit(netlist):
@@ -278,10 +269,6 @@ def solve_circuit(netlist):
     '''
     tic = ticker.time()
 
-    # Name = netlist[:, 0]  # element names
-    # N1 = netlist[:, 1].astype(int)  # Node numbers
-    # N2 = netlist[:, 2].astype(int)
-    # arg3 = netlist[:, 3].astype(float)  # Values
     Name = np.array(netlist['desc']).astype('<U16')
     N1 = np.array(netlist['node1'])
     N2 = np.array(netlist['node2'])
@@ -357,7 +344,7 @@ def solve_circuit(netlist):
     V_node[1:] = X[:n]
     I_batt = X[n:]
 
-#    print(X)
     toc = ticker.time()
-    print('Solve circuit time', np.around(toc-tic, 3))
+    pybamm.logger.info("Circuit solved in " +
+                       str(np.around(toc-tic, 3)) + " s")
     return V_node, I_batt
