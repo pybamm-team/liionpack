@@ -16,7 +16,7 @@ pybamm.logger.setLevel('NOTICE')
 
 # Generate the netlist
 netlist = lp.setup_circuit(Np=4, Ns=1, Rb=1.5e-3, Rc=1e-2, Ri=5e-2, V=4.0, I=5.0)
-lp.draw_circuit(netlist)
+lp.draw_circuit(netlist, scale_factor=0.5, cpt_size=1.0, dpi=150, node_spacing=2.5)
 output_variables = [  
     'X-averaged total heating [W.m-3]',
     'Volume-averaged cell temperature [K]',
