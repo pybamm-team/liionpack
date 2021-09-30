@@ -77,7 +77,8 @@ def _text_color(vals,vmin,vmax,cmap):
         DESCRIPTION.
 
     '''
-    # return list of either black or white to write text, depending on whether plotted color is closer to white or black
+    # return list of either black or white to write text, depending on whether
+    # plotted color is closer to white or black
     cm = mpl.cm.get_cmap(cmap)
     norm = mpl.colors.Normalize(vmin=vmin, vmax=vmax)
     val_cm = cm(norm(vals))[:,:3]

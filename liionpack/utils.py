@@ -9,6 +9,8 @@ import numpy as np
 import pandas as pd
 import os
 import liionpack
+from skspatial.objects import Plane
+from skspatial.objects import Points
 
 ROOT_DIR = os.path.dirname(os.path.abspath(liionpack.__file__))
 CIRCUIT_DIR = os.path.join(ROOT_DIR, "circuits")
@@ -35,6 +37,63 @@ def interp_current(df):
     I = df['Cells Total Current']
     f = interp1d(t, I)
     return f
+
+def _z_from_plane(X, Y, plane):
+    r'''
+    Given X and Y and a plane provide Z
+    X - temperature
+    Y - flow rate
+    Z - heat transfer coefficient
+
+    Parameters
+    ----------
+    X : float (array)
+        x-coordinate.
+    Y : float (array)
+        z-coordinate.
+    plane : skspatial.object.Plane
+        plane returned from read_cfd_data.
+
+    Returns
+    -------
+    z : float (array)
+        z-coordinate.
+
+    '''
+    a, b, c = plane.normal
+    d = plane.point.dot(plane.normal)
+    z = (d - a * X - b * Y) / c
+    return z
+
+def _fit_plane(xv, yv, dbatt):
+    r'''
+    Private method to fit plane to CFD data 
+
+    Parameters
+    ----------
+    xv : ndarray
+        temperature meshgrid points.
+    yv : ndarray
+        flow_rate meshgrid points.
+    dbatt : ndarray
+        cfd data for heat transfer coefficient.
+
+    Returns
+    -------
+    plane : skspatial.object.Plane
+        htc varies linearly with temperature and flow rate so relationship
+        describes a plane
+
+    '''
+    nx, ny = xv.shape
+    pts = []
+    for i in range(nx):
+        for j in range(ny):
+            pts.append([xv[i, j], yv[i, j], dbatt[i, j]])
+    
+    points = Points(pts)
+    plane = Plane.best_fit(points, tol=1e-6)
+    return plane
 
 def read_cfd_data(data_dir=None, filename='cfd_data.xlsx'):
     r'''
@@ -66,12 +125,43 @@ def read_cfd_data(data_dir=None, filename='cfd_data.xlsx'):
     xv, yv = np.meshgrid(temp_bps, flow_bps)
     data = np.zeros([len(temp_bps), len(flow_bps), ncells])
     funcs = []
+    planes = []
     for i in range(ncells):
         data[:, :, i] = np.array(pd.read_excel(fpath,
                                                sheet_name='cell'+str(i+1), header=None))
         funcs.append(interp2d(xv, yv, data[:, :, i], kind='linear'))
+        planes.append(_fit_plane(xv, yv, data[:, :, i]))
     
-    return funcs
+    return data, funcs, xv, yv, planes
+ 
+
+def get_linear_htc(planes, T, Q):
+    r'''
+    A very bespoke function that is called in the solve process to update the
+    heat transfer coefficients for every battery - assuming linear relation 
+    between temperature, flow rate and heat transfer coefficient.
+
+    Parameters
+    ----------
+    planes : list
+        each element of the list is a plane equation describing linear relation
+        between temperature, flow rate and heat transfer coefficient.
+    T : float array
+        The temperature of each battery.
+    Q : float
+        The flow rate for the system.
+
+    Returns
+    -------
+    htc : float
+        Heat transfer coefficient for each battery.
+
+    '''
+    ncell = len(T)
+    htc = np.zeros(ncell)
+    for i in range(ncell):
+        htc[i] = _z_from_plane(T[i], Q, planes[i])
+    return htc
 
 def get_interpolated_htc(funcs, T, Q):
     r'''
