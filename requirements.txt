@@ -9,4 +9,5 @@ tqdm
 lcapy
 Ipython
 scikit-spatial
+networkx
 

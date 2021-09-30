@@ -95,7 +95,7 @@ def _fit_plane(xv, yv, dbatt):
     plane = Plane.best_fit(points, tol=1e-6)
     return plane
 
-def read_cfd_data(data_dir=None, filename='cfd_data.xlsx'):
+def read_cfd_data(data_dir=None, filename='cfd_data.xlsx', fit='linear'):
     r'''
     A very bespoke function to read heat transfer coefficients from an excel
     file
@@ -106,8 +106,9 @@ def read_cfd_data(data_dir=None, filename='cfd_data.xlsx'):
         Path to data file. The default is None. If unspecified the module
         liionpack.DATA_DIR folder will be used
     filename : str, optional
-        DESCRIPTION. The default is 'cfd_data.xlsx'.
-
+        The default is 'cfd_data.xlsx'.
+    fit : str
+        options are 'linear' (default) and 'interpolated'.  
     Returns
     -------
     funcs : list
@@ -124,16 +125,18 @@ def read_cfd_data(data_dir=None, filename='cfd_data.xlsx'):
                                       sheet_name='temperature_bps', header=None))
     xv, yv = np.meshgrid(temp_bps, flow_bps)
     data = np.zeros([len(temp_bps), len(flow_bps), ncells])
-    funcs = []
-    planes = []
+    fits = []
     for i in range(ncells):
         data[:, :, i] = np.array(pd.read_excel(fpath,
                                                sheet_name='cell'+str(i+1), header=None))
-        funcs.append(interp2d(xv, yv, data[:, :, i], kind='linear'))
-        planes.append(_fit_plane(xv, yv, data[:, :, i]))
+        # funcs.append(interp2d(xv, yv, data[:, :, i], kind='linear'))
+        if fit == 'linear':
+            fits.append(_fit_plane(xv, yv, data[:, :, i]))
+        elif fit == 'interpolated':
+            fits.append(interp2d(xv, yv, data[:, :, i], kind='linear'))
     
-    return data, funcs, xv, yv, planes
- 
+    return data, xv, yv, fits
+
 
 def get_linear_htc(planes, T, Q):
     r'''

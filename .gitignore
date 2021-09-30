@@ -49,3 +49,4 @@ Thumbs.db
 *.wmv
 
 liionpack.egg-info/
+examples/notebooks/.ipynb_checkpoints/
