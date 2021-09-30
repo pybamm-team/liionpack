@@ -7,6 +7,29 @@
 the configuration e.g. 16 cells in parallel and 2 in series (16p2s) or load a
 netlist
 
+## Installation
+
+Follow the steps given below to install the `liionpack` Python package. The package must be installed to run the included examples. It is recommended to create a virtual environment for the installation.
+
+```bash
+# Clone the repository
+$ git clone https://github.com/pybamm-team/liionpack.git
+
+# Create a virtual environment in the repository directory
+$ cd liionpack
+$ python -m venv .venv
+
+# Activate the virtual environment and upgrade pip if venv installed an old version
+$ source .venv/bin/activate
+$ pip install --upgrade pip
+
+# Install the required packages
+$ pip install -r requirements.txt
+
+# Install the liionpack package from within the repository
+$ pip install -e .
+```
+
 ## Example Usage
 
 The following code block illustrates how to use liionpack to perform a simulation:
