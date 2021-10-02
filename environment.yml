@@ -1,0 +1,19 @@
+name: lipack
+dependencies:
+  - python
+  - pip
+  - numpy
+  - scipy
+  - matplotlib
+  - pandas
+  - plotly
+  - openpyxl
+  - tqdm
+  - networkx
+  - jupyter
+  - sympy
+  - ipython
+  - pip:
+    - pybamm
+    - lcapy
+    - scikit-spatial
