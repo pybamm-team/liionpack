@@ -274,31 +274,21 @@ def solve(netlist=None, parameter_values=None, protocol=None,
             print('High V limit reached')
             break
         # step += 1
-        if time < end_time:
+        if time <= end_time:
             record_times.append(time)
             V_node, I_batt = lp.solve_circuit(netlist)
+            V_terminal.append(V_node.max())
+        if time < end_time:
             shm_i_app[step+1, :] = I_batt[:] * -1
-            V_terminal.append(V_node.max())  
-
-    # Plots
-    colors = plt.cm.jet(np.linspace(0, 1, Nspm))
-    plt.figure()
-    for i in range(Nspm):
-        plt.plot(shm_i_app[1:step, i], color=colors[i])
-    plt.title('Currents')
-    
+    all_output = {}
+    all_output['Time [s]'] = np.asarray(record_times)
+    all_output['Pack current [A]'] = np.asarray(protocol[:step+1])
+    all_output['Pack terminal voltage [V]'] = np.asarray(V_terminal)
+    all_output['Cell current [A]'] = shm_i_app[:step+1, :]
     for j in range(Nvar):
-        plt.figure()
-        for i in range(Nspm):
-            plt.plot(output[j, 1:step, i], color=colors[i])
-        plt.title(variable_names[j])
-
-
-    plt.figure()
-    plt.plot(record_times, V_terminal, label='simulation')
-    plt.title('Pack terminal voltage [V]')
-    plt.legend()
+        all_output[variable_names[j]] = output[j, :step+1, :]
+    
     toc = ticker.time()
     pybamm.logger.notice('Solve circuit time '+
                           str(np.around(toc-sim_start_time, 3)) + 's')
-    return output
+    return all_output

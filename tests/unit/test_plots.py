@@ -7,19 +7,8 @@ import unittest
 
 class plotsTest(unittest.TestCase):
 
-    def setUp(self):
-        pass
-
-    def test_draw_circuit(self):
-        net = lp.setup_circuit(Np=3, Ns=1, Rb=1e-4,
-                                Rc=1e-2, Ri=5e-2, V=3.2, I=80.0)
-        lp.draw_circuit(net)
-        # plt.close('all')
-        
-        # cannot get this working on github actions
-        # pass
-
-    def test_cell_scatter_plot(self):
+    @classmethod
+    def setUpClass(self):
         R_bus=1e-4
         R_series=1e-2
         R_int=5e-2
@@ -44,6 +33,18 @@ class plotsTest(unittest.TestCase):
                           protocol=protocol,
                           output_variables=None,
                           htc=htc)
+        self.output = output
+
+
+    def test_draw_circuit(self):
+        net = lp.setup_circuit(Np=3, Ns=1, Rb=1e-4,
+                                Rc=1e-2, Ri=5e-2, V=3.2, I=80.0)
+        lp.draw_circuit(net)
+        plt.close('all')
+
+
+    def test_cell_scatter_plot(self):
+
         X_pos = [0.080052414,0.057192637,0.080052401,0.057192662,0.080052171,0.057192208,0.080052285,0.057192264,
                  -0.034260006,-0.011396764,-0.034259762,-0.011396799,-0.034259656,-0.011397055,-0.034259716,-0.01139668,
                  0.034329391,0.01146636,0.034329389,0.011466487,0.034329301,0.011466305,0.034329448,0.011465906,
@@ -54,9 +55,13 @@ class plotsTest(unittest.TestCase):
                  -0.04620005,-0.032999882,-0.019800016,-0.0065999624,0.0065997543,0.019799885,0.033000077,0.046199929,
                  0.0462001,0.033000148,0.019800099,0.0066000627,-0.0065999586,-0.019800142,-0.032999927,-0.046199973]
         fig, ax = plt.subplots()
-        data = output[0, -1, :]
+        data = self.output['Terminal voltage [V]'][-1, :]
         lp.cell_scatter_plot(ax, X_pos, Y_pos, c=data)
-        
+        plt.close('all')
+
+    def test_plot_output(self):
+        lp.plot_output(self.output)
+        plt.close('all')
         
 
 if __name__ == '__main__':

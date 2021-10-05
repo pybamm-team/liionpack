@@ -7,7 +7,8 @@ import unittest
 
 class solver_utilsTest(unittest.TestCase):
 
-    def setUp(self):
+    @classmethod
+    def setUpClass(self):
         Np=16
         Ns=2
         Nspm = Np * Ns
@@ -40,7 +41,8 @@ class solver_utilsTest(unittest.TestCase):
                           protocol=self.protocol,
                           output_variables=None,
                           htc=self.htc)
-        assert output.shape == (3, 90, 32)
+        print(output['Terminal voltage [V]'].shape)
+        assert output['Terminal voltage [V]'].shape == (90, 32)
         plt.close('all')
     
     def test_solve_output_variables(self):
@@ -55,7 +57,7 @@ class solver_utilsTest(unittest.TestCase):
                           protocol=self.protocol,
                           output_variables=output_variables,
                           htc=self.htc)
-        assert output.shape == (7, 90, 32)
+        assert output['X-averaged total heating [W.m-3]'].shape == (90, 32)
         plt.close('all')
 
 if __name__ == '__main__':
