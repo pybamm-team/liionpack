@@ -11,8 +11,11 @@ import time as ticker
 import matplotlib.pyplot as plt
 import liionpack as lp
 import os
-from scipy.linalg import solve
+# from scipy.linalg import solve
+# import pyamg
+# import pypardiso
 import pybamm
+import scipy as sp
 
 def read_netlist(filepath, Ri=1e-2, Rc=1e-2, Rb=1e-4, Rl=5e-4, I=80.0, V=4.2):
     r'''
@@ -350,7 +353,17 @@ def solve_circuit(netlist):
     lower = np.hstack((B.T, D))
     A = np.vstack((upper, lower))
     z = np.vstack((i, e))
-    X = solve(A, z).flatten()
+    Aspr = sp.sparse.csr_matrix(A)
+    # Scipy
+    # X = solve(A, z).flatten()
+    X = sp.sparse.linalg.spsolve(Aspr, z).flatten()
+    
+    # Pypardiso
+    # X = pypardiso.spsolve(Aspr, z).flatten()
+    
+    # amg
+    # ml = pyamg.smoothed_aggregation_solver(Aspr)
+    # X = ml.solve(b=z, tol=1e-6, maxiter=10, accel="bicgstab")
 
     # include ground node
     V_node = np.zeros(n + 1)

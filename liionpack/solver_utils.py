@@ -151,9 +151,10 @@ def _create_casadi_objects(I_init, htc, sim, dt, Nspm, nproc, variable_names):
 
 
 def solve(netlist=None, parameter_values=None, protocol=None,
-          dt=10, I_init=1.0, htc=None,
+          dt=10, I_init=1.0, htc=None, initial_soc=0.5,
           nproc=12,
-          output_variables=None):
+          output_variables=None,
+          ):
     r'''
     Solves a pack simulation
 
@@ -173,6 +174,8 @@ def solve(netlist=None, parameter_values=None, protocol=None,
         Initial guess for single battery current [A]. The default is 1.0.
     htc : float array, optional
         Heat transfer coefficient array of length Nspm. The default is None.
+    initial_soc : float
+        The initial state of charge for every battery. The default is 0.5
     nproc : int, optional
         Number of processes to start in parallel for mapping. The default is 12.
     output_variables : list, optional
@@ -208,7 +211,7 @@ def solve(netlist=None, parameter_values=None, protocol=None,
     V_node, I_batt = lp.solve_circuit(netlist)
 
     sim = lp.create_simulation(parameter_values, make_inputs=True)
-    lp.update_init_conc(sim, SoC=0.14)
+    lp.update_init_conc(sim, SoC=initial_soc)
 
     v_cut_lower = parameter_values['Lower voltage cut-off [V]']
     v_cut_higher = parameter_values['Upper voltage cut-off [V]']
