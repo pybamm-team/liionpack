@@ -6,7 +6,9 @@ import unittest
 
 
 class sim_utilsTest(unittest.TestCase):
-    def setUp(self):
+
+    @classmethod
+    def setUpClass(self):
         chemistry = pybamm.parameter_sets.Chen2020
         self.param = pybamm.ParameterValues(chemistry=chemistry)
         self.fname = os.path.join(lp.INIT_FUNCS, 'init_funcs.pickle')

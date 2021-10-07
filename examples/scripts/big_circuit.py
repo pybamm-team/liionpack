@@ -13,9 +13,14 @@ import matplotlib.pyplot as plt
 plt.close('all')
 pybamm.logger.setLevel('NOTICE')
 
+Np = 16
+Ns = 96
+Nspm = Np * Ns
+I_app = Np * 2.0
+
 # Generate the netlist
-netlist = lp.setup_circuit(Np=4, Ns=1, Rb=1.5e-3, Rc=1e-2, Ri=5e-2, V=4.0, I=5.0)
-lp.draw_circuit(netlist, scale_factor=0.5, cpt_size=1.0, dpi=300, node_spacing=2.5)
+netlist = lp.setup_circuit(Np=Np, Ns=Ns, Rb=1e-4, Rc=1e-2, Ri=5e-2, V=3.2, I=I_app)
+
 output_variables = [
     'X-averaged total heating [W.m-3]',
     'Volume-averaged cell temperature [K]',
@@ -24,14 +29,18 @@ output_variables = [
 ]
 
 # Heat transfer coefficients
-htc = np.ones(4) * 10
+htc = np.ones(Nspm) * 10
 
 # Cycling protocol
-protocol = lp.generate_protocol(I_chg=5, I_dch=-5, chg_first=True)
+protocol = lp.generate_protocol(I_dch=-I_app, I_chg=I_app, 
+                                t_dch=100, t_chg=100, t_rest=100,
+                                chg_first=False)
 
 # PyBaMM parameters
 chemistry = pybamm.parameter_sets.Chen2020
 parameter_values = pybamm.ParameterValues(chemistry=chemistry)
+
+# lp.create_init_funcs(parameter_values)
 
 # Solve pack
 output = lp.solve(netlist=netlist,

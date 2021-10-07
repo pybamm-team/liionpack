@@ -2,10 +2,14 @@ from lcapy import Circuit
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib as mpl
+from sympy import init_printing
+
+init_printing(pretty_print=False)
 
 def draw_circuit(netlist, **kwargs):
     r'''
     Draw a latex version of netlist circuit
+    N.B only works with generated netlists not imported ones.
 
     Parameters
     ----------
@@ -183,3 +187,42 @@ def cell_scatter_plot(ax, X, Y, c, text_prec=1, **kwargs):
     # write cell text
     _cell_text(ax, X, Y, c, text_prec, text_colors)     
     _cell_text_numbers(ax, X, Y, text_colors)
+
+
+def plot_output(output):
+    r'''
+    Plot the simulation output
+
+    Parameters
+    ----------
+    output : dict
+        Output from liionpack.solve. Dictionary of pack and cell variables
+
+    Returns
+    -------
+    None.
+
+    '''
+    # Plot pack level summary
+    time = output['Time [s]']
+    V_terminal = output['Pack terminal voltage [V]']
+    I_terminal = output['Pack current [A]']
+    fig, ax = plt.subplots()
+    ax.plot(time, V_terminal, color='red', label='simulation')
+    ax.set_xlabel('Time [s]')
+    ax.set_ylabel('Pack terminal voltage [V]', color='red')
+    ax2=ax.twinx()
+    ax2.plot(time, I_terminal, color='blue', label='simulation')
+    ax2.set_ylabel('Pack current [A]', color='blue')
+    plt.title('Pack Summary')
+    plt.show()
+    # Get all the output variables that are multidimensional
+    # One column for each cell
+    cell_vars = [k for k in output.keys() if len(output[k].shape) > 1]
+    Nspm  = output[cell_vars[0]].shape[-1]
+    colors = plt.cm.jet(np.linspace(0, 1, Nspm))
+    for plot_var in cell_vars:
+        plt.figure()
+        for i in range(Nspm):
+            plt.plot(time[:], output[plot_var][:, i], color=colors[i])
+        plt.title(plot_var)
