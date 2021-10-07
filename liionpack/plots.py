@@ -3,6 +3,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 from sympy import init_printing
+import textwrap
+
 
 init_printing(pretty_print=False)
 
@@ -225,66 +227,21 @@ def plot_cells(output):
         Output from liionpack.solve which contains pack and cell variables.
     """
 
-    # Get results for the battery cells
+    # Get time and results for battery cells
     time = output['Time [s]']
-    v_cells = output['Terminal voltage [V]']
-    i_cells = output['Cell current [A]']
-    ocv_cells = output['Measured battery open circuit voltage [V]']
-    ecm_cells = output['Local ECM resistance [Ohm]']
-    heat_cells = output['X-averaged total heating [W.m-3]']
-    temp_cells = output['Volume-averaged cell temperature [K]']
-    negconc_cells = output['X-averaged negative particle surface concentration [mol.m-3]']
-    posconc_cells = output['X-averaged positive particle surface concentration [mol.m-3]']
+    cell_vars = [k for k in output.keys() if len(output[k].shape) > 1]
 
-    # Get number of cells and create colormap
-    n = len(v_cells[0])
+    # Get number of cells and setup colormap
+    n = output[cell_vars[0]].shape[-1]
     colors = plt.cm.jet(np.linspace(0, 1, n))
 
-    # Plot voltages
-    _, ax = plt.subplots(tight_layout=True)
-    for i in range(n):
-        ax.plot(time, v_cells[:, i], color=colors[i])
-    ax.set_xlabel('Time [s]')
-    ax.set_ylabel('Terminal voltage [V]')
-
-    # Plot currents
-    _, ax = plt.subplots(tight_layout=True)
-    for i in range(n):
-        ax.plot(time, i_cells[:, i], color=colors[i])
-    ax.set_xlabel('Time [s]')
-    ax.set_ylabel('Cell current [A]')
-
-    # Plot open circuit voltages
-    _, ax = plt.subplots(tight_layout=True)
-    for i in range(n):
-        ax.plot(time, ocv_cells[:, i], color=colors[i])
-    ax.set_xlabel('Time [s]')
-    ax.set_ylabel('Open circuit voltage [V]')
-
-    # Plot resistances
-    _, ax = plt.subplots(tight_layout=True)
-    for i in range(n):
-        ax.plot(time, ecm_cells[:, i], color=colors[i])
-    ax.set_xlabel('Time [s]')
-    ax.set_ylabel('ECM resistance [Ω]')
-
-    # Plot heating and temperatures
-    _, (ax1, ax2) = plt.subplots(2, sharex=True, tight_layout=True)
-    for i in range(n):
-        ax1.plot(time, heat_cells[:, i], color=colors[i])
-        ax2.plot(time, temp_cells[:, i], color=colors[i])
-    ax1.set_ylabel('Total heating [W/m³]')
-    ax2.set_xlabel('Time [s]')
-    ax2.set_ylabel('Temperature [K]')
-
-    # Plot surface concentrations
-    _, (ax1, ax2) = plt.subplots(2, sharex=True, tight_layout=True)
-    for i in range(n):
-        ax1.plot(time, negconc_cells[:, i], color=colors[i])
-        ax2.plot(time, posconc_cells[:, i], color=colors[i])
-    ax1.set_ylabel('Neg. surface conc. [mol/m³]')
-    ax2.set_xlabel('Time [s]')
-    ax2.set_ylabel('Pos. surface conc. [mol/m³]')
+    # Create plot figures for cell variables
+    for var in cell_vars:
+        _, ax = plt.subplots()
+        for i in range(n):
+            ax.plot(time, output[var][:, i], color=colors[i])
+        ax.set_xlabel('Time [s]')
+        ax.set_ylabel(var, wrap=True)
 
 
 def show_plots():
