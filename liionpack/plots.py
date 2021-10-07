@@ -3,7 +3,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 from sympy import init_printing
-import textwrap
 
 
 init_printing(pretty_print=False)
@@ -244,7 +243,7 @@ def plot_cells(output):
         ax.set_ylabel(var, wrap=True)
 
 
-def show_plots():
+def show_plots():  # pragma: no cover
     """
     Wrapper function for the Matplotlib show() function.
     """
