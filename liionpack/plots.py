@@ -189,40 +189,106 @@ def cell_scatter_plot(ax, X, Y, c, text_prec=1, **kwargs):
     _cell_text_numbers(ax, X, Y, text_colors)
 
 
-def plot_output(output):
-    r'''
-    Plot the simulation output
+def plot_pack(output):
+    """
+    Plot the battery pack voltage and current.
 
     Parameters
     ----------
     output : dict
-        Output from liionpack.solve. Dictionary of pack and cell variables
+        Output from liionpack.solve which contains pack and cell variables.
+    """
 
-    Returns
-    -------
-    None.
-
-    '''
-    # Plot pack level summary
+    # Get pack level results
     time = output['Time [s]']
-    V_terminal = output['Pack terminal voltage [V]']
-    I_terminal = output['Pack current [A]']
-    fig, ax = plt.subplots()
-    ax.plot(time, V_terminal, color='red', label='simulation')
+    v_pack = output['Pack terminal voltage [V]']
+    i_pack = output['Pack current [A]']
+
+    # Plot pack voltage and current
+    _, ax = plt.subplots(tight_layout=True)
+    ax.plot(time, v_pack, color='red', label='simulation')
     ax.set_xlabel('Time [s]')
     ax.set_ylabel('Pack terminal voltage [V]', color='red')
-    ax2=ax.twinx()
-    ax2.plot(time, I_terminal, color='blue', label='simulation')
+    ax2 = ax.twinx()
+    ax2.plot(time, i_pack, color='blue', label='simulation')
     ax2.set_ylabel('Pack current [A]', color='blue')
-    plt.title('Pack Summary')
+    ax2.set_title('Pack Summary')
+
+
+def plot_cells(output):
+    """
+    Plot results for the battery cells.
+
+    Parameters
+    ----------
+    output : dict
+        Output from liionpack.solve which contains pack and cell variables.
+    """
+
+    # Get results for the battery cells
+    time = output['Time [s]']
+    v_cells = output['Terminal voltage [V]']
+    i_cells = output['Cell current [A]']
+    ocv_cells = output['Measured battery open circuit voltage [V]']
+    ecm_cells = output['Local ECM resistance [Ohm]']
+    heat_cells = output['X-averaged total heating [W.m-3]']
+    temp_cells = output['Volume-averaged cell temperature [K]']
+    negconc_cells = output['X-averaged negative particle surface concentration [mol.m-3]']
+    posconc_cells = output['X-averaged positive particle surface concentration [mol.m-3]']
+
+    # Get number of cells and create colormap
+    n = len(v_cells[0])
+    colors = plt.cm.jet(np.linspace(0, 1, n))
+
+    # Plot voltages
+    _, ax = plt.subplots(tight_layout=True)
+    for i in range(n):
+        ax.plot(time, v_cells[:, i], color=colors[i])
+    ax.set_xlabel('Time [s]')
+    ax.set_ylabel('Terminal voltage [V]')
+
+    # Plot currents
+    _, ax = plt.subplots(tight_layout=True)
+    for i in range(n):
+        ax.plot(time, i_cells[:, i], color=colors[i])
+    ax.set_xlabel('Time [s]')
+    ax.set_ylabel('Cell current [A]')
+
+    # Plot open circuit voltages
+    _, ax = plt.subplots(tight_layout=True)
+    for i in range(n):
+        ax.plot(time, ocv_cells[:, i], color=colors[i])
+    ax.set_xlabel('Time [s]')
+    ax.set_ylabel('Open circuit voltage [V]')
+
+    # Plot resistances
+    _, ax = plt.subplots(tight_layout=True)
+    for i in range(n):
+        ax.plot(time, ecm_cells[:, i], color=colors[i])
+    ax.set_xlabel('Time [s]')
+    ax.set_ylabel('ECM resistance [Ω]')
+
+    # Plot heating and temperatures
+    _, (ax1, ax2) = plt.subplots(2, sharex=True, tight_layout=True)
+    for i in range(n):
+        ax1.plot(time, heat_cells[:, i], color=colors[i])
+        ax2.plot(time, temp_cells[:, i], color=colors[i])
+    ax1.set_ylabel('Total heating [W/m³]')
+    ax2.set_xlabel('Time [s]')
+    ax2.set_ylabel('Temperature [K]')
+
+    # Plot surface concentrations
+    _, (ax1, ax2) = plt.subplots(2, sharex=True, tight_layout=True)
+    for i in range(n):
+        ax1.plot(time, negconc_cells[:, i], color=colors[i])
+        ax2.plot(time, posconc_cells[:, i], color=colors[i])
+    ax1.set_ylabel('Neg. surface conc. [mol/m³]')
+    ax2.set_xlabel('Time [s]')
+    ax2.set_ylabel('Pos. surface conc. [mol/m³]')
+
+
+def show_plots():
+    """
+    Wrapper function for the Matplotlib show() function.
+    """
     plt.show()
-    # Get all the output variables that are multidimensional
-    # One column for each cell
-    cell_vars = [k for k in output.keys() if len(output[k].shape) > 1]
-    Nspm  = output[cell_vars[0]].shape[-1]
-    colors = plt.cm.jet(np.linspace(0, 1, Nspm))
-    for plot_var in cell_vars:
-        plt.figure()
-        for i in range(Nspm):
-            plt.plot(time[:], output[plot_var][:, i], color=colors[i])
-        plt.title(plot_var)
