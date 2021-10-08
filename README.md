@@ -83,3 +83,7 @@ output = lp.solve(netlist=netlist,
                   output_variables=output_variables,
                   htc=htc)
 ```
+
+## Acknowledgments
+
+The development work carried out by members at Oak Ridge National Laboratory was partially sponsored by the Office of Electricity under the United States Department of Energy (DOE).
