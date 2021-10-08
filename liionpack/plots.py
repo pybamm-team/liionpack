@@ -241,6 +241,7 @@ def plot_cells(output):
             ax.plot(time, output[var][:, i], color=colors[i])
         ax.set_xlabel('Time [s]')
         ax.set_ylabel(var, wrap=True)
+        ax.ticklabel_format(axis='y', scilimits=[-5, 5])
 
 
 def show_plots():  # pragma: no cover
