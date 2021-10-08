@@ -3,6 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 from sympy import init_printing
+import textwrap
 
 
 init_printing(pretty_print=False)
@@ -240,8 +241,22 @@ def plot_cells(output):
         for i in range(n):
             ax.plot(time, output[var][:, i], color=colors[i])
         ax.set_xlabel('Time [s]')
-        ax.set_ylabel(var, wrap=True)
+        ax.set_ylabel(textwrap.fill(var, 40))
         ax.ticklabel_format(axis='y', scilimits=[-5, 5])
+        plt.tight_layout()
+
+def plot_output(output):
+    r'''
+    Plot all results for pack and cells
+
+    Parameters
+    ----------
+    output : dict
+        Output from liionpack.solve which contains pack and cell variables.
+
+    '''
+    plot_pack(output)
+    plot_cells(output)
 
 
 def show_plots():  # pragma: no cover

@@ -10,4 +10,5 @@ lcapy
 Ipython
 scikit-spatial
 networkx
+textwrapper
 

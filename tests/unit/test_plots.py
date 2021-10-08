@@ -67,6 +67,10 @@ class plotsTest(unittest.TestCase):
         lp.plot_cells(self.output)
         plt.close('all')
 
+    def test_plot_output(self):
+        lp.plot_output(self.output)
+        plt.close('all')
+
 
 if __name__ == '__main__':
     unittest.main()
