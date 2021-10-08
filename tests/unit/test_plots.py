@@ -59,10 +59,18 @@ class plotsTest(unittest.TestCase):
         lp.cell_scatter_plot(ax, X_pos, Y_pos, c=data)
         plt.close('all')
 
+    def test_plot_pack(self):
+        lp.plot_pack(self.output)
+        plt.close('all')
+
+    def test_plot_cells(self):
+        lp.plot_cells(self.output)
+        plt.close('all')
+
     def test_plot_output(self):
         lp.plot_output(self.output)
         plt.close('all')
-        
+
 
 if __name__ == '__main__':
     unittest.main()
