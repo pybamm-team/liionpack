@@ -237,13 +237,13 @@ def plot_cells(output):
 
     # Create plot figures for cell variables
     for var in cell_vars:
-        _, ax = plt.subplots()
+        _, ax = plt.subplots(tight_layout=True)
         for i in range(n):
             ax.plot(time, output[var][:, i], color=colors[i])
         ax.set_xlabel('Time [s]')
-        ax.set_ylabel(textwrap.fill(var, 40))
+        ax.set_ylabel(textwrap.fill(var, 45))
         ax.ticklabel_format(axis='y', scilimits=[-5, 5])
-        plt.tight_layout()
+
 
 def plot_output(output):
     r'''
