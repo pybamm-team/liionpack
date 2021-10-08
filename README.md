@@ -85,5 +85,6 @@ output = lp.solve(netlist=netlist,
 ```
 
 ## Acknowledgments
+PyBaMM-team acknowledges the funding and support of the Faraday Institution's multi-scale modelling project and Innovate UK. 
 
 The development work carried out by members at Oak Ridge National Laboratory was partially sponsored by the Office of Electricity under the United States Department of Energy (DOE).
