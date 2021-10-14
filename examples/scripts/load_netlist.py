@@ -34,7 +34,10 @@ output_variables = [
 htc = np.ones(Nspm) * 10
 
 # Cycling protocol
-protocol = lp.generate_protocol()
+protocol = pybamm.Experiment(
+    ["Charge at 50 A for 30 minutes", "Rest for 15 minutes", "Discharge at 50 A for 30 minutes", "Rest for 30 minutes"],
+    period="10 seconds",
+)
 
 # PyBaMM parameters
 chemistry = pybamm.parameter_sets.Chen2020
