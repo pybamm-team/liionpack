@@ -13,6 +13,67 @@ import matplotlib.pyplot as plt
 from tqdm import tqdm
 
 
+def _serial_step(model, solutions, inputs_dict, integrator, variables, t_eval):
+    r'''
+    Internal function to process the model for one timestep in a mapped way.
+    Mapped versions of the integrator and variables functions should already
+    have been made.
+
+    Parameters
+    ----------
+    model : pybamm.Model
+        The built model
+    solutions : list of pybamm.Solution objects for each battery
+        Used to get the last state of the system and use as x0 and z0 for the
+        casadi integrator
+    inputs_dict : list of inputs_dict objects for each battery
+        DESCRIPTION.
+    integrator : mapped casadi.integrator
+        Produced by _create_casadi_objects
+    variables : mapped variables evaluator
+        Produced by _create_casadi_objects
+    t_eval : float array of times to evaluate
+        Produced by _create_casadi_objects
+
+    Returns
+    -------
+    sol : list
+        solutions that have been stepped forward by one timestep
+    var_eval : list
+        evaluated variables for final state of system
+
+    '''
+    len_rhs = model.concatenated_rhs.size
+    N = len(solutions)
+    t_min = 0.0
+    timer = pybamm.Timer()
+    sol = []
+    var_eval = []
+    for k in range(N):
+        if solutions[k] is None:
+            # First pass
+            x0 = model.y0[:len_rhs]
+            z0 = model.y0[len_rhs:]
+        else:
+            x0 = solutions[k].y[:len_rhs, -1]
+            z0 = solutions[k].y[len_rhs:, -1]
+        temp = inputs_dict[k]
+        inputs = casadi.vertcat(*[x for x in temp.values()]+[t_min])
+        ninputs = len(temp.values())
+        # Call the integrator once, with the grid
+        casadi_sol = integrator(
+            x0=x0, z0=z0, p=inputs
+        )
+        y_sol = casadi_sol["xf"]
+        xend = y_sol[:, -1]
+        sol.append(pybamm.Solution(t_eval, y_sol, model,
+                                   inputs_dict[k]))
+        var_eval.append(variables(0, xend, 0, inputs[0:ninputs]))
+        integration_time = timer.time()
+        sol[-1].integration_time = integration_time
+
+    return sol, casadi.horzcat(*var_eval)
+
 def _mapped_step(model, solutions, inputs_dict, integrator, variables, t_eval):
     r'''
     Internal function to process the model for one timestep in a mapped way.
@@ -84,7 +145,8 @@ def _mapped_step(model, solutions, inputs_dict, integrator, variables, t_eval):
     var_eval = variables(0, xend, 0, inputs[0:ninputs, :])
     return sol, var_eval
 
-def _create_casadi_objects(I_init, htc, sim, dt, Nspm, nproc, variable_names):
+def _create_casadi_objects(I_init, htc, sim, dt, Nspm, nproc, variable_names,
+                           mapped):
     r'''
     Internal function to produce the casadi objects in their mapped form for
     parallel evaluation
@@ -107,6 +169,8 @@ def _create_casadi_objects(I_init, htc, sim, dt, Nspm, nproc, variable_names):
     variable_names : list
         Variables to evaluate during solve. Must be a valid key in the
         model.variables
+    mapped : boolean
+        Use the mapped casadi objects, default is True
 
     Returns
     -------
@@ -137,8 +201,10 @@ def _create_casadi_objects(I_init, htc, sim, dt, Nspm, nproc, variable_names):
     # Includes conduction with any other circuits or neighboring batteries
     # inp_and_ext.update(external_variables)
     
-    integrator = solver.create_integrator(sim.built_model, inputs=inp_and_ext, t_eval=t_eval_ndim)
-    integrator = integrator.map(Nspm, 'thread', nproc)
+    integrator = solver.create_integrator(sim.built_model, inputs=inp_and_ext,
+                                          t_eval=t_eval_ndim)
+    if mapped:
+        integrator = integrator.map(Nspm, 'thread', nproc)
 
     # Variables function for parallel evaluation
     casadi_objs = sim.built_model.export_casadi_objects(variable_names=variable_names)
@@ -146,7 +212,8 @@ def _create_casadi_objects(I_init, htc, sim, dt, Nspm, nproc, variable_names):
     t, x, z, p = casadi_objs["t"], casadi_objs["x"], casadi_objs["z"], casadi_objs["inputs"]
     variables_stacked = casadi.vertcat(*variables.values())
     variables_fn = casadi.Function("variables", [t, x, z, p], [variables_stacked])
-    variables_fn = variables_fn.map(Nspm, 'thread', nproc)
+    if mapped:
+        variables_fn = variables_fn.map(Nspm, 'thread', nproc)
     return integrator, variables_fn, t_eval
 
 
@@ -154,7 +221,7 @@ def solve(netlist=None, parameter_values=None, experiment=None,
           I_init=1.0, htc=None, initial_soc=0.5,
           nproc=12,
           output_variables=None,
-          ):
+          mapped=True):
     r'''
     Solves a pack simulation
 
@@ -179,6 +246,8 @@ def solve(netlist=None, parameter_values=None, experiment=None,
     output_variables : list, optional
         Variables to evaluate during solve. Must be a valid key in the
         model.variables
+    mapped : boolean
+        Use the mapped casadi objects, default is True
 
     Raises
     ------
@@ -246,14 +315,18 @@ def solve(netlist=None, parameter_values=None, experiment=None,
     integrator, variables_fn, t_eval = _create_casadi_objects(I_init, htc[0],
                                                               sim, dt, Nspm,
                                                               nproc,
-                                                              variable_names)
+                                                              variable_names,
+                                                              mapped)
 
- 
+    if mapped:
+        step_fn = _mapped_step
+    else:
+        step_fn = _serial_step
     sim_start_time = ticker.time()
     for step in tqdm(range(Nsteps), desc='Solving Pack'):
-        step_solutions, var_eval = _mapped_step(sim.built_model, step_solutions,
-                                                lp.build_inputs_dict(shm_i_app[step, :], htc),
-                                                integrator, variables_fn, t_eval)
+        step_solutions, var_eval = step_fn(sim.built_model, step_solutions,
+                                           lp.build_inputs_dict(shm_i_app[step, :], htc),
+                                           integrator, variables_fn, t_eval)
         output[:, step, :] = var_eval
 
         time += dt
