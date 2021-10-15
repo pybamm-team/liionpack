@@ -150,8 +150,8 @@ def _create_casadi_objects(I_init, htc, sim, dt, Nspm, nproc, variable_names):
     return integrator, variables_fn, t_eval
 
 
-def solve(netlist=None, parameter_values=None, protocol=None,
-          dt=10, I_init=1.0, htc=None, initial_soc=0.5,
+def solve(netlist=None, parameter_values=None, experiment=None,
+          I_init=1.0, htc=None, initial_soc=0.5,
           nproc=12,
           output_variables=None,
           ):
@@ -165,11 +165,9 @@ def solve(netlist=None, parameter_values=None, protocol=None,
         Produced by liionpack.read_netlist or liionpack.setup_circuit
     parameter_values : pybamm.ParameterValues class
         A dictionary of all the model parameters
-    proto : list
-        a sequence of terminal currents to apply at each timestep. Produced by
-        liionpack.generate_protocol
-    dt : float, optional
-        Time interval for a single step [s]. The default is 10.
+    experiment : pybamm.Experiment class
+        The experiment to be simulated. experiment.period is used to
+        determine the length of each timestep.
     I_init : float, optional
         Initial guess for single battery current [A]. The default is 1.0.
     htc : float array, optional
@@ -194,9 +192,8 @@ def solve(netlist=None, parameter_values=None, protocol=None,
 
     '''
 
-    if netlist is None or parameter_values is None or protocol is None:
-        raise Exception('Please supply a netlist, paramater_values and protocol')
-
+    if netlist is None or parameter_values is None or experiment is None:
+        raise Exception('Please supply a netlist, paramater_values, and experiment')
 
     # Get netlist indices for resistors, voltage sources, current sources
     Ri_map = netlist['desc'].str.find('Ri') > -1
@@ -205,6 +202,8 @@ def solve(netlist=None, parameter_values=None, protocol=None,
     
     Nspm = np.sum(V_map)
 
+    protocol = lp.generate_protocol_from_experiment(experiment)
+    dt = experiment.period
     Nsteps = len(protocol)
     
     # Solve the circuit to initialise the electrochemical models

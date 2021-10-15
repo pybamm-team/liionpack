@@ -33,8 +33,8 @@ output_variables = [
 # Heat transfer coefficients
 htc = np.ones(Nspm) * 10
 
-# Cycling protocol
-protocol = pybamm.Experiment(
+# Cycling experiment
+experiment = pybamm.Experiment(
     ["Charge at 50 A for 30 minutes", "Rest for 15 minutes", "Discharge at 50 A for 30 minutes", "Rest for 30 minutes"],
     period="10 seconds",
 )
@@ -46,7 +46,7 @@ parameter_values = pybamm.ParameterValues(chemistry=chemistry)
 # Solve pack
 output = lp.solve(netlist=netlist,
                   parameter_values=parameter_values,
-                  protocol=protocol,
+                  experiment=experiment,
                   output_variables=output_variables,
                   htc=htc)
 X_pos = [0.080052414,0.057192637,0.080052401,0.057192662,0.080052171,0.057192208,0.080052285,0.057192264,

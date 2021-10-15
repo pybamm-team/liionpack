@@ -288,7 +288,7 @@ def solve_circuit(netlist):
     Name = np.array(netlist['desc']).astype('<U16')
     N1 = np.array(netlist['node1'])
     N2 = np.array(netlist['node2'])
-    arg3 = np.array(netlist['value'])
+    value = np.array(netlist['value'])
     n = np.concatenate((N1, N2)).max()  # Highest node number
     nLines = netlist.shape[0]
     m = 0  # "m" is the number of voltage sources, determined below.
@@ -320,7 +320,7 @@ def solve_circuit(netlist):
         n2 = N2[k1] - 1
         elem = Name[k1][0]
         if elem == 'R':
-            g = 1 / arg3[k1]  # conductance = 1 / R
+            g = 1 / value[k1]  # conductance = 1 / R
             """
             % Here we fill in G array by adding conductance.
             % The procedure is slightly different if one of the nodes is
@@ -340,14 +340,14 @@ def solve_circuit(netlist):
                 B[n1, vsCnt] = B[n1, vsCnt] + 1
             if n2 >= 0:
                 B[n2, vsCnt] = B[n2, vsCnt] - 1
-            e[vsCnt] = arg3[k1]
+            e[vsCnt] = value[k1]
             vsCnt += 1
 
         elif elem == 'I':
             if n1 >= 0:
-                i[n1] = i[n1] - arg3[k1]
+                i[n1] = i[n1] - value[k1]
             if n2 >= 0:
-                i[n2] = i[n2] + arg3[k1]
+                i[n2] = i[n2] + value[k1]
 
     upper = np.hstack((G, B))
     lower = np.hstack((B.T, D))
