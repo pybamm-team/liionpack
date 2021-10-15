@@ -15,9 +15,7 @@ from tqdm import tqdm
 
 def _serial_step(model, solutions, inputs_dict, integrator, variables, t_eval):
     r'''
-    Internal function to process the model for one timestep in a mapped way.
-    Mapped versions of the integrator and variables functions should already
-    have been made.
+    Internal function to process the model for one timestep in a serial way.
 
     Parameters
     ----------
@@ -28,12 +26,12 @@ def _serial_step(model, solutions, inputs_dict, integrator, variables, t_eval):
         casadi integrator
     inputs_dict : list of inputs_dict objects for each battery
         DESCRIPTION.
-    integrator : mapped casadi.integrator
-        Produced by _create_casadi_objects
-    variables : mapped variables evaluator
-        Produced by _create_casadi_objects
+    integrator : casadi.integrator
+        Produced by _create_casadi_objects when mapped = False
+    variables : variables evaluator
+        Produced by _create_casadi_objects when mapped = False
     t_eval : float array of times to evaluate
-        Produced by _create_casadi_objects
+        Produced by _create_casadi_objects when mapped = False
 
     Returns
     -------
@@ -90,11 +88,11 @@ def _mapped_step(model, solutions, inputs_dict, integrator, variables, t_eval):
     inputs_dict : list of inputs_dict objects for each battery
         DESCRIPTION.
     integrator : mapped casadi.integrator
-        Produced by _create_casadi_objects
+        Produced by _create_casadi_objects when mapped = True
     variables : mapped variables evaluator
-        Produced by _create_casadi_objects
+        Produced by _create_casadi_objects when mapped = True
     t_eval : float array of times to evaluate
-        Produced by _create_casadi_objects
+        Produced by _create_casadi_objects when mapped = True
 
     Returns
     -------
