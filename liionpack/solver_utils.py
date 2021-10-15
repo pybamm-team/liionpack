@@ -294,3 +294,26 @@ def solve(netlist=None, parameter_values=None, experiment=None,
     pybamm.logger.notice('Solve circuit time '+
                           str(np.around(toc-sim_start_time, 3)) + 's')
     return all_output
+
+
+def solve_dask(
+        netlist=None, parameter_values=None, protocol=None, dt=10,
+        I_init=1.0, htc=None, initial_soc=0.5, nproc=12, output_variables=None):
+    """
+    Solves a battery pack simulation where Dask is used to solve the PyBaMM
+    battery cell models in parallel.
+    """
+    if None in (netlist, parameter_values, protocol):
+        raise Exception('Please supply a netlist, paramater_values, and protocol')
+
+    # Get netlist indices for resistors, voltage sources, current sources
+    Ri_map = netlist['desc'].str.find('Ri') > -1
+    V_map = netlist['desc'].str.find('V') > -1
+    I_map = netlist['desc'].str.find('I') > -1
+
+    # Number of battery cell models and number of time steps
+    Nspm = sum(V_map)
+    Nsteps = len(protocol)
+
+    # more coming soon...
+    return 1
