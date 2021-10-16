@@ -1,5 +1,5 @@
 #
-# Logging class for PyBaMM
+# Logging class for liionpack, based on PyBaMM
 # Includes additional logging levels inspired by verboselogs
 # https://pypi.org/project/verboselogs/#overview-of-logging-levels
 #
