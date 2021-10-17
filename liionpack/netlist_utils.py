@@ -81,7 +81,7 @@ def read_netlist(filepath, Ri=1e-2, Rc=1e-2, Rb=1e-4, Rl=5e-4, I=80.0, V=4.2):
         # then allocates the value to the corresponding indices
         netlist.loc[name_map, ('value')] = val
 
-    pybamm.logger.notice('netlist ' + filepath + ' loaded')
+    lp.logger.notice('netlist ' + filepath + ' loaded')
     return netlist
 
 
@@ -275,7 +275,7 @@ def setup_circuit(Np=1, Ns=1, Ri=1e-2, Rc=1e-2, Rb=1e-4, Rl=5e-4, I=80.0, V=4.2,
     netlist = pd.DataFrame({'desc': desc, 'node1': node1,
                             'node2': node2, 'value': value})
 
-    pybamm.logger.notice("Circuit created")
+    lp.logger.notice("Circuit created")
     return netlist
 
 def solve_circuit(netlist):
@@ -385,7 +385,7 @@ def solve_circuit(netlist):
     z = np.vstack((i, e))
     Aspr = sp.sparse.csr_matrix(A)
     toc_setup = timer.time()
-    pybamm.logger.debug(f"Circuit set up in {toc_setup}")
+    lp.logger.debug(f"Circuit set up in {toc_setup}")
     
     # Scipy
     # X = solve(A, z).flatten()
@@ -405,7 +405,7 @@ def solve_circuit(netlist):
     I_batt = X[n:]
 
     toc = timer.time()
-    pybamm.logger.debug(f"Circuit solved in {toc - toc_setup}")
-    pybamm.logger.info(f"Circuit set up and solved in {toc}")
+    lp.logger.debug(f"Circuit solved in {toc - toc_setup}")
+    lp.logger.info(f"Circuit set up and solved in {toc}")
 
     return V_node, I_batt
