@@ -23,8 +23,8 @@ class solver_utilsTest(unittest.TestCase):
 
         # Heat transfer coefficients
         self.htc = np.ones(Nspm) * 10
-        # Cycling protocol
-        self.protocol = lp.test_protocol()
+        # Cycling experiment
+        self.experiment = lp.test_experiment()
         # PyBaMM parameters
         chemistry = pybamm.parameter_sets.Chen2020
         self.parameter_values = pybamm.ParameterValues(chemistry=chemistry)
@@ -38,7 +38,7 @@ class solver_utilsTest(unittest.TestCase):
     def test_solve(self):
         output = lp.solve(netlist=self.netlist,
                           parameter_values=self.parameter_values,
-                          protocol=self.protocol,
+                          experiment=self.experiment,
                           output_variables=None,
                           htc=self.htc)
         print(output['Terminal voltage [V]'].shape)
@@ -54,7 +54,7 @@ class solver_utilsTest(unittest.TestCase):
             ]
         output = lp.solve(netlist=self.netlist,
                           parameter_values=self.parameter_values,
-                          protocol=self.protocol,
+                          experiment=self.experiment,
                           output_variables=output_variables,
                           htc=self.htc)
         assert output['X-averaged total heating [W.m-3]'].shape == (90, 32)

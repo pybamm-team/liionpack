@@ -1,4 +1,5 @@
 import liionpack as lp
+from tests import test_experiment
 import matplotlib.pyplot as plt
 import numpy as np
 import pybamm
@@ -22,15 +23,15 @@ class plotsTest(unittest.TestCase):
 
         # Heat transfer coefficients
         htc = np.ones(Nspm) * 10
-        # Cycling protocol
-        protocol = lp.test_protocol()
+        # Cycling experiment
+        experiment = test_experiment()
         # PyBaMM parameters
         chemistry = pybamm.parameter_sets.Chen2020
         parameter_values = pybamm.ParameterValues(chemistry=chemistry)
         # Solve pack
         output = lp.solve(netlist=netlist,
                           parameter_values=parameter_values,
-                          protocol=protocol,
+                          experiment=experiment,
                           output_variables=None,
                           htc=htc)
         self.output = output

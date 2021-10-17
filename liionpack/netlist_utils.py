@@ -345,9 +345,9 @@ def solve_circuit(netlist):
 
         elif elem == 'I':
             if n1 >= 0:
-                i[n1] = i[n1] - value[k1]
+                i[n1] = i[n1] + value[k1]
             if n2 >= 0:
-                i[n2] = i[n2] + value[k1]
+                i[n2] = i[n2] - value[k1]
 
     upper = np.hstack((G, B))
     lower = np.hstack((B.T, D))
