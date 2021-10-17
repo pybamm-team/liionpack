@@ -14,5 +14,6 @@ from .sim_utils import *
 from .solver_utils import *
 from .protocols import *
 from .plots import *
+from .logger import *
 
 __version__ = "0.0.1"
