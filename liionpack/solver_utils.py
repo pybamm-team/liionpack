@@ -404,14 +404,14 @@ def _step_dask(input_dict, solution, model, integrator, variables, t_eval):
 
 
 def solve_dask(
-        netlist=None, parameter_values=None, protocol=None, dt=10, I_init=1.0,
-        htc=None, initial_soc=0.5, nproc=12, output_variables=None):
+        netlist=None, parameter_values=None, experiment=None, I_init=1.0,
+        htc=None, initial_soc=0.5, nproc=12, output_variables=None, mapped=True):
     """
     Solves a battery pack simulation where Dask is used to solve the PyBaMM
     battery cell models in parallel.
     """
-    if netlist is None or parameter_values is None or protocol is None:
-        raise Exception('Please supply a netlist, paramater_values, and protocol')
+    if netlist is None or parameter_values is None or experiment is None:
+        raise Exception('Please supply a netlist, paramater_values, and experiment')
 
     # Setup client for Dask distributed scheduler
     client = Client()
@@ -422,8 +422,12 @@ def solve_dask(
     V_map = netlist['desc'].str.find('V') > -1
     I_map = netlist['desc'].str.find('I') > -1
 
-    # Number of battery cell models and number of time steps
+    # Number of battery cell models
     Nspm = sum(V_map)
+
+    # Number of time steps
+    protocol = lp.generate_protocol_from_experiment(experiment)
+    dt = experiment.period
     Nsteps = len(protocol)
 
     # Solve the circuit to initialize the electrochemical cell models
