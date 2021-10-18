@@ -59,19 +59,18 @@ def _mapped_step(model, solutions, inputs_dict, integrator, variables, t_eval):
 
     ninputs = len(temp.values())
     inputs = casadi.horzcat(*inputs)
-
     # p = casadi.horzcat(*zip(inputs, external_variables, [t_min]*N))
     # inputs_with_tmin = casadi.vertcat(inputs, np.asarray(t_min))
 
     # Call the integrator once, with the grid
     timer = pybamm.Timer()
-
     casadi_sol = integrator(x0=x0, z0=z0, p=inputs)
+
+    integration_time = timer.time()
+    nt = len(t_eval)
     xf = casadi_sol["xf"]
     # zf = casadi_sol["zf"]
 
-    nt = len(t_eval)
-    integration_time = timer.time()
     sol = []
     xend = []
 
@@ -85,7 +84,6 @@ def _mapped_step(model, solutions, inputs_dict, integrator, variables, t_eval):
 
     xend = casadi.horzcat(*xend)
     var_eval = variables(0, xend, 0, inputs[0:ninputs, :])
-
     return sol, var_eval
 
 
@@ -133,7 +131,7 @@ def _create_casadi_objects(I_init, htc, sim, dt, Nspm, nproc, variable_names):
     t_eval = np.linspace(0, 1, 2)
 
     # Initial solution - this builds the model behind the scenes
-    # sol_init = sim.solve(t_eval, inputs=inputs)
+    sim.solve(t_eval, inputs=inputs)
 
     # step model
     # Code to create mapped integrator
@@ -160,13 +158,10 @@ def _create_casadi_objects(I_init, htc, sim, dt, Nspm, nproc, variable_names):
     return integrator, variables_fn, t_eval
 
 
-def solve(netlist=None, parameter_values=None, experiment=None,
-          I_init=1.0, htc=None, initial_soc=0.5,
-          nproc=12,
-          output_variables=None,
-          ):
+def solve(netlist=None, parameter_values=None, experiment=None, I_init=1.0,
+          htc=None, initial_soc=0.5, nproc=12, output_variables=None,):
     """
-    Solves a pack simulation.
+    Solves a pack simulation
 
     Parameters
     ----------
@@ -200,6 +195,7 @@ def solve(netlist=None, parameter_values=None, experiment=None,
     output : ndarray shape [# variable, # steps, # batteries]
         simulation output array
     """
+
     if netlist is None or parameter_values is None or experiment is None:
         raise Exception('Please supply a netlist, paramater_values, and experiment')
 
@@ -228,7 +224,6 @@ def solve(netlist=None, parameter_values=None, experiment=None,
     variable_names = ['Terminal voltage [V]',
                       'Measured battery open circuit voltage [V]',
                       'Local ECM resistance [Ohm]']
-
     if output_variables is not None:
         for out in output_variables:
             if out not in variable_names:
@@ -247,7 +242,7 @@ def solve(netlist=None, parameter_values=None, experiment=None,
 
     time = 0
     # step = 0
-    end_time = dt*Nsteps
+    end_time = dt * Nsteps
     step_solutions = [None] * Nspm
     V_terminal = []
     record_times = []
@@ -258,11 +253,9 @@ def solve(netlist=None, parameter_values=None, experiment=None,
     sim_start_time = ticker.time()
 
     for step in tqdm(range(Nsteps), desc='Solving Pack'):
-        step_solutions, var_eval = _mapped_step(
-            sim.built_model, step_solutions,
-            lp.build_inputs_dict(shm_i_app[step, :], htc),
-            integrator, variables_fn, t_eval)
-
+        step_solutions, var_eval = _mapped_step(sim.built_model, step_solutions,
+                                                lp.build_inputs_dict(shm_i_app[step, :], htc),
+                                                integrator, variables_fn, t_eval)
         output[:, step, :] = var_eval
         time += dt
 
