@@ -35,7 +35,7 @@ htc = np.ones(Nspm) * 10
 
 # Cycling experiment
 experiment = pybamm.Experiment(
-    ["Charge at 50 A for 30 minutes", "Rest for 15 minutes", "Discharge at 50 A for 30 minutes", "Rest for 30 minutes"],
+    ["Charge at 50 A for 30 minutes", "Rest for 15 minutes", "Discharge at 50 A for 30 minutes", "Rest for 15 minutes"],
     period="10 seconds",
 )
 

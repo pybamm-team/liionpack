@@ -1,5 +1,4 @@
 import liionpack as lp
-from tests import test_experiment
 import matplotlib.pyplot as plt
 import numpy as np
 import pybamm
@@ -24,7 +23,13 @@ class plotsTest(unittest.TestCase):
         # Heat transfer coefficients
         htc = np.ones(Nspm) * 10
         # Cycling experiment
-        experiment = test_experiment()
+        experiment = pybamm.Experiment(
+            ["Charge at 50 A for 300 seconds",
+            "Rest for 150 seconds",
+            "Discharge at 50 A for 300 seconds",
+            "Rest for 300 seconds"],
+            period="10 seconds",
+        )
         # PyBaMM parameters
         chemistry = pybamm.parameter_sets.Chen2020
         parameter_values = pybamm.ParameterValues(chemistry=chemistry)

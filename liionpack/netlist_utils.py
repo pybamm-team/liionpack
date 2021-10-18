@@ -7,7 +7,6 @@ Created on Thu Sep 23 10:36:15 2021
 import numpy as np
 import codecs
 import pandas as pd
-import time as ticker
 import matplotlib.pyplot as plt
 import liionpack as lp
 import os
@@ -49,6 +48,7 @@ def read_netlist(filepath, Ri=1e-2, Rc=1e-2, Rb=1e-4, Rl=5e-4, I=80.0, V=4.2):
 
     '''
 
+    # Read in the netlist
     if '.cir' not in filepath:
         filepath += '.cir'
     if not os.path.isfile(filepath):
@@ -59,28 +59,28 @@ def read_netlist(filepath, Ri=1e-2, Rc=1e-2, Rb=1e-4, Rl=5e-4, I=80.0, V=4.2):
             filepath = temp
     with codecs.open(filepath, "r", "utf-16LE") as fd:
         Lines = fd.readlines()
+    # Ignore lines starting with * or .
     Lines = [l.strip('\n').split(' ') for l in Lines if l[0] not in ['*', '.']]
     Lines = np.array(Lines, dtype='<U16')
+
+    # Read descriptions and nodes, strip N from nodes
+    # Lines is desc | node1 | node2
     desc = Lines[:, 0]
-    N1 = Lines[:, 1]
-    N2 = Lines[:, 2]
-    # values = Lines[:, 3]
-    values = np.zeros(len(N1))
-    N1 = np.array([x.strip('N') for x in N1], dtype=int)
-    N2 = np.array([x.strip('N') for x in N2], dtype=int)
-    netlist = pd.DataFrame({'desc': desc, 'node1': N1, 'node2': N2, 'value': values})
-    Ri_map = netlist['desc'].str.find('Ri') > -1
-    Rc_map = netlist['desc'].str.find('Rc') > -1
-    Rb_map = netlist['desc'].str.find('Rb') > -1
-    Rl_map = netlist['desc'].str.find('Rl') > -1
-    V_map = netlist['desc'].str.find('V') > -1
-    I_map = netlist['desc'].str.find('I') > -1
-    netlist.loc[Ri_map, ('value')] = Ri
-    netlist.loc[Rc_map, ('value')] = Rc
-    netlist.loc[Rb_map, ('value')] = Rb
-    netlist.loc[Rl_map, ('value')] = Rl
-    netlist.loc[I_map, ('value')] = I
-    netlist.loc[V_map, ('value')] = V
+    node1 = Lines[:, 1]
+    node2 = Lines[:, 2]
+    value = np.zeros(len(node1))
+    node1 = np.array([x.strip('N') for x in node1], dtype=int)
+    node2 = np.array([x.strip('N') for x in node2], dtype=int)
+    netlist = pd.DataFrame({'desc': desc, 'node1': node1, 'node2': node2, 'value': value})
+
+    # Populate the values based on the descriptions (element types)
+    for name, val in [('Ri', Ri), ('Rc', Rc), ('Rb', Rb), ('Rl', Rl), ('I', I), ('V', V)]:
+        # netlist["desc"] consists of entries like 'Ri13'
+        # this map finds all the entries that start with (e.g.) 'Ri'
+        name_map = netlist['desc'].str.find(name) > -1
+        # then allocates the value to the corresponding indices
+        netlist.loc[name_map, ('value')] = val
+
     pybamm.logger.notice('netlist ' + filepath + ' loaded')
     return netlist
 
@@ -167,7 +167,7 @@ def setup_circuit(Np=1, Ns=1, Ri=1e-2, Rc=1e-2, Rb=1e-4, Rl=5e-4, I=80.0, V=4.2,
     value = []
     
 
-    # -ve busbars
+    # -ve busbars (final row of the grid)
     bus_nodes = [grid[-1, :]]
     for nodes in bus_nodes:
         for i in range(len(nodes) - 1):
@@ -210,7 +210,7 @@ def setup_circuit(Np=1, Ns=1, Ri=1e-2, Rc=1e-2, Rb=1e-4, Rl=5e-4, I=80.0, V=4.2,
             value.append(val)
             # netlist.append(netline)
 
-    # +ve busbar
+    # +ve busbar (first row of the grid)
     bus_nodes = [grid[0, :]]
     for nodes in bus_nodes:
         for i in range(len(nodes) - 1):
@@ -271,7 +271,9 @@ def setup_circuit(Np=1, Ns=1, Ri=1e-2, Rc=1e-2, Rb=1e-4, Rl=5e-4, I=80.0, V=4.2,
 
 def solve_circuit(netlist):
     r'''
-    
+    Generate and solve the Modified Nodal Equations (MNA) for the circuit.
+    This is a linear system Ax = z.
+    See http://lpsa.swarthmore.edu/Systems/Electrical/mna/MNA3.html
 
     Parameters
     ----------
@@ -283,20 +285,32 @@ def solve_circuit(netlist):
     None.
 
     '''
-    tic = ticker.time()
+    timer = pybamm.Timer()
 
-    Name = np.array(netlist['desc']).astype('<U16')
-    N1 = np.array(netlist['node1'])
-    N2 = np.array(netlist['node2'])
+    desc = np.array(netlist['desc']).astype('<U16')
+    node1 = np.array(netlist['node1'])
+    node2 = np.array(netlist['node2'])
     value = np.array(netlist['value'])
-    n = np.concatenate((N1, N2)).max()  # Highest node number
     nLines = netlist.shape[0]
+
+    n = np.concatenate((node1, node2)).max()  # Number of nodes (highest node number)
+    
     m = 0  # "m" is the number of voltage sources, determined below.
     V_elem = ['V', 'O', 'E', 'H']
-    for nm in Name:
+    for nm in desc:
         if nm[0] in V_elem:
             m += 1
 
+    # Construct the A matrix, which will be a (n+m) x (n+m) matrix
+    # A = [G    B]
+    #     [B.T  D]
+    # G matrix tracks the conductance between nodes (consists of floats)
+    # B matrix tracks voltage sources between nodes (consists of -1, 0, 1)
+    # D matrix is always zero for non-dependent sources
+    # Construct the z vector with length (n+m)
+    # z = [i]
+    #     [e]
+    # i is currents and e is voltages
     G = np.zeros([n, n])
     B = np.zeros([n, m])
     D = np.zeros([m, m])
@@ -316,10 +330,11 @@ def solve_circuit(netlist):
     """
 
     for k1 in range(nLines):
-        n1 = N1[k1] - 1  # get the two node numbers in python index format
-        n2 = N2[k1] - 1
-        elem = Name[k1][0]
+        n1 = node1[k1] - 1  # get the two node numbers in python index format
+        n2 = node2[k1] - 1
+        elem = desc[k1][0]
         if elem == 'R':
+            # Resistance elements: fill the G matrix only
             g = 1 / value[k1]  # conductance = 1 / R
             """
             % Here we fill in G array by adding conductance.
@@ -336,6 +351,7 @@ def solve_circuit(netlist):
                 G[n1, n2] = G[n1, n2] - g
                 G[n2, n1] = G[n2, n1] - g
         elif elem == 'V':
+            # Voltage elements: fill the B matrix and the e vector
             if n1 >= 0:
                 B[n1, vsCnt] = B[n1, vsCnt] + 1
             if n2 >= 0:
@@ -344,16 +360,21 @@ def solve_circuit(netlist):
             vsCnt += 1
 
         elif elem == 'I':
+            # Current elements: fill the i vector only
             if n1 >= 0:
                 i[n1] = i[n1] + value[k1]
             if n2 >= 0:
                 i[n2] = i[n2] - value[k1]
 
+    # Construct final matrices from sub-matrices
     upper = np.hstack((G, B))
     lower = np.hstack((B.T, D))
     A = np.vstack((upper, lower))
     z = np.vstack((i, e))
     Aspr = sp.sparse.csr_matrix(A)
+    toc_setup = timer.time()
+    pybamm.logger.debug(f"Circuit set up in {toc_setup}")
+    
     # Scipy
     # X = solve(A, z).flatten()
     X = sp.sparse.linalg.spsolve(Aspr, z).flatten()
@@ -365,12 +386,14 @@ def solve_circuit(netlist):
     # ml = pyamg.smoothed_aggregation_solver(Aspr)
     # X = ml.solve(b=z, tol=1e-6, maxiter=10, accel="bicgstab")
 
-    # include ground node
+    # include ground node (0V)
+    # it is counter-intuitive that z is [i,e] while X is [V,I], but this is correct
     V_node = np.zeros(n + 1)
     V_node[1:] = X[:n]
     I_batt = X[n:]
 
-    toc = ticker.time()
-    pybamm.logger.info("Circuit solved in " +
-                       str(np.around(toc-tic, 3)) + " s")
+    toc = timer.time()
+    pybamm.logger.debug(f"Circuit solved in {toc - toc_setup}")
+    pybamm.logger.info(f"Circuit set up and solved in {toc}")
+
     return V_node, I_batt
