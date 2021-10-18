@@ -50,9 +50,6 @@ We use [flake8](http://flake8.pycqa.org/en/latest/) to check our PEP8 adherence.
 ```bash
 flake8
 ```
-Flake8 is configured inside the file `tox.ini`, under the section `[flake8]`, allowing us to ignore some errors. If you think this should be added or removed, please submit an [issue](#issues)
-
-When you commit your changes they will be checked against flake8 automatically (see [infrastructure](#infrastructure)).
 
 
 ### Black
