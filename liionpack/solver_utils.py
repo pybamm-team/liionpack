@@ -399,7 +399,8 @@ def _step_dask(input_dict, solution, model, integrator, variables, t_eval):
     integration_time = timer.time()
     sol[-1].integration_time = integration_time
 
-    return sol, casadi.horzcat(*var_eval)
+    results = sol, casadi.horzcat(*var_eval)
+    return results
 
 
 def solve_dask(
@@ -479,12 +480,12 @@ def solve_dask(
         inputs_dict = lp.build_inputs_dict(shm_i_app[step, :], htc)
 
         # Calculate solution for each battery cell model
-        lazy_sols, lazy_vareval = client.map(
+        lazy_results = client.map(
             _step_dask, inputs_dict, step_solutions,
             model=sim.built_model, integrator=integrator, variables=variables_fn, t_eval=t_eval)
 
-        step_solutions = client.gather(lazy_sols)
-        var_eval = client.gather(lazy_vareval)
+        results = client.gather(lazy_results)
+        step_solutions, var_eval = zip(*results)
 
         breakpoint()
 
