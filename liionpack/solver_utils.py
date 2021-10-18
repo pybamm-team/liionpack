@@ -384,9 +384,8 @@ def _step_dask(input_dict, solution, model, integrator, variables, t_eval):
         x0 = solution.y[:len_rhs, -1]
         z0 = solution.y[len_rhs:, -1]
 
-    temp = input_dict
-    inputs = casadi.vertcat(*[x for x in temp.values()]+[t_min])
-    ninputs = len(temp.values())
+    inputs = casadi.vertcat(*[x for x in input_dict.values()]+[t_min])
+    ninputs = len(input_dict.values())
 
     # Call the integrator once, with the grid
     casadi_sol = integrator(x0=x0, z0=z0, p=inputs)
@@ -397,9 +396,9 @@ def _step_dask(input_dict, solution, model, integrator, variables, t_eval):
     var_eval = variables(0, xend, 0, inputs[0:ninputs])
 
     integration_time = timer.time()
-    sol[-1].integration_time = integration_time
+    sol.integration_time = integration_time
 
-    results = sol, casadi.horzcat(*var_eval)
+    results = sol, var_eval
     return results
 
 
@@ -416,6 +415,7 @@ def solve_dask(
     # Setup client for Dask distributed scheduler
     client = Client()
     print(client)
+    print(client.dashboard_link)
 
     # Get netlist indices for resistors, voltage sources, current sources
     Ri_map = netlist['desc'].str.find('Ri') > -1
@@ -425,7 +425,7 @@ def solve_dask(
     # Number of battery cell models
     Nspm = sum(V_map)
 
-    # Number of time steps
+    # Number of time steps from experiment
     protocol = lp.generate_protocol_from_experiment(experiment)
     dt = experiment.period
     Nsteps = len(protocol)
@@ -475,11 +475,8 @@ def solve_dask(
     integrator, variables_fn, t_eval = _create_casadi_objects(
         I_init, htc[0], sim, dt, Nspm, nproc, variable_names, mapped=False)
 
-    # Time at which solver begins solving for each time step
-    tic = ticker.time()
-
     # Calculate solutions for each time step
-    for step in range(Nsteps):
+    for step in tqdm(range(Nsteps), desc='Solving Pack'):
 
         inputs_dict = lp.build_inputs_dict(shm_i_app[step, :], htc)
 
@@ -491,16 +488,44 @@ def solve_dask(
         results = client.gather(lazy_results)
         step_solutions, var_eval = zip(*results)
 
-        breakpoint()
+        output[:, step, :] = casadi.horzcat(*var_eval)
+        time += dt
 
-        # >>> HERE <<<
+        # Calculate internal resistance and update netlist
+        temp_v = output[0, step, :]
+        temp_ocv = output[1, step, :]
+        temp_Ri = np.abs(output[2, step, :])
+        shm_Ri[step, :] = temp_Ri
 
-    # Elapsed time to solve circuit
-    toc = ticker.time()
-    print(f'Solve circuit time {toc - tic:.3f} s')
+        netlist.loc[V_map, ('value')] = temp_ocv
+        netlist.loc[Ri_map, ('value')] = temp_Ri
+        netlist.loc[I_map, ('value')] = protocol[step]
+
+        if np.any(temp_v < v_cut_lower):
+            print('Low V limit reached')
+            break
+        if np.any(temp_v > v_cut_higher):
+            print('High V limit reached')
+            break
+        # step += 1
+        if time <= end_time:
+            record_times.append(time)
+            V_node, I_batt = lp.solve_circuit(netlist)
+            V_terminal.append(V_node.max())
+        if time < end_time:
+            shm_i_app[step+1, :] = I_batt[:] * -1
+
+    all_output = {}
+    all_output['Time [s]'] = np.asarray(record_times)
+    all_output['Pack current [A]'] = np.asarray(protocol[:step+1])
+    all_output['Pack terminal voltage [V]'] = np.asarray(V_terminal)
+    all_output['Cell current [A]'] = shm_i_app[:step+1, :]
+
+    for j in range(Nvar):
+        all_output[variable_names[j]] = output[j, :step+1, :]
 
     # Stop the Dask distributed scheduler
     client.close()
     print(client)
 
-    return 1
+    return all_output
