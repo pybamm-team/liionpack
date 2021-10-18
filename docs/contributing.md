@@ -165,7 +165,7 @@ pybamm.print_citations()
 
 to the end of a script will print all citations that were used by that script. This will print bibtex information to the terminal; passing a filename to `print_citations` will print the bibtex information to the specified file instead.
 
-When you contribute code to PyBaMM, you can add your own papers that you would like to be cited if that code is used. First, add the bibtex for your paper to [CITATIONS.txt](pybamm/CITATIONS.txt). Then, add the line
+When you contribute code to PyBaMM, you can add your own papers that you would like to be cited if that code is used. First, add the bibtex for your paper to citations.txt. Then, add the line
 
 ```python3
 pybamm.citations.register("your_paper_bibtex_identifier")
@@ -189,7 +189,7 @@ Configuration files:
 setup.py
 ```
 
-Note that this file must be kept in sync with the version number in [liionpack/__init__.py](liionpack/__init__.py).
+Note that this file must be kept in sync with the version number in [liionpack/__init__.py](../liionpack/__init__.py).
 
 ### Continuous Integration using GitHub actions
 
@@ -220,9 +220,9 @@ To be completed
 
 GitHub does some magic with particular filenames. In particular:
 
-- The first page people see when they go to [our GitHub page](https://github.com/pybamm-team/liionpack) displays the contents of [README.md](README.md), which is written in the [Markdown](https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet) format. Some guidelines can be found [here](https://help.github.com/articles/about-readmes/).
+- The first page people see when they go to [our GitHub page](https://github.com/pybamm-team/liionpack) displays the contents of [README.md](../README.md), which is written in the [Markdown](https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet) format. Some guidelines can be found [here](https://help.github.com/articles/about-readmes/).
 - The license for using liionpack is stored in [LICENSE](LICENSE), and [automatically](https://help.github.com/articles/adding-a-license-to-a-repository/) linked to by GitHub.
-- This file, [CONTRIBUTING.md](CONTRIBUTING.md) is recognised as the contribution guidelines and a link is [automatically](https://github.com/blog/1184-contributing-guidelines) displayed when new issues or pull requests are created.
+- This file, [contributing.md](contributing.md) is recognised as the contribution guidelines and a link is [automatically](https://github.com/blog/1184-contributing-guidelines) displayed when new issues or pull requests are created.
 
 ## Acknowledgements
 
