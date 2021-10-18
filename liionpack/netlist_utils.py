@@ -362,9 +362,9 @@ def solve_circuit(netlist):
         elif elem == 'I':
             # Current elements: fill the i vector only
             if n1 >= 0:
-                i[n1] = i[n1] - value[k1]
+                i[n1] = i[n1] + value[k1]
             if n2 >= 0:
-                i[n2] = i[n2] + value[k1]
+                i[n2] = i[n2] - value[k1]
 
     # Construct final matrices from sub-matrices
     upper = np.hstack((G, B))

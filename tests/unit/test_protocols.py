@@ -1,3 +1,4 @@
+import pybamm
 import liionpack as lp
 import numpy as np
 import unittest
@@ -6,14 +7,27 @@ import unittest
 class protocolsTest(unittest.TestCase):
 
     def test_generate_protocol(self):
-        p = lp.generate_protocol()
-        assert len(p) == 540
-        p = lp.generate_protocol(chg_first=False)
-        assert np.sign(p[0]) == -1
+        experiment = pybamm.Experiment(
+            ["Charge at 50 A for 30 minutes",
+            "Rest for 15 minutes",
+            "Discharge at 50 A for 30 minutes",
+            "Rest for 15 minutes"],
+            period="10 seconds",
+        )
+        p = lp.generate_protocol_from_experiment(experiment)
+        self.assertEqual(len(p), 540)
+        self.assertEqual(np.sign(p[0]), -1)
 
-    def test_test_protocol(self):
-        p = lp.test_protocol()
-        assert len(p) == 90
+        experiment = pybamm.Experiment(
+            ["Discharge at 50 A for 30 minutes",
+            "Rest for 15 minutes",
+            "Charge at 50 A for 30 minutes",
+            "Rest for 15 minutes"],
+            period="10 seconds",
+        )
+        p = lp.generate_protocol_from_experiment(experiment)
+        self.assertEqual(len(p), 540)
+        self.assertEqual(np.sign(p[0]), 1)
 
 if __name__ == '__main__':
     unittest.main()
