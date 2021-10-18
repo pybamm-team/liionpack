@@ -15,7 +15,6 @@ class protocolsTest(unittest.TestCase):
             period="10 seconds",
         )
         p = lp.generate_protocol_from_experiment(experiment)
-        print(len(p))
         self.assertEqual(len(p), 540)
         self.assertEqual(np.sign(p[0]), -1)
 
