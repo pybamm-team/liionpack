@@ -1,17 +1,9 @@
+![logo](liionpack.png)
+
 # Welcome to liionpack
 
-For full documentation visit [mkdocs.org](https://www.mkdocs.org).
+The lithium-ion battery pack simulator powered by [PyBaMM](https://www.pybamm.org/). Liionpack allows you to specify pack configurations with numbers of cells connected in series and parallel or by uploading a netlist.
 
-## Commands
+Leverage the experiments and parameter sets from PyBaMM and scale up your simulations to pack level. Include thermal effects and account for pack position dependency with variable inputs for heat transfer.
 
-* `mkdocs new [dir-name]` - Create a new project.
-* `mkdocs serve` - Start the live-reloading docs server.
-* `mkdocs build` - Build the documentation site.
-* `mkdocs -h` - Print help message and exit.
-
-## Project layout
-
-    mkdocs.yml    # The configuration file.
-    docs/
-        index.md  # The documentation homepage.
-        ...       # Other markdown pages, images and other files.
+Include statistical distributions in the battery parameters.

@@ -2,6 +2,9 @@
 [![Documentation Status](https://readthedocs.org/projects/liionpack/badge/?version=latest)](https://liionpack.readthedocs.io/en/latest/?badge=latest)
 [![codecov](https://codecov.io/gh/pybamm-team/liionpack/branch/main/graph/badge.svg)](https://codecov.io/gh/pybamm-team/liionpack)
 
+
+![logo](docs/liionpack.png)
+
 # Overview of liionpack
 *liionpack* takes a 1D PyBaMM model and makes it into a pack. You can either specify
 the configuration e.g. 16 cells in parallel and 2 in series (16p2s) or load a
@@ -88,6 +91,6 @@ output = lp.solve(netlist=netlist,
 ```
 
 ## Acknowledgments
-PyBaMM-team acknowledges the funding and support of the Faraday Institution's multi-scale modelling project and Innovate UK. 
+PyBaMM-team acknowledges the funding and support of the Faraday Institution's multi-scale modelling project and Innovate UK.
 
 The development work carried out by members at Oak Ridge National Laboratory was partially sponsored by the Office of Electricity under the United States Department of Energy (DOE).
