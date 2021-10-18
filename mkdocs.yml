@@ -6,6 +6,10 @@ theme:
       primary: blue grey
     font:
       text: Saira
+
+strict:
+    false
+
 plugins:
 - search
 - mkdocstrings
