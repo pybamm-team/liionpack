@@ -1,5 +1,5 @@
 [![Python application](https://github.com/pybamm-team/liionpack/actions/workflows/python-app.yml/badge.svg)](https://github.com/pybamm-team/liionpack/actions/workflows/python-app.yml)
-[![Documentation Status](https://readthedocs.org/projects/liionpack/badge/?version=latest)](https://liionpack.readthedocs.io/en/latest/?badge=latest)
+[![Documentation Status](https://readthedocs.org/projects/liionpack/badge/?version=main)](https://liionpack.readthedocs.io/en/main/?badge=main)
 [![codecov](https://codecov.io/gh/pybamm-team/liionpack/branch/main/graph/badge.svg)](https://codecov.io/gh/pybamm-team/liionpack)
 
 
