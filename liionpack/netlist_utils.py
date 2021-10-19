@@ -371,8 +371,9 @@ def solve_circuit(netlist):
     upper = sp.sparse.hstack((G, B))
     lower = sp.sparse.hstack((B.T, D))
     A = sp.sparse.vstack((upper, lower))
-    # Convert a to csc sparse format for more efficient solving of the linear system
-    A_csc = sp.sparse.csc_matrix(A)
+    # Convert a to csr sparse format for more efficient solving of the linear system
+    # csr works slighhtly more robustly than csc
+    A_csr = sp.sparse.csr_matrix(A)
     z = np.vstack((i, e))
 
     toc_setup = timer.time()
@@ -380,7 +381,7 @@ def solve_circuit(netlist):
     
     # Scipy
     # X = solve(A, z).flatten()
-    X = sp.sparse.linalg.spsolve(A_csc, z).flatten()
+    X = sp.sparse.linalg.spsolve(A_csr, z).flatten()
     # Pypardiso
     # X = pypardiso.spsolve(Aspr, z).flatten()
     
