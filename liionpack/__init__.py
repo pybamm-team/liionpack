@@ -12,6 +12,7 @@ from .utils import *
 from .netlist_utils import *
 from .sim_utils import *
 from .solver_utils import *
+from .dask_utils import solve_dask
 from .protocols import *
 from .plots import *
 from .logger import *
