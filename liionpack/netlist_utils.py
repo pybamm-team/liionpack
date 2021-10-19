@@ -81,7 +81,7 @@ def read_netlist(filepath, Ri=1e-2, Rc=1e-2, Rb=1e-4, Rl=5e-4, I=80.0, V=4.2):
         # then allocates the value to the corresponding indices
         netlist.loc[name_map, ('value')] = val
 
-    pybamm.logger.notice('netlist ' + filepath + ' loaded')
+    lp.logger.notice('netlist ' + filepath + ' loaded')
     return netlist
 
 
@@ -266,7 +266,7 @@ def setup_circuit(Np=1, Ns=1, Ri=1e-2, Rc=1e-2, Rb=1e-4, Rl=5e-4, I=80.0, V=4.2,
     netlist = pd.DataFrame({'desc': desc, 'node1': node1,
                             'node2': node2, 'value': value})
 
-    pybamm.logger.notice("Circuit created")
+    lp.logger.notice("Circuit created")
     return netlist
 
 def solve_circuit(netlist):
@@ -311,9 +311,10 @@ def solve_circuit(netlist):
     # z = [i]
     #     [e]
     # i is currents and e is voltages
-    G = np.zeros([n, n])
-    B = np.zeros([n, m])
-    D = np.zeros([m, m])
+    # Use lil matrices to construct the A array
+    G = sp.sparse.lil_matrix((n, n))
+    B = sp.sparse.lil_matrix((n, m))
+    D = sp.sparse.lil_matrix((m, m))
     i = np.zeros([n, 1])
     e = np.zeros([m, 1])
 
@@ -367,18 +368,20 @@ def solve_circuit(netlist):
                 i[n2] = i[n2] - value[k1]
 
     # Construct final matrices from sub-matrices
-    upper = np.hstack((G, B))
-    lower = np.hstack((B.T, D))
-    A = np.vstack((upper, lower))
+    upper = sp.sparse.hstack((G, B))
+    lower = sp.sparse.hstack((B.T, D))
+    A = sp.sparse.vstack((upper, lower))
+    # Convert a to csr sparse format for more efficient solving of the linear system
+    # csr works slighhtly more robustly than csc
+    A_csr = sp.sparse.csr_matrix(A)
     z = np.vstack((i, e))
-    Aspr = sp.sparse.csr_matrix(A)
+
     toc_setup = timer.time()
-    pybamm.logger.debug(f"Circuit set up in {toc_setup}")
+    lp.logger.debug(f"Circuit set up in {toc_setup}")
     
     # Scipy
     # X = solve(A, z).flatten()
-    X = sp.sparse.linalg.spsolve(Aspr, z).flatten()
-    
+    X = sp.sparse.linalg.spsolve(A_csr, z).flatten()
     # Pypardiso
     # X = pypardiso.spsolve(Aspr, z).flatten()
     
@@ -393,7 +396,7 @@ def solve_circuit(netlist):
     I_batt = X[n:]
 
     toc = timer.time()
-    pybamm.logger.debug(f"Circuit solved in {toc - toc_setup}")
-    pybamm.logger.info(f"Circuit set up and solved in {toc}")
+    lp.logger.debug(f"Circuit solved in {toc - toc_setup}")
+    lp.logger.info(f"Circuit set up and solved in {toc}")
 
     return V_node, I_batt
