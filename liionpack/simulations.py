@@ -55,7 +55,7 @@ def create_simulation(parameter_values=None, experiment=None, make_inputs=False)
     if parameter_values is None:
         # load parameter values and process model and geometry
         chemistry = pybamm.parameter_sets.Chen2020
-        param = pybamm.ParameterValues(chemistry=chemistry)
+        parameter_values = pybamm.ParameterValues(chemistry=chemistry)
     # Change the current function to be an input as this is set by the external circuit
     if make_inputs:
         parameter_values.update({"Current function [A]": _current_function,})
