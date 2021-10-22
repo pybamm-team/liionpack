@@ -26,8 +26,14 @@ output_variables = [
 # Heat transfer coefficients
 htc = np.ones(4) * 10
 
-# Cycling protocol
-protocol = lp.generate_protocol(I_chg=5, I_dch=-5, chg_first=True)
+# Cycling experiment
+experiment = pybamm.Experiment(
+    ["Charge at 5 A for 30 minutes",
+    "Rest for 15 minutes",
+    "Discharge at 5 A for 30 minutes",
+    "Rest for 30 minutes"],
+    period="10 seconds",
+)
 
 # PyBaMM parameters
 chemistry = pybamm.parameter_sets.Chen2020
@@ -36,7 +42,7 @@ parameter_values = pybamm.ParameterValues(chemistry=chemistry)
 # Solve pack
 output = lp.solve(netlist=netlist,
                   parameter_values=parameter_values,
-                  protocol=protocol,
+                  experiment=experiment,
                   output_variables=output_variables,
                   htc=htc)
 

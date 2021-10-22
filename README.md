@@ -1,6 +1,9 @@
 [![Python application](https://github.com/pybamm-team/liionpack/actions/workflows/python-app.yml/badge.svg)](https://github.com/pybamm-team/liionpack/actions/workflows/python-app.yml)
-[![Documentation Status](https://readthedocs.org/projects/liionpack/badge/?version=latest)](https://liionpack.readthedocs.io/en/latest/?badge=latest)
+[![Documentation Status](https://readthedocs.org/projects/liionpack/badge/?version=main)](https://liionpack.readthedocs.io/en/main/?badge=main)
 [![codecov](https://codecov.io/gh/pybamm-team/liionpack/branch/main/graph/badge.svg)](https://codecov.io/gh/pybamm-team/liionpack)
+
+
+![logo](docs/liionpack.png)
 
 # Overview of liionpack
 *liionpack* takes a 1D PyBaMM model and makes it into a pack. You can either specify
@@ -69,8 +72,11 @@ output_variables = [
 # Heat transfer coefficients
 htc = np.ones(32) * 10
 
-# Cycling protocol
-protocol = lp.generate_protocol()
+# Cycling experiment, using PyBaMM
+experiment = pybamm.Experiment(
+    ["Charge at 50 A for 30 minutes", "Rest for 15 minutes", "Discharge at 50 A for 30 minutes", "Rest for 30 minutes"],
+    period="10 seconds",
+)
 
 # PyBaMM parameters
 chemistry = pybamm.parameter_sets.Chen2020
@@ -79,12 +85,12 @@ parameter_values = pybamm.ParameterValues(chemistry=chemistry)
 # Solve pack
 output = lp.solve(netlist=netlist,
                   parameter_values=parameter_values,
-                  protocol=protocol,
+                  experiment=experiment,
                   output_variables=output_variables,
                   htc=htc)
 ```
 
 ## Acknowledgments
-PyBaMM-team acknowledges the funding and support of the Faraday Institution's multi-scale modelling project and Innovate UK. 
+PyBaMM-team acknowledges the funding and support of the Faraday Institution's multi-scale modelling project and Innovate UK.
 
 The development work carried out by members at Oak Ridge National Laboratory was partially sponsored by the Office of Electricity under the United States Department of Energy (DOE).

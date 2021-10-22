@@ -4,7 +4,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 import unittest
 
-
 class solver_utilsTest(unittest.TestCase):
 
     @classmethod
@@ -23,8 +22,14 @@ class solver_utilsTest(unittest.TestCase):
 
         # Heat transfer coefficients
         self.htc = np.ones(Nspm) * 10
-        # Cycling protocol
-        self.protocol = lp.test_protocol()
+        # Cycling experiment
+        self.experiment = pybamm.Experiment(
+            ["Charge at 50 A for 300 seconds",
+            "Rest for 150 seconds",
+            "Discharge at 50 A for 300 seconds",
+            "Rest for 150 seconds"],
+            period="10 seconds",
+        )
         # PyBaMM parameters
         chemistry = pybamm.parameter_sets.Chen2020
         self.parameter_values = pybamm.ParameterValues(chemistry=chemistry)
@@ -38,11 +43,10 @@ class solver_utilsTest(unittest.TestCase):
     def test_solve(self):
         output = lp.solve(netlist=self.netlist,
                           parameter_values=self.parameter_values,
-                          protocol=self.protocol,
+                          experiment=self.experiment,
                           output_variables=None,
                           htc=self.htc)
-        print(output['Terminal voltage [V]'].shape)
-        assert output['Terminal voltage [V]'].shape == (90, 32)
+        self.assertEqual(output['Terminal voltage [V]'].shape, (90, 32))
         plt.close('all')
     
     def test_solve_output_variables(self):
@@ -54,10 +58,10 @@ class solver_utilsTest(unittest.TestCase):
             ]
         output = lp.solve(netlist=self.netlist,
                           parameter_values=self.parameter_values,
-                          protocol=self.protocol,
+                          experiment=self.experiment,
                           output_variables=output_variables,
                           htc=self.htc)
-        assert output['X-averaged total heating [W.m-3]'].shape == (90, 32)
+        self.assertEqual(output['X-averaged total heating [W.m-3]'].shape, (90, 32))
         plt.close('all')
 
 if __name__ == '__main__':

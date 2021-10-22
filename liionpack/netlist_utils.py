@@ -323,9 +323,10 @@ def solve_circuit(netlist):
     # z = [i]
     #     [e]
     # i is currents and e is voltages
-    G = np.zeros([n, n])
-    B = np.zeros([n, m])
-    D = np.zeros([m, m])
+    # Use lil matrices to construct the A array
+    G = sp.sparse.lil_matrix((n, n))
+    B = sp.sparse.lil_matrix((n, m))
+    D = sp.sparse.lil_matrix((m, m))
     i = np.zeros([n, 1])
     e = np.zeros([m, 1])
 
@@ -374,23 +375,25 @@ def solve_circuit(netlist):
         elif elem == 'I':
             # Current elements: fill the i vector only
             if n1 >= 0:
-                i[n1] = i[n1] - value[k1]
+                i[n1] = i[n1] + value[k1]
             if n2 >= 0:
-                i[n2] = i[n2] + value[k1]
+                i[n2] = i[n2] - value[k1]
 
     # Construct final matrices from sub-matrices
-    upper = np.hstack((G, B))
-    lower = np.hstack((B.T, D))
-    A = np.vstack((upper, lower))
+    upper = sp.sparse.hstack((G, B))
+    lower = sp.sparse.hstack((B.T, D))
+    A = sp.sparse.vstack((upper, lower))
+    # Convert a to csr sparse format for more efficient solving of the linear system
+    # csr works slighhtly more robustly than csc
+    A_csr = sp.sparse.csr_matrix(A)
     z = np.vstack((i, e))
-    Aspr = sp.sparse.csr_matrix(A)
+
     toc_setup = timer.time()
     lp.logger.debug(f"Circuit set up in {toc_setup}")
     
     # Scipy
     # X = solve(A, z).flatten()
-    X = sp.sparse.linalg.spsolve(Aspr, z).flatten()
-    
+    X = sp.sparse.linalg.spsolve(A_csr, z).flatten()
     # Pypardiso
     # X = pypardiso.spsolve(Aspr, z).flatten()
     

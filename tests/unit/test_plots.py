@@ -22,15 +22,21 @@ class plotsTest(unittest.TestCase):
 
         # Heat transfer coefficients
         htc = np.ones(Nspm) * 10
-        # Cycling protocol
-        protocol = lp.test_protocol()
+        # Cycling experiment
+        experiment = pybamm.Experiment(
+            ["Charge at 50 A for 300 seconds",
+            "Rest for 150 seconds",
+            "Discharge at 50 A for 300 seconds",
+            "Rest for 300 seconds"],
+            period="10 seconds",
+        )
         # PyBaMM parameters
         chemistry = pybamm.parameter_sets.Chen2020
         parameter_values = pybamm.ParameterValues(chemistry=chemistry)
         # Solve pack
         output = lp.solve(netlist=netlist,
                           parameter_values=parameter_values,
-                          protocol=protocol,
+                          experiment=experiment,
                           output_variables=None,
                           htc=htc)
         self.output = output
