@@ -9,7 +9,6 @@ import pybamm
 import numpy as np
 import time as ticker
 import liionpack as lp
-import matplotlib.pyplot as plt
 from tqdm import tqdm
 
 
@@ -72,7 +71,7 @@ def _mapped_step(model, solutions, inputs_dict, integrator, variables, t_eval):
     xend = []
     for i in range(N):
         start = i * nt
-        y_sol = xf[:, start : start + nt]
+        y_sol = xf[:, start:start + nt]
         xend.append(y_sol[:, -1])
         # Not sure how to index into zf - need an example
         sol.append(pybamm.Solution(t_eval, y_sol, model, inputs_dict[i]))
@@ -123,7 +122,7 @@ def _create_casadi_objects(I_init, htc, sim, dt, Nspm, nproc, variable_names):
     # solve model for 1 second to initialise the circuit
     t_eval = np.linspace(0, 1, 2)
     # Initial solution - this builds the model behind the scenes
-    sol_init = sim.solve(t_eval, inputs=inputs)
+    sim.solve(t_eval, inputs=inputs)
     # step model
     # Code to create mapped integrator
     t_eval = np.linspace(0, dt, 11)
