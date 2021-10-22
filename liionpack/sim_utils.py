@@ -12,12 +12,12 @@ import matplotlib.pyplot as plt
 from scipy.interpolate import interp1d
 import os
 
-init_fname = os.path.join(lp.INIT_FUNCS, 'init_funcs.pickle')
+init_fname = os.path.join(lp.INIT_FUNCS, "init_funcs.pickle")
 
 
 def update_init_conc(sim, SoC=-1, OCV=-1):
-    r'''
-    
+    r"""
+
 
     Parameters
     ----------
@@ -32,20 +32,22 @@ def update_init_conc(sim, SoC=-1, OCV=-1):
     -------
     None.
 
-    '''
+    """
     param = sim.parameter_values
     c_s_n_init, c_s_p_init = initial_conditions(SoC=SoC, OCV=OCV)
-    param.update({
-        "Initial concentration in negative electrode [mol.m-3]":c_s_n_init,
-        "Initial concentration in positive electrode [mol.m-3]":c_s_p_init,
-    })
+    param.update(
+        {
+            "Initial concentration in negative electrode [mol.m-3]": c_s_n_init,
+            "Initial concentration in positive electrode [mol.m-3]": c_s_p_init,
+        }
+    )
     # print(param["Initial concentration in negative electrode [mol.m-3]"])
     # print(param["Initial concentration in positive electrode [mol.m-3]"])
 
 
 def initial_conditions(SoC=-1, OCV=-1):
-    r'''
-    
+    r"""
+
 
     Parameters
     ----------
@@ -61,22 +63,22 @@ def initial_conditions(SoC=-1, OCV=-1):
     c_s_p_init : TYPE
         DESCRIPTION.
 
-    '''
-    
-    with open(init_fname, 'rb') as handle:
+    """
+
+    with open(init_fname, "rb") as handle:
         init_funcs = pickle.load(handle)
-        
-    x_n_SoC = init_funcs['x_n_SoC']
-    x_p_SoC = init_funcs['x_p_SoC']
-    x_n_OCV  = init_funcs['x_n_OCV']
-    x_p_OCV = init_funcs['x_p_OCV']
-    
-    c_s_n_max = init_funcs['c_s_n_max']
-    c_s_p_max = init_funcs['c_s_p_max']
-    
-    vmin = init_funcs['vmin']
-    vmax = init_funcs['vmax']
-    
+
+    x_n_SoC = init_funcs["x_n_SoC"]
+    x_p_SoC = init_funcs["x_p_SoC"]
+    x_n_OCV = init_funcs["x_n_OCV"]
+    x_p_OCV = init_funcs["x_p_OCV"]
+
+    c_s_n_max = init_funcs["c_s_n_max"]
+    c_s_p_max = init_funcs["c_s_p_max"]
+
+    vmin = init_funcs["vmin"]
+    vmax = init_funcs["vmax"]
+
     if SoC >= 0.0 and SoC <= 1.0:
         x_n_init = x_n_SoC(SoC)
         x_p_init = x_p_SoC(SoC)
@@ -87,9 +89,10 @@ def initial_conditions(SoC=-1, OCV=-1):
     c_s_p_init = x_p_init * c_s_p_max
     return c_s_n_init, c_s_p_init
 
+
 def create_init_funcs(parameter_values=None):
-    r'''
-    
+    r"""
+
 
     Parameters
     ----------
@@ -100,10 +103,10 @@ def create_init_funcs(parameter_values=None):
     -------
     None.
 
-    '''
-    V_upper_limit = parameter_values['Upper voltage cut-off [V]']
-    V_lower_limit = parameter_values['Lower voltage cut-off [V]']
-    
+    """
+    V_upper_limit = parameter_values["Upper voltage cut-off [V]"]
+    V_lower_limit = parameter_values["Lower voltage cut-off [V]"]
+
     # Make sure we slow charge to upper limit and establish equilibrium
     experiment = pybamm.Experiment(
         [
@@ -115,17 +118,16 @@ def create_init_funcs(parameter_values=None):
     )
     # sim.set_up_experiment(model, experiment)
     # sim = pybamm.Simulation(model=model, parameter_values=param, experiment=experiment)
-    sim = lp.create_simulation(parameter_values=parameter_values,
-                               experiment=experiment)
+    sim = lp.create_simulation(parameter_values=parameter_values, experiment=experiment)
     sim.solve()
     # sim.plot()
-    
+
     # param = sim.parameter_values
 
     # Save concentrations for initial conditions
-    
-    neg_surf = 'X-averaged negative particle surface concentration [mol.m-3]'
-    pos_surf = 'X-averaged positive particle surface concentration [mol.m-3]'
+
+    neg_surf = "X-averaged negative particle surface concentration [mol.m-3]"
+    pos_surf = "X-averaged positive particle surface concentration [mol.m-3]"
     sol_charged = sim.solution.cycles[2]
     v_upper_lim_neg = sol_charged[neg_surf].entries[-1]
     v_upper_lim_pos = sol_charged[pos_surf].entries[-1]
@@ -136,97 +138,69 @@ def create_init_funcs(parameter_values=None):
     v_lower_lim_pos = sol_dischg[pos_surf].entries[-1]
 
     # Use max conc. for normalization
-    c_s_n_max = parameter_values['Maximum concentration in negative electrode [mol.m-3]']
-    c_s_p_max = parameter_values['Maximum concentration in positive electrode [mol.m-3]']
-    
+    c_s_n_max = parameter_values[
+        "Maximum concentration in negative electrode [mol.m-3]"
+    ]
+    c_s_p_max = parameter_values[
+        "Maximum concentration in positive electrode [mol.m-3]"
+    ]
+
     # These are now the min and max concs for full range of SoC
     x_n_max = v_upper_lim_neg / c_s_n_max
     x_p_min = v_upper_lim_pos / c_s_p_max
     x_n_min = v_lower_lim_neg / c_s_n_max
     x_p_max = v_lower_lim_pos / c_s_p_max
-    
-    
+
     # Work out total capacity between voltage lims
-    
-    current = sol_dischg['Current [A]'].entries
-    time = sol_dischg['Time [h]'].entries
+
+    current = sol_dischg["Current [A]"].entries
+    time = sol_dischg["Time [h]"].entries
     dt = time[1:] - time[:-1]
     c_ave = (current[1:] + current[:-1]) / 2
     charge = np.cumsum(c_ave * dt)
     plt.figure()
     plt.plot(time[1:], charge)
-    plt.xlabel('Time [h]')
-    plt.ylabel('Cumulative Charge Transferred [Ah]')
-    
+    plt.xlabel("Time [h]")
+    plt.ylabel("Cumulative Charge Transferred [Ah]")
+
     SoC = np.linspace(0, 1, 1000)
     x_n = x_n_min + (x_n_max - x_n_min) * SoC
     x_p = x_p_max - (x_p_max - x_p_min) * SoC
-    try:
-        # Ocp are functions
-        U_n = parameter_values['Negative electrode OCP [V]']
-        U_p = parameter_values['Positive electrode OCP [V]']
-        U_n_eval = parameter_values.evaluate(U_n(pybamm.Array(x_n)))
-        U_p_eval = parameter_values.evaluate(U_p(pybamm.Array(x_p)))
-        OCV = U_p_eval - U_n_eval
-        OCV = OCV.flatten()
-    except:
-        # Ocp is data
-        # Get the OCP data and plot it from the parameters
-        neg_ocp = parameter_values['Negative electrode OCP [V]'][1]
-        pos_ocp = parameter_values['Positive electrode OCP [V]'][1]
-        
-        # Split the data
-        neg_x = neg_ocp[:, 0]
-        neg_y = neg_ocp[:, 1]
-        pos_x = pos_ocp[:, 0]
-        pos_y = pos_ocp[:, 1]
-        
-        # plt.figure()
-        # plt.plot(neg_x, neg_y)
-        # plt.title('Neg OCP')
-        # plt.ylabel('OCP [V]')
-        # plt.xlabel('Lithiation')
-        
-        # plt.figure()
-        # plt.plot(pos_x, pos_y)
-        # plt.title('Pos OCP')
-        # plt.ylabel('OCP [V]')
-        # plt.xlabel('Lithiation')
-        
-        # interpolant functions
-        U_n = interp1d(neg_x, neg_y)
-        U_p = interp1d(pos_x, pos_y)
-    
-        # OCV theoretical based on discharge at eqm
-        OCV = U_p(x_p) - U_n(x_n)
+
+    # Ocp are functions
+    U_n = parameter_values["Negative electrode OCP [V]"]
+    U_p = parameter_values["Positive electrode OCP [V]"]
+    U_n_eval = parameter_values.evaluate(U_n(pybamm.Array(x_n)))
+    U_p_eval = parameter_values.evaluate(U_p(pybamm.Array(x_p)))
+    OCV = U_p_eval - U_n_eval
+    OCV = OCV.flatten()
 
     # Compare to C/100
     plt.figure()
     plt.plot(SoC, OCV)
-    plt.ylabel('OCP [V]')
-    plt.xlabel('SoC')
-    terminal = sol_dischg['Terminal voltage [V]'].entries
-    plt.plot(np.linspace(0.0, 1.0, len(terminal))[::-1], terminal, 'r--')
-    
+    plt.ylabel("OCP [V]")
+    plt.xlabel("SoC")
+    terminal = sol_dischg["Terminal voltage [V]"].entries
+    plt.plot(np.linspace(0.0, 1.0, len(terminal))[::-1], terminal, "r--")
+
     # Reverse interpolants to get back lithiation states from SoC and OCV
     x_n_SoC = interp1d(SoC, x_n)
     x_p_SoC = interp1d(SoC, x_p)
     x_n_OCV = interp1d(OCV, x_n)
     x_p_OCV = interp1d(OCV, x_p)
-    
-    
-    
+
     vmin = float(V_lower_limit)
     vmax = float(V_upper_limit)
-    
-    init_funcs = {'x_n_SoC':x_n_SoC,
-                  'x_p_SoC': x_p_SoC,
-                  'x_n_OCV': x_n_OCV,
-                  'x_p_OCV':x_p_OCV,
-                  'c_s_n_max':c_s_n_max,
-                  'c_s_p_max':c_s_p_max,
-                  'vmin':vmin,
-                  'vmax':vmax
-                  }
-    with open(init_fname, 'wb') as handle:
+
+    init_funcs = {
+        "x_n_SoC": x_n_SoC,
+        "x_p_SoC": x_p_SoC,
+        "x_n_OCV": x_n_OCV,
+        "x_p_OCV": x_p_OCV,
+        "c_s_n_max": c_s_n_max,
+        "c_s_p_max": c_s_p_max,
+        "vmin": vmin,
+        "vmax": vmax,
+    }
+    with open(init_fname, "wb") as handle:
         pickle.dump(init_funcs, handle)

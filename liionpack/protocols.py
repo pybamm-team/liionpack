@@ -9,8 +9,8 @@ from numpy import exp
 
 
 def generate_protocol_from_experiment(experiment):
-    r'''
-    
+    r"""
+
 
     Parameters
     ----------
@@ -22,7 +22,7 @@ def generate_protocol_from_experiment(experiment):
     proto : list
         a sequence of terminal currents to apply at each timestep
 
-    '''
+    """
     proto = []
     for op in experiment.operating_conditions:
         t = op["time"]
