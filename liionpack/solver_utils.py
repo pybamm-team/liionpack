@@ -14,7 +14,7 @@ from tqdm import tqdm
 
 
 def _mapped_step(model, solutions, inputs_dict, integrator, variables, t_eval):
-    r'''
+    r"""
     Internal function to process the model for one timestep in a mapped way.
     Mapped versions of the integrator and variables functions should already
     have been made.
@@ -42,7 +42,7 @@ def _mapped_step(model, solutions, inputs_dict, integrator, variables, t_eval):
     var_eval : list
         evaluated variables for final state of system
 
-    '''
+    """
     len_rhs = model.concatenated_rhs.size
     N = len(solutions)
     if solutions[0] is None:
@@ -56,16 +56,14 @@ def _mapped_step(model, solutions, inputs_dict, integrator, variables, t_eval):
     t_min = 0.0
     inputs = []
     for temp in inputs_dict:
-        inputs.append(casadi.vertcat(*[x for x in temp.values()]+[t_min]))
+        inputs.append(casadi.vertcat(*[x for x in temp.values()] + [t_min]))
     ninputs = len(temp.values())
     inputs = casadi.horzcat(*inputs)
     # p = casadi.horzcat(*zip(inputs, external_variables, [t_min]*N))
     # inputs_with_tmin = casadi.vertcat(inputs, np.asarray(t_min))
     # Call the integrator once, with the grid
     timer = pybamm.Timer()
-    casadi_sol = integrator(
-        x0=x0, z0=z0, p=inputs
-    )
+    casadi_sol = integrator(x0=x0, z0=z0, p=inputs)
     integration_time = timer.time()
     nt = len(t_eval)
     xf = casadi_sol["xf"]
@@ -74,18 +72,18 @@ def _mapped_step(model, solutions, inputs_dict, integrator, variables, t_eval):
     xend = []
     for i in range(N):
         start = i * nt
-        y_sol = xf[:, start:start + nt]
+        y_sol = xf[:, start : start + nt]
         xend.append(y_sol[:, -1])
         # Not sure how to index into zf - need an example
-        sol.append(pybamm.Solution(t_eval, y_sol, model,
-                                   inputs_dict[i]))
+        sol.append(pybamm.Solution(t_eval, y_sol, model, inputs_dict[i]))
         sol[-1].integration_time = integration_time
     xend = casadi.horzcat(*xend)
     var_eval = variables(0, xend, 0, inputs[0:ninputs, :])
     return sol, var_eval
 
+
 def _create_casadi_objects(I_init, htc, sim, dt, Nspm, nproc, variable_names):
-    r'''
+    r"""
     Internal function to produce the casadi objects in their mapped form for
     parallel evaluation
 
@@ -119,9 +117,8 @@ def _create_casadi_objects(I_init, htc, sim, dt, Nspm, nproc, variable_names):
     t_eval : float array of times to evaluate
         times to evaluate in a single step, starting at zero for each step
 
-    '''
-    inputs = {"Current": I_init,
-              "Total heat transfer coefficient [W.m-2.K-1]": htc}
+    """
+    inputs = {"Current": I_init, "Total heat transfer coefficient [W.m-2.K-1]": htc}
     solver = sim.solver
     # solve model for 1 second to initialise the circuit
     t_eval = np.linspace(0, 1, 2)
@@ -136,26 +133,38 @@ def _create_casadi_objects(I_init, htc, sim, dt, Nspm, nproc, variable_names):
     # External variables could (and should) be used if battery thermal problem
     # Includes conduction with any other circuits or neighboring batteries
     # inp_and_ext.update(external_variables)
-    
-    integrator = solver.create_integrator(sim.built_model, inputs=inp_and_ext, t_eval=t_eval_ndim)
-    integrator = integrator.map(Nspm, 'thread', nproc)
+
+    integrator = solver.create_integrator(
+        sim.built_model, inputs=inp_and_ext, t_eval=t_eval_ndim
+    )
+    integrator = integrator.map(Nspm, "thread", nproc)
 
     # Variables function for parallel evaluation
     casadi_objs = sim.built_model.export_casadi_objects(variable_names=variable_names)
-    variables = casadi_objs['variables']
-    t, x, z, p = casadi_objs["t"], casadi_objs["x"], casadi_objs["z"], casadi_objs["inputs"]
+    variables = casadi_objs["variables"]
+    t, x, z, p = (
+        casadi_objs["t"],
+        casadi_objs["x"],
+        casadi_objs["z"],
+        casadi_objs["inputs"],
+    )
     variables_stacked = casadi.vertcat(*variables.values())
     variables_fn = casadi.Function("variables", [t, x, z, p], [variables_stacked])
-    variables_fn = variables_fn.map(Nspm, 'thread', nproc)
+    variables_fn = variables_fn.map(Nspm, "thread", nproc)
     return integrator, variables_fn, t_eval
 
 
-def solve(netlist=None, parameter_values=None, experiment=None,
-          I_init=1.0, htc=None, initial_soc=0.5,
-          nproc=12,
-          output_variables=None,
-          ):
-    r'''
+def solve(
+    netlist=None,
+    parameter_values=None,
+    experiment=None,
+    I_init=1.0,
+    htc=None,
+    initial_soc=0.5,
+    nproc=12,
+    output_variables=None,
+):
+    r"""
     Solves a pack simulation
 
     Parameters
@@ -190,36 +199,38 @@ def solve(netlist=None, parameter_values=None, experiment=None,
     output : ndarray shape [# variable, # steps, # batteries]
         simulation output array
 
-    '''
+    """
 
     if netlist is None or parameter_values is None or experiment is None:
-        raise Exception('Please supply a netlist, paramater_values, and experiment')
+        raise Exception("Please supply a netlist, paramater_values, and experiment")
 
     # Get netlist indices for resistors, voltage sources, current sources
-    Ri_map = netlist['desc'].str.find('Ri') > -1
-    V_map = netlist['desc'].str.find('V') > -1
-    I_map = netlist['desc'].str.find('I') > -1
-    
+    Ri_map = netlist["desc"].str.find("Ri") > -1
+    V_map = netlist["desc"].str.find("V") > -1
+    I_map = netlist["desc"].str.find("I") > -1
+
     Nspm = np.sum(V_map)
 
     protocol = lp.generate_protocol_from_experiment(experiment)
     dt = experiment.period
     Nsteps = len(protocol)
-    
+
     # Solve the circuit to initialise the electrochemical models
     V_node, I_batt = lp.solve_circuit(netlist)
 
     sim = lp.create_simulation(parameter_values, make_inputs=True)
     lp.update_init_conc(sim, SoC=initial_soc)
 
-    v_cut_lower = parameter_values['Lower voltage cut-off [V]']
-    v_cut_higher = parameter_values['Upper voltage cut-off [V]']
+    v_cut_lower = parameter_values["Lower voltage cut-off [V]"]
+    v_cut_higher = parameter_values["Upper voltage cut-off [V]"]
 
     # The simulation output variables calculated at each step for each battery
     # Must be a 0D variable i.e. battery wide volume average - or X-averaged for 1D model
-    variable_names = ['Terminal voltage [V]',
-                      'Measured battery open circuit voltage [V]',
-                      'Local ECM resistance [Ohm]']
+    variable_names = [
+        "Terminal voltage [V]",
+        "Measured battery open circuit voltage [V]",
+        "Local ECM resistance [Ohm]",
+    ]
     if output_variables is not None:
         for out in output_variables:
             if out not in variable_names:
@@ -234,26 +245,27 @@ def solve(netlist=None, parameter_values=None, experiment=None,
     # Initialize currents in battery models
     shm_i_app[0, :] = I_batt * -1
 
-
     time = 0
     # step = 0
-    end_time = dt*Nsteps
+    end_time = dt * Nsteps
     step_solutions = [None] * Nspm
     V_terminal = []
     record_times = []
 
-   
-    integrator, variables_fn, t_eval = _create_casadi_objects(I_init, htc[0],
-                                                              sim, dt, Nspm,
-                                                              nproc,
-                                                              variable_names)
+    integrator, variables_fn, t_eval = _create_casadi_objects(
+        I_init, htc[0], sim, dt, Nspm, nproc, variable_names
+    )
 
- 
     sim_start_time = ticker.time()
-    for step in tqdm(range(Nsteps), desc='Solving Pack'):
-        step_solutions, var_eval = _mapped_step(sim.built_model, step_solutions,
-                                                lp.build_inputs_dict(shm_i_app[step, :], htc),
-                                                integrator, variables_fn, t_eval)
+    for step in tqdm(range(Nsteps), desc="Solving Pack"):
+        step_solutions, var_eval = _mapped_step(
+            sim.built_model,
+            step_solutions,
+            lp.build_inputs_dict(shm_i_app[step, :], htc),
+            integrator,
+            variables_fn,
+            t_eval,
+        )
         output[:, step, :] = var_eval
 
         time += dt
@@ -263,17 +275,16 @@ def solve(netlist=None, parameter_values=None, experiment=None,
         temp_Ri = np.abs(output[2, step, :])
         shm_Ri[step, :] = temp_Ri
 
-
-        netlist.loc[V_map, ('value')] = temp_ocv
-        netlist.loc[Ri_map, ('value')] = temp_Ri
-        netlist.loc[I_map, ('value')] = protocol[step]
+        netlist.loc[V_map, ("value")] = temp_ocv
+        netlist.loc[Ri_map, ("value")] = temp_Ri
+        netlist.loc[I_map, ("value")] = protocol[step]
 
         # print('Stepping time', np.around(ticker.time()-tic, 2), 's')
         if np.any(temp_v < v_cut_lower):
-            print('Low V limit reached')
+            print("Low V limit reached")
             break
         if np.any(temp_v > v_cut_higher):
-            print('High V limit reached')
+            print("High V limit reached")
             break
         # step += 1
         if time <= end_time:
@@ -281,16 +292,17 @@ def solve(netlist=None, parameter_values=None, experiment=None,
             V_node, I_batt = lp.solve_circuit(netlist)
             V_terminal.append(V_node.max())
         if time < end_time:
-            shm_i_app[step+1, :] = I_batt[:] * -1
+            shm_i_app[step + 1, :] = I_batt[:] * -1
     all_output = {}
-    all_output['Time [s]'] = np.asarray(record_times)
-    all_output['Pack current [A]'] = np.asarray(protocol[:step+1])
-    all_output['Pack terminal voltage [V]'] = np.asarray(V_terminal)
-    all_output['Cell current [A]'] = shm_i_app[:step+1, :]
+    all_output["Time [s]"] = np.asarray(record_times)
+    all_output["Pack current [A]"] = np.asarray(protocol[: step + 1])
+    all_output["Pack terminal voltage [V]"] = np.asarray(V_terminal)
+    all_output["Cell current [A]"] = shm_i_app[: step + 1, :]
     for j in range(Nvar):
-        all_output[variable_names[j]] = output[j, :step+1, :]
-    
+        all_output[variable_names[j]] = output[j, : step + 1, :]
+
     toc = ticker.time()
-    pybamm.logger.notice('Solve circuit time '+
-                          str(np.around(toc-sim_start_time, 3)) + 's')
+    pybamm.logger.notice(
+        "Solve circuit time " + str(np.around(toc - sim_start_time, 3)) + "s"
+    )
     return all_output
