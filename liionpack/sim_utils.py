@@ -166,44 +166,14 @@ def create_init_funcs(parameter_values=None):
     SoC = np.linspace(0, 1, 1000)
     x_n = x_n_min + (x_n_max - x_n_min) * SoC
     x_p = x_p_max - (x_p_max - x_p_min) * SoC
-    try:
-        # Ocp are functions
-        U_n = parameter_values["Negative electrode OCP [V]"]
-        U_p = parameter_values["Positive electrode OCP [V]"]
-        U_n_eval = parameter_values.evaluate(U_n(pybamm.Array(x_n)))
-        U_p_eval = parameter_values.evaluate(U_p(pybamm.Array(x_p)))
-        OCV = U_p_eval - U_n_eval
-        OCV = OCV.flatten()
-    except:
-        # Ocp is data
-        # Get the OCP data and plot it from the parameters
-        neg_ocp = parameter_values["Negative electrode OCP [V]"][1]
-        pos_ocp = parameter_values["Positive electrode OCP [V]"][1]
 
-        # Split the data
-        neg_x = neg_ocp[:, 0]
-        neg_y = neg_ocp[:, 1]
-        pos_x = pos_ocp[:, 0]
-        pos_y = pos_ocp[:, 1]
-
-        # plt.figure()
-        # plt.plot(neg_x, neg_y)
-        # plt.title('Neg OCP')
-        # plt.ylabel('OCP [V]')
-        # plt.xlabel('Lithiation')
-
-        # plt.figure()
-        # plt.plot(pos_x, pos_y)
-        # plt.title('Pos OCP')
-        # plt.ylabel('OCP [V]')
-        # plt.xlabel('Lithiation')
-
-        # interpolant functions
-        U_n = interp1d(neg_x, neg_y)
-        U_p = interp1d(pos_x, pos_y)
-
-        # OCV theoretical based on discharge at eqm
-        OCV = U_p(x_p) - U_n(x_n)
+    # Ocp are functions
+    U_n = parameter_values["Negative electrode OCP [V]"]
+    U_p = parameter_values["Positive electrode OCP [V]"]
+    U_n_eval = parameter_values.evaluate(U_n(pybamm.Array(x_n)))
+    U_p_eval = parameter_values.evaluate(U_p(pybamm.Array(x_p)))
+    OCV = U_p_eval - U_n_eval
+    OCV = OCV.flatten()
 
     # Compare to C/100
     plt.figure()
