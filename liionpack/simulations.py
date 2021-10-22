@@ -49,7 +49,7 @@ def create_simulation(parameter_values=None, experiment=None, make_inputs=False)
 
     """
     # Create the pybamm model
-    model = pybamm.lithium_ion.SPMe(
+    model = pybamm.lithium_ion.DFN(
         options={
             "thermal": "lumped",
         }

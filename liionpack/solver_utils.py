@@ -66,18 +66,24 @@ def _mapped_step(model, solutions, inputs_dict, integrator, variables, t_eval):
     integration_time = timer.time()
     nt = len(t_eval)
     xf = casadi_sol["xf"]
-    # zf = casadi_sol["zf"]
+    zf = casadi_sol["zf"]
     sol = []
     xend = []
     for i in range(N):
         start = i * nt
-        y_sol = xf[:, start:start + nt]
+        y_diff = xf[:, start:start + nt]
+        if zf.is_empty():
+            y_sol = y_diff
+        else:
+            y_alg = zf[:, start:start + nt]
+            y_sol = casadi.vertcat(y_diff, y_alg)
         xend.append(y_sol[:, -1])
         # Not sure how to index into zf - need an example
         sol.append(pybamm.Solution(t_eval, y_sol, model, inputs_dict[i]))
         sol[-1].integration_time = integration_time
     xend = casadi.horzcat(*xend)
-    var_eval = variables(0, xend, 0, inputs[0:ninputs, :])
+    var_eval = variables(0, xend[:len_rhs, :],
+                         xend[len_rhs:, :], inputs[0:ninputs, :])
     return sol, var_eval
 
 
