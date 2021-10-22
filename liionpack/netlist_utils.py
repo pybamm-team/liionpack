@@ -43,7 +43,7 @@ def read_netlist(filepath, Ri=1e-2, Rc=1e-2, Rb=1e-4, Rl=5e-4, I=80.0, V=4.2):
     Returns
     -------
     netlist : pandas.DataFrame
-        A netlist of circuit elements with format. desc, node1, node2, value.
+        A netlist of circuit elements with format desc, node1, node2, value.
         
 
     '''
@@ -92,16 +92,16 @@ def _make_contiguous(node1, node2):
 
     Parameters
     ----------
-    node1 : int
+    node1 : array
         First node in the netlist.
-    node2 : int
+    node2 : array
         Second node in the netlist.
 
     Returns
     -------
-    int
+    array
         First nodes.
-    int
+    array
         Second nodes.
 
     '''
@@ -141,20 +141,36 @@ def setup_circuit(Np=1, Ns=1, Ri=1e-2, Rc=1e-2, Rb=1e-4, Rl=5e-4, I=80.0, V=4.2,
 
     Returns
     -------
-    netlist : TYPE
-        DESCRIPTION.
-
+    netlist : pandas.DataFrame
+        A netlist of circuit elements with format desc, node1, node2, value.
+    
     '''
     Nc = Np + 1
     Nr = Ns * 3 + 1
 
     grid = np.arange(Nc * Nr).reshape([Nr, Nc])
-
+    # grid is a Nr x Nc matrix
     # 1st column is terminals only
     # 1st and last rows are busbars
     # Other rows alternate between series resistor and voltage source
+    # For example if Np=1 and Nc=2,
+    # grid = array([[ 0,  1], # busbar
+    #                         # Rs 
+    #               [ 2,  3], 
+    #                         # V
+    #               [ 4,  5], 
+    #                         # Ri
+    #               [ 6,  7],
+    #                         # Rs
+    #               [ 8,  9],
+    #                         # V
+    #               [10, 11],
+    #                         # Ri
+    #               [12, 13]] # busbar)
+    # Connections are across busbars in first and last rows, and down each column
+    # See "01 Getting Started.ipynb"
 
-    # Build data  with ['element type', Node1, Node2, value]
+    # Build data  with ['element type', node1, node2, value]
     netlist = []
 
     num_Rb = 0
@@ -184,29 +200,26 @@ def setup_circuit(Np=1, Ns=1, Ri=1e-2, Rc=1e-2, Rb=1e-4, Rl=5e-4, I=80.0, V=4.2,
     rows = np.arange(Nr)[:-1]
     rtype = ['Rs', 'V', 'Ri']*Ns
     for col in cols:
+        # Go down the column alternating Rs, V, Ri connections between nodes
         nodes = grid[:, col]
         for row in rows:
-            # netline = []
-            if rtype[row][0] == 'R':
-                if rtype[row][1] == 's':
-                    # Series resistor
-                    desc.append(rtype[row] + str(num_Rs))
-                    num_Rs += 1
-                    val = Rc
-                else:
-                    # Internal resistor
-                    desc.append(rtype[row] + str(num_Ri))
-                    num_Ri += 1
-                    val = Ri
-                node1.append(nodes[row])
-                node2.append(nodes[row + 1])
+            if rtype[row] == 'Rs':
+                # Series resistor
+                desc.append(rtype[row] + str(num_Rs))
+                num_Rs += 1
+                val = Rc
+            elif rtype[row] == 'Ri':
+                # Internal resistor
+                desc.append(rtype[row] + str(num_Ri))
+                num_Ri += 1
+                val = Ri
             else:
                 # Voltage source
                 desc.append('V' + str(num_V))
                 num_V += 1
                 val = V
-                node1.append(nodes[row + 1])
-                node2.append(nodes[row])
+            node1.append(nodes[row + 1])
+            node2.append(nodes[row])
             value.append(val)
             # netlist.append(netline)
 
@@ -221,9 +234,7 @@ def setup_circuit(Np=1, Ns=1, Ri=1e-2, Rc=1e-2, Rb=1e-4, Rl=5e-4, I=80.0, V=4.2,
             node2.append(nodes[i])
             value.append(Rb)
 
-    # Current source - same end
-    # netline = []
-    # terminal_nodes = [, ]
+    # Current source - spans the entire first column
     desc.append('I' + str(num_I))
     num_I += 1
     node1.append(grid[0, 0])
@@ -236,19 +247,17 @@ def setup_circuit(Np=1, Ns=1, Ri=1e-2, Rc=1e-2, Rb=1e-4, Rl=5e-4, I=80.0, V=4.2,
     x = coords[1, :, :].flatten()
     if plot:
         plt.figure()
-        # plt.scatter(x, y, c='k')
         for netline in zip(desc, node1, node2):
             elem, n1, n2, = netline
-            if elem[0] == 'I':
+            if elem == 'I':
                 color = 'g'
-            elif elem[0] == 'R':
-                if elem[1] == 's':
-                    color = 'r'
-                elif elem[1] == 'b':
-                    color = 'k'
-                else:
-                    color = 'y'
-            elif elem[0] == 'V':
+            elif elem == 'Rs':
+                color = 'r'
+            elif elem == 'Rb':
+                color = 'k'
+            elif elem == 'Rc':
+                color = 'y'
+            elif elem == 'V':
                 color = 'b'
             x1 = x[n1]
             x2 = x[n2]
@@ -271,18 +280,21 @@ def setup_circuit(Np=1, Ns=1, Ri=1e-2, Rc=1e-2, Rb=1e-4, Rl=5e-4, I=80.0, V=4.2,
 
 def solve_circuit(netlist):
     r'''
-    Generate and solve the Modified Nodal Equations (MNA) for the circuit.
-    This is a linear system Ax = z.
+    Generate and solve the Modified Nodal Analysis (MNA) equations for the circuit.
+    The MNA equations are a linear system Ax = z.
     See http://lpsa.swarthmore.edu/Systems/Electrical/mna/MNA3.html
 
     Parameters
     ----------
-    netlist : TYPE
-        DESCRIPTION.
-
+    netlist : pandas.DataFrame
+        A netlist of circuit elements with format desc, node1, node2, value.
+    
     Returns
     -------
-    None.
+    V_node : array
+        Voltages of the voltage elements
+    I_batt : array
+        Currents of the current elements
 
     '''
     timer = pybamm.Timer()
