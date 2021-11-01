@@ -68,7 +68,7 @@ def _mapped_step(model, solutions, inputs_dict, integrator, variables, t_eval):
     xend = []
     for i in range(N):
         start = i * nt
-        y_sol = xf[:, start : start + nt]
+        y_sol = xf[:, start:start + nt]
         xend.append(y_sol[:, -1])
         # Not sure how to index into zf - need an example
         sol.append(pybamm.Solution(t_eval, y_sol, model, inputs_dict[i]))
