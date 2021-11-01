@@ -27,15 +27,44 @@ class sim_utilsTest(unittest.TestCase):
         b = param["Initial concentration in negative electrode [mol.m-3]"]
         assert a > b
 
-    def test_initial_conditions(self):
-        a_n, a_p = lp.initial_conditions(SoC=0.0)
-        b_n, b_p = lp.initial_conditions(SoC=1.0)
+    def test_initial_conditions_from_experiment(self):
+        a_n, a_p = lp.initial_conditions_from_experiment(self.param, SoC=0.0)
+        b_n, b_p = lp.initial_conditions_from_experiment(self.param, SoC=1.0)
         assert a_n < b_n
         assert a_p > b_p
-        a_n, a_p = lp.initial_conditions(OCV=3.0)
-        b_n, b_p = lp.initial_conditions(OCV=4.0)
+        a_n, a_p = lp.initial_conditions_from_experiment(self.param, OCV=3.0)
+        b_n, b_p = lp.initial_conditions_from_experiment(self.param, OCV=4.0)
         assert a_n < b_n
         assert a_p > b_p
+
+    def test_initial_conditions_method(self):
+        sim = lp.create_simulation(self.param)
+
+        lp.update_init_conc(sim, SoC=1.0, method="calculation")
+        param = sim.parameter_values
+        c_n_1 = param["Initial concentration in negative electrode [mol.m-3]"]
+        c_p_1 = param["Initial concentration in positive electrode [mol.m-3]"]
+
+        lp.update_init_conc(sim, SoC=1.0, method="experiment")
+        param = sim.parameter_values
+        c_n_2 = param["Initial concentration in negative electrode [mol.m-3]"]
+        c_p_2 = param["Initial concentration in positive electrode [mol.m-3]"]
+
+        c_n_max = param["Maximum concentration in negative electrode [mol.m-3]"]
+        c_p_max = param["Maximum concentration in positive electrode [mol.m-3]"]
+
+        self.assertAlmostEqual(c_n_1 / c_n_max, c_n_2 / c_n_max, 4)
+        self.assertAlmostEqual(c_p_1 / c_p_max, c_p_2 / c_p_max, 4)
+
+    def test_bad_method(self):
+        with self.assertRaises(ValueError):
+            sim = lp.create_simulation(self.param)
+            lp.update_init_conc(sim, SoC=1.0, method="bad method")
+
+    def test_bad_soc(self):
+        with self.assertRaises(ValueError):
+            sim = lp.create_simulation(self.param)
+            lp.update_init_conc(sim, SoC=10.0)
 
 
 if __name__ == "__main__":
