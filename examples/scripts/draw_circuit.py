@@ -1,9 +1,6 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Thu Sep 23 10:27:40 2021
-
-@author: Tom
-"""
+#
+# Set up a simulation and draw the circuit
+#
 
 import liionpack as lp
 import numpy as np
@@ -11,7 +8,7 @@ import pybamm
 import matplotlib.pyplot as plt
 
 plt.close("all")
-pybamm.logger.setLevel("NOTICE")
+lp.logger.setLevel("NOTICE")
 
 # Generate the netlist
 netlist = lp.setup_circuit(Np=4, Ns=1, Rb=1.5e-3, Rc=1e-2, Ri=5e-2, V=4.0, I=5.0)

@@ -1,20 +1,14 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Thu Sep 23 14:44:19 2021
-
-@author: Tom
-"""
-
-from numpy import exp
+#
+# Experimental protocol
+#
 
 
 def generate_protocol_from_experiment(experiment):
-    r"""
-
+    """
 
     Parameters
     ----------
-    experiment : pybamm.Experiment class
+    experiment : :class:`pybamm.Experiment`
         The experiment to generate the protocol from.
 
     Returns

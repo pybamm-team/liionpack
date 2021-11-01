@@ -41,8 +41,6 @@ def update_init_conc(sim, SoC=-1, OCV=-1):
             "Initial concentration in positive electrode [mol.m-3]": c_s_p_init,
         }
     )
-    # print(param["Initial concentration in negative electrode [mol.m-3]"])
-    # print(param["Initial concentration in positive electrode [mol.m-3]"])
 
 
 def initial_conditions(SoC=-1, OCV=-1):
