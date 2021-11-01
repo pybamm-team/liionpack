@@ -3,7 +3,6 @@
 #
 import pickle
 import pybamm
-from scipy.sparse.sputils import is_pydata_spmatrix
 import liionpack as lp
 import numpy as np
 import matplotlib.pyplot as plt
