@@ -9,7 +9,6 @@ import pybamm
 import numpy as np
 import time as ticker
 import liionpack as lp
-from tqdm import tqdm
 
 
 def _mapped_step(model, solutions, inputs_dict, integrator, variables, t_eval):
@@ -62,6 +61,7 @@ def _mapped_step(model, solutions, inputs_dict, integrator, variables, t_eval):
     # inputs_with_tmin = casadi.vertcat(inputs, np.asarray(t_min))
     # Call the integrator once, with the grid
     timer = pybamm.Timer()
+    tic = timer.time()
     casadi_sol = integrator(x0=x0, z0=z0, p=inputs)
     integration_time = timer.time()
     nt = len(t_eval)
@@ -76,6 +76,8 @@ def _mapped_step(model, solutions, inputs_dict, integrator, variables, t_eval):
         # Not sure how to index into zf - need an example
         sol.append(pybamm.Solution(t_eval, y_sol, model, inputs_dict[i]))
         sol[-1].integration_time = integration_time
+    toc = timer.time()
+    lp.logger.debug(f"Mapped step completed in {toc - tic}")
     xend = casadi.horzcat(*xend)
     var_eval = variables(0, xend, 0, inputs[0:ninputs, :])
     return sol, var_eval
@@ -256,7 +258,8 @@ def solve(
     )
 
     sim_start_time = ticker.time()
-    for step in tqdm(range(Nsteps), desc="Solving Pack"):
+
+    for step in range(Nsteps):
         step_solutions, var_eval = _mapped_step(
             sim.built_model,
             step_solutions,
