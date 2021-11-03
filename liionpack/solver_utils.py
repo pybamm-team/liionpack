@@ -214,7 +214,7 @@ def solve(
     Ri_map = netlist["desc"].str.find("Ri") > -1
     V_map = netlist["desc"].str.find("V") > -1
     I_map = netlist["desc"].str.find("I") > -1
-
+    Terminal_Node = np.array(netlist[I_map].node1)
     Nspm = np.sum(V_map)
 
     # Generate the protocol from the supplied experiment
@@ -288,7 +288,7 @@ def solve(
         # temp_Ri = output[2, step, :]
         # This could be used instead of Equivalent ECM resistance which has
         # been changing definition
-        temp_Ri = (temp_ocv - temp_v) / np.abs(shm_i_app[step, :])
+        temp_Ri = (temp_ocv - temp_v) / shm_i_app[step, :]
         # Make Ri more stable
         current_cutoff = np.abs(shm_i_app[step, :]) < 1e-6
         temp_Ri[current_cutoff] = 1e-12
@@ -310,7 +310,7 @@ def solve(
         if time <= end_time:
             record_times.append(time)
             V_node, I_batt = lp.solve_circuit(netlist)
-            V_terminal.append(V_node.max())
+            V_terminal.append(V_node[Terminal_Node])
         if time < end_time:
             shm_i_app[step + 1, :] = I_batt[:] * -1
 
