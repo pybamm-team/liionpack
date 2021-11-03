@@ -285,7 +285,14 @@ def solve(
         # Calculate internal resistance and update netlist
         temp_v = output[0, step, :]
         temp_ocv = output[1, step, :]
-        temp_Ri = np.abs(output[2, step, :])
+        # temp_Ri = output[2, step, :]
+        # This could be used instead of Equivalent ECM resistance which has
+        # been changing definition
+        temp_Ri = (temp_ocv - temp_v) / np.abs(shm_i_app[step, :])
+        # Make Ri more stable
+        current_cutoff = np.abs(shm_i_app[step, :]) < 1e-6
+        temp_Ri[current_cutoff] = 1e-12
+        # temp_Ri = 1e-12
         shm_Ri[step, :] = temp_Ri
 
         netlist.loc[V_map, ("value")] = temp_ocv
