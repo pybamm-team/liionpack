@@ -235,7 +235,7 @@ def setup_circuit(
                 node2.append(nodes[row])
             else:
                 node1.append(nodes[row + 1])
-                node2.append(nodes[row])               
+                node2.append(nodes[row])
             value.append(val)
             # netlist.append(netline)
 
