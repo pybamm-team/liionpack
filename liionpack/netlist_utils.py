@@ -264,15 +264,15 @@ def setup_circuit(
                 n1,
                 n2,
             ) = netline
-            if elem == "I":
+            if elem[0] == "I":
                 color = "g"
-            elif elem == "Rs":
+            elif elem[:2] == "Rs":
                 color = "r"
-            elif elem == "Rb":
+            elif elem[:2] == "Rb":
                 color = "k"
-            elif elem == "Rc":
+            elif elem[:2] == "Ri":
                 color = "y"
-            elif elem == "V":
+            elif elem[0] == "V":
                 color = "b"
             else:
                 color = "k"
@@ -394,9 +394,9 @@ def solve_circuit(netlist):
         elif elem == "I":
             # Current elements: fill the i vector only
             if n1 >= 0:
-                i[n1] = i[n1] + value[k1]
+                i[n1] = i[n1] - value[k1]
             if n2 >= 0:
-                i[n2] = i[n2] - value[k1]
+                i[n2] = i[n2] + value[k1]
 
     # Construct final matrices from sub-matrices
     upper = sp.sparse.hstack((G, B))

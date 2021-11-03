@@ -55,7 +55,7 @@ def draw_circuit(netlist, **kwargs):
                         else:
                             direction = "left"
                     else:
-                        direction = "down"
+                        direction = "up"
             string = string + str(col[1]) + " "
 
         string = string + "; " + direction

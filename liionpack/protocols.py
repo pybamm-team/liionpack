@@ -32,5 +32,5 @@ def generate_protocol_from_experiment(experiment):
         I, typ = op["electric"]
         if typ != "A":
             raise ValueError("Only constant current operations are supported")
-        proto.extend([I] * int(t / dt))
+        proto.extend([-I] * int(t / dt))
     return proto
