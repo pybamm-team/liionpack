@@ -45,7 +45,7 @@ def draw_circuit(netlist, **kwargs):
         for col in row.iteritems():
             if col[0] == "desc":
                 if col[1][0] == "V":
-                    direction = "down"
+                    direction = "up"
                 elif col[1][0] == "I":
                     direction = "up"
                 elif col[1][0] == "R":
@@ -55,7 +55,7 @@ def draw_circuit(netlist, **kwargs):
                         else:
                             direction = "left"
                     else:
-                        direction = "up"
+                        direction = "down"
             string = string + str(col[1]) + " "
 
         string = string + "; " + direction

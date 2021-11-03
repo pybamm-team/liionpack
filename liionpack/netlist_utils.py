@@ -230,8 +230,12 @@ def setup_circuit(
                 desc.append("V" + str(num_V))
                 num_V += 1
                 val = V
-            node1.append(nodes[row + 1])
-            node2.append(nodes[row])
+            if rtype[row][0] == "R":
+                node1.append(nodes[row + 1])
+                node2.append(nodes[row])
+            else:
+                node1.append(nodes[row + 1])
+                node2.append(nodes[row])               
             value.append(val)
             # netlist.append(netline)
 
@@ -249,8 +253,8 @@ def setup_circuit(
     # Current source - spans the entire first column
     desc.append("I" + str(num_I))
     num_I += 1
-    node1.append(grid[0, 0])
-    node2.append(grid[-1, 0])
+    node1.append(grid[-1, 0])
+    node2.append(grid[0, 0])
     value.append(I)
 
     coords = np.indices(grid.shape)
