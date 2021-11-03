@@ -310,7 +310,7 @@ def solve(
         if time <= end_time:
             record_times.append(time)
             V_node, I_batt = lp.solve_circuit(netlist)
-            V_terminal.append(V_node[Terminal_Node])
+            V_terminal.append(V_node[Terminal_Node][0])
         if time < end_time:
             shm_i_app[step + 1, :] = I_batt[:] * -1
 
