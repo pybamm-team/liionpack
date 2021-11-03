@@ -9,6 +9,7 @@ import pybamm
 import numpy as np
 import time as ticker
 import liionpack as lp
+from tqdm import tqdm
 
 
 def _mapped_step(model, solutions, inputs_dict, integrator, variables, t_eval):
@@ -259,7 +260,7 @@ def solve(
 
     sim_start_time = ticker.time()
 
-    for step in range(Nsteps):
+    for step in tqdm(range(Nsteps), desc='Solving Pack'):
         step_solutions, var_eval = _mapped_step(
             sim.built_model,
             step_solutions,
