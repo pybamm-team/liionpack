@@ -230,12 +230,8 @@ def setup_circuit(
                 desc.append("V" + str(num_V))
                 num_V += 1
                 val = V
-            if rtype[row][0] == "R":
-                node1.append(nodes[row + 1])
-                node2.append(nodes[row])
-            else:
-                node1.append(nodes[row + 1])
-                node2.append(nodes[row])
+            node1.append(nodes[row + 1])
+            node2.append(nodes[row])
             value.append(val)
             # netlist.append(netline)
 
