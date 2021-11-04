@@ -83,10 +83,4 @@ class Test1p1s(unittest.TestCase):
 
 
 if __name__ == "__main__":
-    print("Add -v for more debug output")
-    import sys
-
-    if "-v" in sys.argv:
-        debug = True
-    pybamm.settings.debug_mode = True
     unittest.main()
