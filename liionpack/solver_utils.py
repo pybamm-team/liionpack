@@ -1,9 +1,7 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Thu Sep 23 10:44:31 2021
+#
+# Solver utilities
+#
 
-@author: Tom
-"""
 import casadi
 import pybamm
 import numpy as np
@@ -13,33 +11,32 @@ from tqdm import tqdm
 
 
 def _mapped_step(model, solutions, inputs_dict, integrator, variables, t_eval):
-    r"""
+    """
     Internal function to process the model for one timestep in a mapped way.
     Mapped versions of the integrator and variables functions should already
     have been made.
 
     Parameters
     ----------
-    model : pybamm.Model
-        The built model
-    solutions : list of pybamm.Solution objects for each battery
+    model : :class:`pybamm.lithium_ion.BaseModel`
+        The built battery model
+    solutions : list of :class:`pybamm.Solution` objects for each battery
         Used to get the last state of the system and use as x0 and z0 for the
         casadi integrator
     inputs_dict : list of inputs_dict objects for each battery
-        DESCRIPTION.
     integrator : mapped casadi.integrator
-        Produced by _create_casadi_objects
+        Produced by `_create_casadi_objects`
     variables : mapped variables evaluator
-        Produced by _create_casadi_objects
+        Produced by `_create_casadi_objects`
     t_eval : float array of times to evaluate
-        Produced by _create_casadi_objects
+        Produced by `_create_casadi_objects`
 
     Returns
     -------
     sol : list
-        solutions that have been stepped forward by one timestep
+        Solutions that have been stepped forward by one timestep
     var_eval : list
-        evaluated variables for final state of system
+        Evaluated variables for final state of system
 
     """
     len_rhs = model.concatenated_rhs.size
@@ -62,6 +59,7 @@ def _mapped_step(model, solutions, inputs_dict, integrator, variables, t_eval):
     # inputs_with_tmin = casadi.vertcat(inputs, np.asarray(t_min))
     # Call the integrator once, with the grid
     timer = pybamm.Timer()
+    tic = timer.time()
     casadi_sol = integrator(x0=x0, z0=z0, p=inputs)
     integration_time = timer.time()
     nt = len(t_eval)
@@ -81,6 +79,8 @@ def _mapped_step(model, solutions, inputs_dict, integrator, variables, t_eval):
         # Not sure how to index into zf - need an example
         sol.append(pybamm.Solution(t_eval, y_sol, model, inputs_dict[i]))
         sol[-1].integration_time = integration_time
+    toc = timer.time()
+    lp.logger.debug(f"Mapped step completed in {toc - tic}")
     xend = casadi.horzcat(*xend)
     var_eval = variables(0, xend[:len_rhs, :],
                          xend[len_rhs:, :], inputs[0:ninputs, :])
@@ -88,7 +88,7 @@ def _mapped_step(model, solutions, inputs_dict, integrator, variables, t_eval):
 
 
 def _create_casadi_objects(I_init, htc, sim, dt, Nspm, nproc, variable_names):
-    r"""
+    """
     Internal function to produce the casadi objects in their mapped form for
     parallel evaluation
 
@@ -98,11 +98,12 @@ def _create_casadi_objects(I_init, htc, sim, dt, Nspm, nproc, variable_names):
         initial guess for current of a battery (not used for simulation).
     htc : float
         initial guess for htc of a battery (not used for simulation).
-    sim : pybamm.Simulation
-        A PyBaMM simulation object that contains the model, parameter_values,
+    sim : :class:`pybamm.Simulation`
+        A PyBaMM simulation object that contains the model, parameter values,
         solver, solution etc.
     dt : float
-        The time interval for a single timestep. Fixed throughout the simulation
+        The time interval (in seconds) for a single timestep. Fixed throughout
+        the simulation
     Nspm : int
         Number of individual batteries in the pack.
     nproc : int
@@ -123,22 +124,28 @@ def _create_casadi_objects(I_init, htc, sim, dt, Nspm, nproc, variable_names):
         times to evaluate in a single step, starting at zero for each step
 
     """
-    inputs = {"Current": I_init, "Total heat transfer coefficient [W.m-2.K-1]": htc}
+    inputs = {
+        "Current function [A]": I_init,
+        "Total heat transfer coefficient [W.m-2.K-1]": htc,
+    }
     solver = sim.solver
+
+    # Initial solution - this builds the model behind the scenes
     # solve model for 1 second to initialise the circuit
     t_eval = np.linspace(0, 1, 2)
-    # Initial solution - this builds the model behind the scenes
     sim.solve(t_eval, inputs=inputs)
-    # step model
-    # Code to create mapped integrator
+
+    # Step model forward dt seconds
     t_eval = np.linspace(0, dt, 11)
     t_eval_ndim = t_eval / sim.model.timescale.evaluate()
-    inp_and_ext = inputs
+
     # No external variables - Temperature solved as lumped model in pybamm
     # External variables could (and should) be used if battery thermal problem
     # Includes conduction with any other circuits or neighboring batteries
     # inp_and_ext.update(external_variables)
+    inp_and_ext = inputs
 
+    # Code to create mapped integrator
     integrator = solver.create_integrator(
         sim.built_model, inputs=inp_and_ext, t_eval=t_eval_ndim
     )
@@ -169,7 +176,7 @@ def solve(
     nproc=12,
     output_variables=None,
 ):
-    r"""
+    """
     Solves a pack simulation
 
     Parameters
@@ -213,9 +220,10 @@ def solve(
     Ri_map = netlist["desc"].str.find("Ri") > -1
     V_map = netlist["desc"].str.find("V") > -1
     I_map = netlist["desc"].str.find("I") > -1
-
+    Terminal_Node = np.array(netlist[I_map].node1)
     Nspm = np.sum(V_map)
 
+    # Generate the protocol from the supplied experiment
     protocol = lp.generate_protocol_from_experiment(experiment)
     dt = experiment.period
     Nsteps = len(protocol)
@@ -223,11 +231,9 @@ def solve(
     # Solve the circuit to initialise the electrochemical models
     V_node, I_batt = lp.solve_circuit(netlist)
 
+    # Create battery simulation and update initial state of charge
     sim = lp.create_simulation(parameter_values, make_inputs=True)
     lp.update_init_conc(sim, SoC=initial_soc)
-
-    v_cut_lower = parameter_values["Lower voltage cut-off [V]"]
-    v_cut_higher = parameter_values["Upper voltage cut-off [V]"]
 
     # The simulation output variables calculated at each step for each battery
     # Must be a 0D variable i.e. battery wide volume average - or X-averaged for 1D model
@@ -242,6 +248,7 @@ def solve(
                 variable_names.append(out)
         # variable_names = variable_names + output_variables
     Nvar = len(variable_names)
+
     # Storage variables for simulation data
     shm_i_app = np.zeros([Nsteps, Nspm], dtype=float)
     shm_Ri = np.zeros([Nsteps, Nspm], dtype=float)
@@ -250,19 +257,25 @@ def solve(
     # Initialize currents in battery models
     shm_i_app[0, :] = I_batt * -1
 
+    # Set up integrator
+    integrator, variables_fn, t_eval = _create_casadi_objects(
+        I_init, htc[0], sim, dt, Nspm, nproc, variable_names
+    )
+
+    # Step forward in time
     time = 0
-    # step = 0
     end_time = dt * Nsteps
     step_solutions = [None] * Nspm
     V_terminal = []
     record_times = []
 
-    integrator, variables_fn, t_eval = _create_casadi_objects(
-        I_init, htc[0], sim, dt, Nspm, nproc, variable_names
-    )
+    v_cut_lower = parameter_values["Lower voltage cut-off [V]"]
+    v_cut_higher = parameter_values["Upper voltage cut-off [V]"]
 
     sim_start_time = ticker.time()
-    for step in tqdm(range(Nsteps), desc="Solving Pack"):
+
+    for step in tqdm(range(Nsteps), desc='Solving Pack'):
+        # Step the individual battery models
         step_solutions, var_eval = _mapped_step(
             sim.built_model,
             step_solutions,
@@ -274,30 +287,40 @@ def solve(
         output[:, step, :] = var_eval
 
         time += dt
+
         # Calculate internal resistance and update netlist
         temp_v = output[0, step, :]
         temp_ocv = output[1, step, :]
-        temp_Ri = np.abs(output[2, step, :])
+        # temp_Ri = output[2, step, :]
+        # This could be used instead of Equivalent ECM resistance which has
+        # been changing definition
+        temp_Ri = (temp_ocv - temp_v) / shm_i_app[step, :]
+        # Make Ri more stable
+        current_cutoff = np.abs(shm_i_app[step, :]) < 1e-6
+        temp_Ri[current_cutoff] = 1e-12
+        # temp_Ri = 1e-12
         shm_Ri[step, :] = temp_Ri
 
         netlist.loc[V_map, ("value")] = temp_ocv
         netlist.loc[Ri_map, ("value")] = temp_Ri
         netlist.loc[I_map, ("value")] = protocol[step]
 
-        # print('Stepping time', np.around(ticker.time()-tic, 2), 's')
+        # Stop if voltage limits are reached
         if np.any(temp_v < v_cut_lower):
-            print("Low V limit reached")
+            print("Low voltage limit reached")
             break
         if np.any(temp_v > v_cut_higher):
-            print("High V limit reached")
+            print("High voltage limit reached")
             break
-        # step += 1
+
         if time <= end_time:
             record_times.append(time)
             V_node, I_batt = lp.solve_circuit(netlist)
-            V_terminal.append(V_node.max())
+            V_terminal.append(V_node[Terminal_Node][0])
         if time < end_time:
             shm_i_app[step + 1, :] = I_batt[:] * -1
+
+    # Collect outputs
     all_output = {}
     all_output["Time [s]"] = np.asarray(record_times)
     all_output["Pack current [A]"] = np.asarray(protocol[: step + 1])
@@ -307,7 +330,7 @@ def solve(
         all_output[variable_names[j]] = output[j, : step + 1, :]
 
     toc = ticker.time()
-    pybamm.logger.notice(
+    lp.logger.notice(
         "Solve circuit time " + str(np.around(toc - sim_start_time, 3)) + "s"
     )
     return all_output

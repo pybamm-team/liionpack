@@ -1,9 +1,6 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Thu Sep 23 10:27:40 2021
-
-@author: Tom
-"""
+#
+# Load a netlist to use ina liionpack simulation
+#
 
 import liionpack as lp
 import matplotlib.pyplot as plt

@@ -1,9 +1,6 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Thu Sep 23 10:27:40 2021
-
-@author: Tom
-"""
+#
+# Simulate a big circuit
+#
 
 import liionpack as lp
 import numpy as np
@@ -11,7 +8,7 @@ import pybamm
 import matplotlib.pyplot as plt
 
 plt.close("all")
-pybamm.logger.setLevel("NOTICE")
+lp.logger.setLevel("NOTICE")
 
 Np = 16
 Ns = 96
@@ -45,8 +42,6 @@ experiment = pybamm.Experiment(
 # PyBaMM parameters
 chemistry = pybamm.parameter_sets.Chen2020
 parameter_values = pybamm.ParameterValues(chemistry=chemistry)
-
-# lp.create_init_funcs(parameter_values)
 
 # Solve pack
 output = lp.solve(
