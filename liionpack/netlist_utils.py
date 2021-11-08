@@ -7,15 +7,19 @@ Created on Thu Sep 23 10:36:15 2021
 import numpy as np
 import codecs
 import pandas as pd
-import time as ticker
 import matplotlib.pyplot as plt
 import liionpack as lp
 import os
-from scipy.linalg import solve
+
+# from scipy.linalg import solve
+# import pyamg
+# import pypardiso
 import pybamm
+import scipy as sp
+
 
 def read_netlist(filepath, Ri=1e-2, Rc=1e-2, Rb=1e-4, Rl=5e-4, I=80.0, V=4.2):
-    r'''
+    r"""
     Assumes netlist has been saved by LTSpice with format Descriptor Node1 Node2 Value
     Any lines starting with * are comments and . are commands so ignore them
     Nodes begin with N so remove that
@@ -41,13 +45,14 @@ def read_netlist(filepath, Ri=1e-2, Rc=1e-2, Rb=1e-4, Rl=5e-4, I=80.0, V=4.2):
     Returns
     -------
     netlist : pandas.DataFrame
-        A netlist of circuit elements with format. desc, node1, node2, value.
-        
+        A netlist of circuit elements with format desc, node1, node2, value.
 
-    '''
 
-    if '.cir' not in filepath:
-        filepath += '.cir'
+    """
+
+    # Read in the netlist
+    if ".cir" not in filepath:
+        filepath += ".cir"
     if not os.path.isfile(filepath):
         temp = os.path.join(lp.CIRCUIT_DIR, filepath)
         if not os.path.isfile(temp):
@@ -56,52 +61,61 @@ def read_netlist(filepath, Ri=1e-2, Rc=1e-2, Rb=1e-4, Rl=5e-4, I=80.0, V=4.2):
             filepath = temp
     with codecs.open(filepath, "r", "utf-16LE") as fd:
         Lines = fd.readlines()
-    Lines = [l.strip('\n').split(' ') for l in Lines if l[0] not in ['*', '.']]
-    Lines = np.array(Lines, dtype='<U16')
+    # Ignore lines starting with * or .
+    Lines = [l.strip("\n").split(" ") for l in Lines if l[0] not in ["*", "."]]
+    Lines = np.array(Lines, dtype="<U16")
+
+    # Read descriptions and nodes, strip N from nodes
+    # Lines is desc | node1 | node2
     desc = Lines[:, 0]
-    N1 = Lines[:, 1]
-    N2 = Lines[:, 2]
-    # values = Lines[:, 3]
-    values = np.zeros(len(N1))
-    N1 = np.array([x.strip('N') for x in N1], dtype=int)
-    N2 = np.array([x.strip('N') for x in N2], dtype=int)
-    netlist = pd.DataFrame({'desc': desc, 'node1': N1, 'node2': N2, 'value': values})
-    Ri_map = netlist['desc'].str.find('Ri') > -1
-    Rc_map = netlist['desc'].str.find('Rc') > -1
-    Rb_map = netlist['desc'].str.find('Rb') > -1
-    Rl_map = netlist['desc'].str.find('Rl') > -1
-    V_map = netlist['desc'].str.find('V') > -1
-    I_map = netlist['desc'].str.find('I') > -1
-    netlist.loc[Ri_map, ('value')] = Ri
-    netlist.loc[Rc_map, ('value')] = Rc
-    netlist.loc[Rb_map, ('value')] = Rb
-    netlist.loc[Rl_map, ('value')] = Rl
-    netlist.loc[I_map, ('value')] = I
-    netlist.loc[V_map, ('value')] = V
-    pybamm.logger.notice('netlist ' + filepath + ' loaded')
+    node1 = Lines[:, 1]
+    node2 = Lines[:, 2]
+    value = np.zeros(len(node1))
+    node1 = np.array([x.strip("N") for x in node1], dtype=int)
+    node2 = np.array([x.strip("N") for x in node2], dtype=int)
+    netlist = pd.DataFrame(
+        {"desc": desc, "node1": node1, "node2": node2, "value": value}
+    )
+
+    # Populate the values based on the descriptions (element types)
+    for name, val in [
+        ("Ri", Ri),
+        ("Rc", Rc),
+        ("Rb", Rb),
+        ("Rl", Rl),
+        ("I", I),
+        ("V", V),
+    ]:
+        # netlist["desc"] consists of entries like 'Ri13'
+        # this map finds all the entries that start with (e.g.) 'Ri'
+        name_map = netlist["desc"].str.find(name) > -1
+        # then allocates the value to the corresponding indices
+        netlist.loc[name_map, ("value")] = val
+
+    lp.logger.notice("netlist " + filepath + " loaded")
     return netlist
 
 
 def _make_contiguous(node1, node2):
-    r'''
-    
+    r"""
+
     Internal helper function to make the netlist nodes contiguous
 
     Parameters
     ----------
-    node1 : int
+    node1 : array
         First node in the netlist.
-    node2 : int
+    node2 : array
         Second node in the netlist.
 
     Returns
     -------
-    int
+    array
         First nodes.
-    int
+    array
         Second nodes.
 
-    '''
+    """
     nodes = np.vstack((node1, node2)).astype(int)
     nodes = nodes.T
     unique_nodes = np.unique(nodes)
@@ -112,17 +126,19 @@ def _make_contiguous(node1, node2):
     return nodes_copy[:, 0], nodes_copy[:, 1]
 
 
-def setup_circuit(Np, Ns, Ri=1e-2, Rc=1e-2, Rb=1e-4, Rl=5e-4, I=80.0, V=4.2, plot=False):
-    r'''
-    
+def setup_circuit(
+    Np=1, Ns=1, Ri=1e-2, Rc=1e-2, Rb=1e-4, Rl=5e-4, I=80.0, V=4.2, plot=False
+):
+    r"""
+
     Define a netlist from a number of batteries in parallel and series
 
     Parameters
     ----------
     Np : int
-        Number of batteries in parallel.
+        Number of batteries in parallel. The default is 1.
     Ns : int
-        Number of batteries in series.
+        Number of batteries in series. The default is 1.
     Ri : float
         Internal resistance (:math:`\Omega`). The default is 1e-2.
     Rc : float
@@ -138,20 +154,36 @@ def setup_circuit(Np, Ns, Ri=1e-2, Rc=1e-2, Rb=1e-4, Rl=5e-4, I=80.0, V=4.2, plo
 
     Returns
     -------
-    netlist : TYPE
-        DESCRIPTION.
+    netlist : pandas.DataFrame
+        A netlist of circuit elements with format desc, node1, node2, value.
 
-    '''
+    """
     Nc = Np + 1
     Nr = Ns * 3 + 1
 
     grid = np.arange(Nc * Nr).reshape([Nr, Nc])
-
+    # grid is a Nr x Nc matrix
     # 1st column is terminals only
     # 1st and last rows are busbars
     # Other rows alternate between series resistor and voltage source
+    # For example if Np=1 and Nc=2,
+    # grid = array([[ 0,  1], # busbar
+    #                         # Rs
+    #               [ 2,  3],
+    #                         # V
+    #               [ 4,  5],
+    #                         # Ri
+    #               [ 6,  7],
+    #                         # Rs
+    #               [ 8,  9],
+    #                         # V
+    #               [10, 11],
+    #                         # Ri
+    #               [12, 13]] # busbar)
+    # Connections are across busbars in first and last rows, and down each column
+    # See "01 Getting Started.ipynb"
 
-    # Build data  with ['element type', Node1, Node2, value]
+    # Build data  with ['element type', node1, node2, value]
     netlist = []
 
     num_Rb = 0
@@ -162,22 +194,13 @@ def setup_circuit(Np, Ns, Ri=1e-2, Rc=1e-2, Rb=1e-4, Rl=5e-4, I=80.0, V=4.2, plo
     node1 = []
     node2 = []
     value = []
-    
-    # Current source - same end
-    # netline = []
-    # terminal_nodes = [, ]
-    desc.append('I' + str(num_I))
-    num_I += 1
-    node1.append(grid[0, 0])
-    node2.append(grid[-1, 0])
-    value.append(I)
 
-    # +ve & -ve busbars
-    bus_nodes = [grid[-1, :], grid[0, :]]
+    # -ve busbars (final row of the grid)
+    bus_nodes = [grid[-1, :]]
     for nodes in bus_nodes:
         for i in range(len(nodes) - 1):
             # netline = []
-            desc.append('Rb' + str(num_Rb))
+            desc.append("Rbn" + str(num_Rb))
             num_Rb += 1
             node1.append(nodes[i])
             node2.append(nodes[i + 1])
@@ -187,58 +210,77 @@ def setup_circuit(Np, Ns, Ri=1e-2, Rc=1e-2, Rb=1e-4, Rl=5e-4, I=80.0, V=4.2, plo
     # Series resistors and voltage sources
     cols = np.arange(Nc)[1:]
     rows = np.arange(Nr)[:-1]
-    rtype = ['Rs', 'V', 'Ri']*Ns
+    rtype = ["Rs", "V", "Ri"] * Ns
     for col in cols:
+        # Go down the column alternating Rs, V, Ri connections between nodes
         nodes = grid[:, col]
         for row in rows:
-            # netline = []
-            if rtype[row][0] == 'R':
-                if rtype[row][1] == 's':
-                    # Series resistor
-                    desc.append(rtype[row] + str(num_Rs))
-                    num_Rs += 1
-                    val = Rc
-                else:
-                    # Internal resistor
-                    desc.append(rtype[row] + str(num_Ri))
-                    num_Ri += 1
-                    val = Ri
-                node1.append(nodes[row])
-                node2.append(nodes[row + 1])
+            if rtype[row] == "Rs":
+                # Series resistor
+                desc.append(rtype[row] + str(num_Rs))
+                num_Rs += 1
+                val = Rc
+            elif rtype[row] == "Ri":
+                # Internal resistor
+                desc.append(rtype[row] + str(num_Ri))
+                num_Ri += 1
+                val = Ri
             else:
                 # Voltage source
-                desc.append('V' + str(num_V))
+                desc.append("V" + str(num_V))
                 num_V += 1
                 val = V
-                node1.append(nodes[row + 1])
-                node2.append(nodes[row])
+            node1.append(nodes[row + 1])
+            node2.append(nodes[row])
             value.append(val)
             # netlist.append(netline)
+
+    # +ve busbar (first row of the grid)
+    bus_nodes = [grid[0, :]]
+    for nodes in bus_nodes:
+        for i in range(len(nodes) - 1):
+            # netline = []
+            desc.append("Rbp" + str(num_Rb))
+            num_Rb += 1
+            node1.append(nodes[i + 1])
+            node2.append(nodes[i])
+            value.append(Rb)
+
+    # Current source - spans the entire first column
+    desc.append("I" + str(num_I))
+    num_I += 1
+    node1.append(grid[-1, 0])
+    node2.append(grid[0, 0])
+    value.append(I)
 
     coords = np.indices(grid.shape)
     y = coords[0, :, :].flatten()
     x = coords[1, :, :].flatten()
     if plot:
         plt.figure()
-        # plt.scatter(x, y, c='k')
         for netline in zip(desc, node1, node2):
-            elem, n1, n2, = netline
-            if elem[0] == 'I':
-                color = 'g'
-            elif elem[0] == 'R':
-                if elem[1] == 's':
-                    color = 'r'
-                elif elem[1] == 'b':
-                    color = 'k'
-                else:
-                    color = 'y'
-            elif elem[0] == 'V':
-                color = 'b'
+            (
+                elem,
+                n1,
+                n2,
+            ) = netline
+            if elem[0] == "I":
+                color = "g"
+            elif elem[:2] == "Rs":
+                color = "r"
+            elif elem[:2] == "Rb":
+                color = "k"
+            elif elem[:2] == "Ri":
+                color = "y"
+            elif elem[0] == "V":
+                color = "b"
+            else:
+                color = "k"
             x1 = x[n1]
             x2 = x[n2]
             y1 = y[n1]
             y2 = y[n2]
-            plt.scatter([x1, x2], [y1, y2], c='k')
+            plt.scatter([x1, x2], [y1, y2], c="k")
             plt.plot([x1, x2], [y1, y2], c=color)
 
     desc = np.asarray(desc)
@@ -247,43 +289,63 @@ def setup_circuit(Np, Ns, Ri=1e-2, Rc=1e-2, Rb=1e-4, Rl=5e-4, I=80.0, V=4.2, plo
     value = np.asarray(value)
 
     node1, node2 = _make_contiguous(node1, node2)
-    netlist = pd.DataFrame({'desc': desc, 'node1': node1,
-                            'node2': node2, 'value': value})
+    netlist = pd.DataFrame(
+        {"desc": desc, "node1": node1, "node2": node2, "value": value}
+    )
 
-    pybamm.logger.notice("Circuit created")
+    lp.logger.notice("Circuit created")
     return netlist
 
+
 def solve_circuit(netlist):
-    r'''
-    
+    r"""
+    Generate and solve the Modified Nodal Analysis (MNA) equations for the circuit.
+    The MNA equations are a linear system Ax = z.
+    See http://lpsa.swarthmore.edu/Systems/Electrical/mna/MNA3.html
 
     Parameters
     ----------
-    netlist : TYPE
-        DESCRIPTION.
+    netlist : pandas.DataFrame
+        A netlist of circuit elements with format desc, node1, node2, value.
 
     Returns
     -------
-    None.
+    V_node : array
+        Voltages of the voltage elements
+    I_batt : array
+        Currents of the current elements
 
-    '''
-    tic = ticker.time()
+    """
+    timer = pybamm.Timer()
 
-    Name = np.array(netlist['desc']).astype('<U16')
-    N1 = np.array(netlist['node1'])
-    N2 = np.array(netlist['node2'])
-    arg3 = np.array(netlist['value'])
-    n = np.concatenate((N1, N2)).max()  # Highest node number
+    desc = np.array(netlist["desc"]).astype("<U16")
+    node1 = np.array(netlist["node1"])
+    node2 = np.array(netlist["node2"])
+    value = np.array(netlist["value"])
     nLines = netlist.shape[0]
+
+    n = np.concatenate((node1, node2)).max()  # Number of nodes (highest node number)
+
     m = 0  # "m" is the number of voltage sources, determined below.
-    V_elem = ['V', 'O', 'E', 'H']
-    for nm in Name:
+    V_elem = ["V", "O", "E", "H"]
+    for nm in desc:
         if nm[0] in V_elem:
             m += 1
 
-    G = np.zeros([n, n])
-    B = np.zeros([n, m])
-    D = np.zeros([m, m])
+    # Construct the A matrix, which will be a (n+m) x (n+m) matrix
+    # A = [G    B]
+    #     [B.T  D]
+    # G matrix tracks the conductance between nodes (consists of floats)
+    # B matrix tracks voltage sources between nodes (consists of -1, 0, 1)
+    # D matrix is always zero for non-dependent sources
+    # Construct the z vector with length (n+m)
+    # z = [i]
+    #     [e]
+    # i is currents and e is voltages
+    # Use lil matrices to construct the A array
+    G = sp.sparse.lil_matrix((n, n))
+    B = sp.sparse.lil_matrix((n, m))
+    D = sp.sparse.lil_matrix((m, m))
     i = np.zeros([n, 1])
     e = np.zeros([m, 1])
 
@@ -300,11 +362,12 @@ def solve_circuit(netlist):
     """
 
     for k1 in range(nLines):
-        n1 = N1[k1] - 1  # get the two node numbers in python index format
-        n2 = N2[k1] - 1
-        elem = Name[k1][0]
-        if elem == 'R':
-            g = 1 / arg3[k1]  # conductance = 1 / R
+        n1 = node1[k1] - 1  # get the two node numbers in python index format
+        n2 = node2[k1] - 1
+        elem = desc[k1][0]
+        if elem == "R":
+            # Resistance elements: fill the G matrix only
+            g = 1 / value[k1]  # conductance = 1 / R
             """
             % Here we fill in G array by adding conductance.
             % The procedure is slightly different if one of the nodes is
@@ -319,32 +382,52 @@ def solve_circuit(netlist):
                 G[n2, n2] = G[n2, n2] + g
                 G[n1, n2] = G[n1, n2] - g
                 G[n2, n1] = G[n2, n1] - g
-        elif elem == 'V':
+        elif elem == "V":
+            # Voltage elements: fill the B matrix and the e vector
             if n1 >= 0:
                 B[n1, vsCnt] = B[n1, vsCnt] + 1
             if n2 >= 0:
                 B[n2, vsCnt] = B[n2, vsCnt] - 1
-            e[vsCnt] = arg3[k1]
+            e[vsCnt] = value[k1]
             vsCnt += 1
 
-        elif elem == 'I':
+        elif elem == "I":
+            # Current elements: fill the i vector only
             if n1 >= 0:
-                i[n1] = i[n1] - arg3[k1]
+                i[n1] = i[n1] - value[k1]
             if n2 >= 0:
-                i[n2] = i[n2] + arg3[k1]
+                i[n2] = i[n2] + value[k1]
 
-    upper = np.hstack((G, B))
-    lower = np.hstack((B.T, D))
-    A = np.vstack((upper, lower))
+    # Construct final matrices from sub-matrices
+    upper = sp.sparse.hstack((G, B))
+    lower = sp.sparse.hstack((B.T, D))
+    A = sp.sparse.vstack((upper, lower))
+    # Convert a to csr sparse format for more efficient solving of the linear system
+    # csr works slighhtly more robustly than csc
+    A_csr = sp.sparse.csr_matrix(A)
     z = np.vstack((i, e))
-    X = solve(A, z).flatten()
 
-    # include ground node
+    toc_setup = timer.time()
+    lp.logger.debug(f"Circuit set up in {toc_setup}")
+
+    # Scipy
+    # X = solve(A, z).flatten()
+    X = sp.sparse.linalg.spsolve(A_csr, z).flatten()
+    # Pypardiso
+    # X = pypardiso.spsolve(Aspr, z).flatten()
+
+    # amg
+    # ml = pyamg.smoothed_aggregation_solver(Aspr)
+    # X = ml.solve(b=z, tol=1e-6, maxiter=10, accel="bicgstab")
+
+    # include ground node (0V)
+    # it is counter-intuitive that z is [i,e] while X is [V,I], but this is correct
     V_node = np.zeros(n + 1)
     V_node[1:] = X[:n]
     I_batt = X[n:]
 
-    toc = ticker.time()
-    pybamm.logger.info("Circuit solved in " +
-                       str(np.around(toc-tic, 3)) + " s")
+    toc = timer.time()
+    lp.logger.debug(f"Circuit solved in {toc - toc_setup}")
+    lp.logger.info(f"Circuit set up and solved in {toc}")
+
     return V_node, I_batt

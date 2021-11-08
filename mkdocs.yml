@@ -2,6 +2,12 @@ site_name: liionpack
 
 theme:
     name: material
+    palette:
+      primary: blue grey
+    font:
+      text: Saira
+
+strict: false
 
 plugins:
 - search
@@ -15,4 +21,3 @@ nav:
     - Reference: 'reference.md'
     - Code of conduct: 'conduct.md'
     - Contributing: 'contributing.md'
-

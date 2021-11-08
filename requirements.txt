@@ -6,3 +6,9 @@ pandas
 plotly
 openpyxl
 tqdm
+lcapy
+Ipython
+scikit-spatial
+networkx
+textwrapper
+

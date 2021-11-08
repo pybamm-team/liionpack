@@ -5,25 +5,28 @@ import unittest
 
 
 class utilsTest(unittest.TestCase):
-    def setup_class(self):
-        pass
-
     def test_interp_current(self):
-        d = {'Time': [0, 10], 'Cells Total Current': [2.0, 4.0]}
+        d = {"Time": [0, 10], "Cells Total Current": [2.0, 4.0]}
         df = pd.DataFrame(data=d)
         f = lp.interp_current(df)
         assert f(5) == 3.0
 
-    def test_read_cfd_data(self):
-        f = lp.read_cfd_data()
-        assert len(f) == 32
-        assert f[0](16, 0.001)[0] == 8.295482896342516
-        htc = lp.get_interpolated_htc(f, np.ones(32)*16, 0.001)
-        assert htc[0] == 8.295482896342516
-        assert htc[1] == 7.878096887315587
+    def test_read_cfd_data_linear(self):
+        data, xv, yv, planes = lp.read_cfd_data()
+        expected = np.array([8.295482896342516, 7.878096887315587])
+        T = np.ones(32) * xv[1, 1]
+        Q = yv[1, 1]
+        htc = lp.get_linear_htc(planes, T, Q)
+        assert np.allclose(htc[:2], expected)
 
-if __name__ == '__main__':
-    t = utilsTest()
-    t.setup_class()
-    t.test_interp_current()
-    t.test_read_cfd_data()
+    def test_read_cfd_data_interpolated(self):
+        data, xv, yv, funcs = lp.read_cfd_data(fit="interpolated")
+        expected = np.array([8.295482896342516, 7.878096887315587])
+        T = np.ones(32) * xv[1, 1]
+        Q = yv[1, 1]
+        htc = lp.get_interpolated_htc(funcs, T, Q)
+        assert np.allclose(htc[:2], expected)
+
+
+if __name__ == "__main__":
+    unittest.main()
