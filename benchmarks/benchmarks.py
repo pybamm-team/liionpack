@@ -13,22 +13,17 @@ class TimeSuite:
             self.d[x] = None
 
     def time_keys(self):
-        for key in self.d.keys():
+        for _ in self.d.keys():
             pass
 
     def time_iterkeys(self):
-        for key in self.d.iterkeys():
+        for _ in self.d.iterkeys():
             pass
 
     def time_range(self):
         d = self.d
         for key in range(500):
-            x = d[key]
-
-    def time_xrange(self):
-        d = self.d
-        for key in xrange(500):
-            x = d[key]
+            d[key]
 
 
 class MemSuite:
