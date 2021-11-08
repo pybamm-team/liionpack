@@ -1,6 +1,7 @@
 #
 # Experimental protocol
 #
+import numpy as np
 
 
 def generate_protocol_from_experiment(experiment):
@@ -26,5 +27,9 @@ def generate_protocol_from_experiment(experiment):
         I, typ = op["electric"]
         if typ != "A":
             raise ValueError("Only constant current operations are supported")
-        proto.extend([I] * int(t / dt))
+        if I.__class__ is np.ndarray:
+            # drive cycle
+            proto.extend(I[:, 1].tolist())
+        else:
+            proto.extend([I] * int(t / dt))
     return proto

@@ -234,7 +234,6 @@ def solve(
     variable_names = [
         "Terminal voltage [V]",
         "Measured battery open circuit voltage [V]",
-        "Local ECM resistance [Ohm]",
     ]
     if output_variables is not None:
         for out in output_variables:
