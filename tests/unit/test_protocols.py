@@ -37,9 +37,9 @@ class protocolsTest(unittest.TestCase):
     def test_generate_protocol_from_drive_cycle(self):
         os.chdir(pybamm.__path__[0] + "/..")
         drive_cycle = pd.read_csv(
-        "pybamm/input/drive_cycles/US06.csv", comment="#", header=None
+            "pybamm/input/drive_cycles/US06.csv", comment="#", header=None
         ).to_numpy()
-        
+
         experiment = pybamm.Experiment(
             operating_conditions=["Run US06 (A)"],
             period="1 minute",
@@ -48,6 +48,7 @@ class protocolsTest(unittest.TestCase):
         p = lp.generate_protocol_from_experiment(experiment)
         assert len(p) == 601
         assert np.allclose(np.mean(p), 0.8404807891846922)
+
 
 if __name__ == "__main__":
     unittest.main()
