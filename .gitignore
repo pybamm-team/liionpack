@@ -49,3 +49,7 @@ Thumbs.db
 *.wmv
 
 liionpack.egg-info/
+
+# virtual enviroment
+env/
+venv/
