@@ -49,6 +49,11 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+# Sphinx build files
+docs/_build/
+docs/build/
+build/
+
 # Unit test and coverage reports
 htmlcov/
 .tox/

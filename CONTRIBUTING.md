@@ -265,14 +265,14 @@ In addition, we write a (very) small bit of documentation in separate reStructur
 
 Using [Sphinx](http://www.sphinx-doc.org/en/stable/) the documentation in `docs` can be converted to HTML, PDF, and other formats. In particular, we use it to generate the documentation on http://pybamm.readthedocs.io/
 
-<!-- ### Building the documentation
+### Building the documentation
 
 To test and debug the documentation, it's best to build it locally. To do this, navigate to your PyBaMM directory in a console, and then type:
 
 ```
 python -m tox -e docs (GNU/Linux, MacOS and Windows)
 ```
-And then visit the webpage served at http://127.0.0.1:8000. Each time a change to the documentation source is detected, the HTML is rebuilt and the browser automatically reloaded. --> -->
+And then visit the webpage served at http://127.0.0.1:8000. Each time a change to the documentation source is detected, the HTML is rebuilt and the browser automatically reloaded. -->
 
 ### Example notebooks
 
