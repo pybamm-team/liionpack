@@ -62,8 +62,9 @@ def create_simulation(parameter_values=None, experiment=None, make_inputs=False)
         parameter_values.update({"Current": "[input]",
                       "Total heat transfer coefficient [W.m-2.K-1]": "[input]"},
                       check_already_exists=False)
-
-    solver = pybamm.CasadiSolver(mode='safe')
+    extra_options_setup = {}
+    # extra_options_setup = {"jit":True,"compiler":"shell","jit_options":{"verbose":True}}
+    solver = pybamm.CasadiSolver(mode='safe', extra_options_setup=extra_options_setup)
     sim = pybamm.Simulation(model=model, experiment=experiment,
                             parameter_values=parameter_values,
                             solver=solver)
