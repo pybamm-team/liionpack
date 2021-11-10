@@ -21,8 +21,13 @@ output_variables = None
 # Heat transfer coefficients
 htc = np.ones(4) * 10
 
-# Cycling protocol
-protocol = lp.generate_protocol(I_chg=5, I_dch=-5, chg_first=True)
+# Cycling experiment
+experiment = pybamm.Experiment(
+    [
+    "Discharge at 5 A for 30 minutes",
+    ],
+    period="10 seconds",
+)
 
 # PyBaMM parameters
 chemistry = pybamm.parameter_sets.Chen2020
@@ -32,13 +37,13 @@ parameter_values = pybamm.ParameterValues(chemistry=chemistry)
 # Serial step
 srlout = lp.solve(netlist=netl1,
                   parameter_values=parameter_values,
-                  protocol=protocol,
+                  experiment=experiment,
                   output_variables=output_variables,
                   htc=htc, mapped=False)
 # Casadi mapped step
 mapout = lp.solve(netlist=netl2,
                   parameter_values=parameter_values,
-                  protocol=protocol,
+                  experiment=experiment,
                   output_variables=output_variables,
                   htc=htc, mapped=True)
 
