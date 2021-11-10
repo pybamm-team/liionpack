@@ -29,12 +29,12 @@ jobs:
           python-version: 3.8
       - name: Install tox and asv
         run: pip install -U pip tox asv
-      - name: Fetch develop branch
+      - name: Fetch main branch
         # Not required when worklow trigerred
-        # on develop, but useful when
+        # on main, but useful when
         # experimenting/developing on another branch.
         run: |
-          git fetch origin develop:develop
+          git fetch origin main:main
       - name: Run benchmarks
         run: |
           asv machine --machine "GitHubRunner"
