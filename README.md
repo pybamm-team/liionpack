@@ -90,6 +90,10 @@ output = lp.solve(netlist=netlist,
                   htc=htc)
 ```
 
+## Contributing to liionpack
+
+If you'd like to help us develop liionpack by adding new methods, writing documentation, or fixing embarrassing bugs, please have a look at these [guidelines](https://github.com/pybamm-team/liionpack/blob/main/docs/contributing.md) first.
+
 ## Acknowledgments
 PyBaMM-team acknowledges the funding and support of the Faraday Institution's multi-scale modelling project and Innovate UK.
 
