@@ -1,20 +1,15 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Thu Sep 23 14:44:19 2021
-
-@author: Tom
-"""
-
-from numpy import exp
+#
+# Experimental protocol
+#
+import numpy as np
 
 
 def generate_protocol_from_experiment(experiment):
-    r'''
-    
+    """
 
     Parameters
     ----------
-    experiment : pybamm.Experiment class
+    experiment : :class:`pybamm.Experiment`
         The experiment to generate the protocol from.
 
     Returns
@@ -22,7 +17,7 @@ def generate_protocol_from_experiment(experiment):
     proto : list
         a sequence of terminal currents to apply at each timestep
 
-    '''
+    """
     proto = []
     for op in experiment.operating_conditions:
         t = op["time"]
@@ -32,5 +27,9 @@ def generate_protocol_from_experiment(experiment):
         I, typ = op["electric"]
         if typ != "A":
             raise ValueError("Only constant current operations are supported")
-        proto.extend([I] * int(t / dt))
+        if I.__class__ is np.ndarray:
+            # drive cycle
+            proto.extend(I[:, 1].tolist())
+        else:
+            proto.extend([I] * int(t / dt))
     return proto
