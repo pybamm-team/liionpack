@@ -45,8 +45,7 @@ def _create_casadi_objects(I_init, htc, sim, dt, Nspm, nproc, variable_names):
     t_eval : float array of times to evaluate
         times to evaluate in a single step, starting at zero for each step
     """
-    inputs = {"Current": I_init,
-              "Total heat transfer coefficient [W.m-2.K-1]": htc}
+    inputs = {"Current": I_init, "Total heat transfer coefficient [W.m-2.K-1]": htc}
     solver = sim.solver
     # solve model for 1 second to initialise the circuit
     t_eval = np.linspace(0, 1, 2)
@@ -64,12 +63,19 @@ def _create_casadi_objects(I_init, htc, sim, dt, Nspm, nproc, variable_names):
     # External variables could (and should) be used if battery thermal problem
     # Includes conduction with any other circuits or neighboring batteries
     # inp_and_ext.update(external_variables)
-    integrator = solver.create_integrator(sim.built_model, inputs=inp_and_ext, t_eval=t_eval_ndim)
+    integrator = solver.create_integrator(
+        sim.built_model, inputs=inp_and_ext, t_eval=t_eval_ndim
+    )
 
     # Variables function for parallel evaluation
     casadi_objs = sim.built_model.export_casadi_objects(variable_names=variable_names)
-    variables = casadi_objs['variables']
-    t, x, z, p = casadi_objs["t"], casadi_objs["x"], casadi_objs["z"], casadi_objs["inputs"]
+    variables = casadi_objs["variables"]
+    t, x, z, p = (
+        casadi_objs["t"],
+        casadi_objs["x"],
+        casadi_objs["z"],
+        casadi_objs["inputs"],
+    )
 
     variables_stacked = casadi.vertcat(*variables.values())
     variables_fn = casadi.Function("variables", [t, x, z, p], [variables_stacked])
@@ -93,7 +99,7 @@ def _step_solve(input_dict, solution, model, integrator, variables, t_eval):
         x0 = solution.y[:len_rhs, -1]
         z0 = solution.y[len_rhs:, -1]
 
-    inputs = casadi.vertcat(*[x for x in input_dict.values()]+[t_min])
+    inputs = casadi.vertcat(*[x for x in input_dict.values()] + [t_min])
     ninputs = len(input_dict.values())
 
     # Call the integrator once, with the grid
@@ -112,14 +118,21 @@ def _step_solve(input_dict, solution, model, integrator, variables, t_eval):
 
 
 def solve_dask(
-        netlist=None, parameter_values=None, experiment=None, I_init=1.0,
-        htc=None, initial_soc=0.5, nproc=12, output_variables=None):
+    netlist=None,
+    parameter_values=None,
+    experiment=None,
+    I_init=1.0,
+    htc=None,
+    initial_soc=0.5,
+    nproc=12,
+    output_variables=None,
+):
     """
     Solves a battery pack simulation where Dask is used to solve the PyBaMM
     battery cell models in parallel.
     """
     if netlist is None or parameter_values is None or experiment is None:
-        raise Exception('Please supply a netlist, paramater_values, and experiment')
+        raise Exception("Please supply a netlist, paramater_values, and experiment")
 
     # Setup client for Dask distributed scheduler
     client = Client()
@@ -127,9 +140,9 @@ def solve_dask(
     print(client.dashboard_link)
 
     # Get netlist indices for resistors, voltage sources, current sources
-    Ri_map = netlist['desc'].str.find('Ri') > -1
-    V_map = netlist['desc'].str.find('V') > -1
-    I_map = netlist['desc'].str.find('I') > -1
+    Ri_map = netlist["desc"].str.find("Ri") > -1
+    V_map = netlist["desc"].str.find("V") > -1
+    I_map = netlist["desc"].str.find("I") > -1
 
     # Number of battery cell models
     Nspm = sum(V_map)
@@ -147,15 +160,17 @@ def solve_dask(
     lp.update_init_conc(sim, SoC=initial_soc)
 
     # Get cut-off voltages
-    v_cut_lower = parameter_values['Lower voltage cut-off [V]']
-    v_cut_higher = parameter_values['Upper voltage cut-off [V]']
+    v_cut_lower = parameter_values["Lower voltage cut-off [V]"]
+    v_cut_higher = parameter_values["Upper voltage cut-off [V]"]
 
     # Simulation output variables calculated at each step for each battery.
     # Must be a 0D variable i.e. battery wide volume average or X-averaged
     # for 1D model.
-    variable_names = ['Terminal voltage [V]',
-                      'Measured battery open circuit voltage [V]',
-                      'Local ECM resistance [Ohm]']
+    variable_names = [
+        "Terminal voltage [V]",
+        "Measured battery open circuit voltage [V]",
+        "Local ECM resistance [Ohm]",
+    ]
 
     if output_variables is not None:
         for out in output_variables:
@@ -181,17 +196,25 @@ def solve_dask(
     record_times = []
 
     # Create Casadi objects
-    integrator, variables_fn, t_eval = _create_casadi_objects(I_init, htc[0], sim, dt, Nspm, nproc, variable_names)
+    integrator, variables_fn, t_eval = _create_casadi_objects(
+        I_init, htc[0], sim, dt, Nspm, nproc, variable_names
+    )
 
     # Calculate solutions for each time step
-    for step in tqdm(range(Nsteps), desc='Solving Pack'):
+    for step in tqdm(range(Nsteps), desc="Solving Pack"):
 
         inputs_dict = lp.build_inputs_dict(shm_i_app[step, :], htc)
 
         # Calculate solution for each battery cell model
         lazy_results = client.map(
-            _step_solve, inputs_dict, step_solutions,
-            model=sim.built_model, integrator=integrator, variables=variables_fn, t_eval=t_eval)
+            _step_solve,
+            inputs_dict,
+            step_solutions,
+            model=sim.built_model,
+            integrator=integrator,
+            variables=variables_fn,
+            t_eval=t_eval,
+        )
 
         results = client.gather(lazy_results)
         step_solutions, var_eval = zip(*results)
@@ -205,15 +228,15 @@ def solve_dask(
         temp_Ri = np.abs(output[2, step, :])
         shm_Ri[step, :] = temp_Ri
 
-        netlist.loc[V_map, ('value')] = temp_ocv
-        netlist.loc[Ri_map, ('value')] = temp_Ri
-        netlist.loc[I_map, ('value')] = protocol[step]
+        netlist.loc[V_map, ("value")] = temp_ocv
+        netlist.loc[Ri_map, ("value")] = temp_Ri
+        netlist.loc[I_map, ("value")] = protocol[step]
 
         if np.any(temp_v < v_cut_lower):
-            print('Low V limit reached')
+            print("Low V limit reached")
             break
         if np.any(temp_v > v_cut_higher):
-            print('High V limit reached')
+            print("High V limit reached")
             break
         # step += 1
         if time <= end_time:
@@ -221,16 +244,16 @@ def solve_dask(
             V_node, I_batt = lp.solve_circuit(netlist)
             V_terminal.append(V_node.max())
         if time < end_time:
-            shm_i_app[step+1, :] = I_batt[:] * -1
+            shm_i_app[step + 1, :] = I_batt[:] * -1
 
     all_output = {}
-    all_output['Time [s]'] = np.asarray(record_times)
-    all_output['Pack current [A]'] = np.asarray(protocol[:step+1])
-    all_output['Pack terminal voltage [V]'] = np.asarray(V_terminal)
-    all_output['Cell current [A]'] = shm_i_app[:step+1, :]
+    all_output["Time [s]"] = np.asarray(record_times)
+    all_output["Pack current [A]"] = np.asarray(protocol[: step + 1])
+    all_output["Pack terminal voltage [V]"] = np.asarray(V_terminal)
+    all_output["Cell current [A]"] = shm_i_app[: step + 1, :]
 
     for j in range(Nvar):
-        all_output[variable_names[j]] = output[j, :step+1, :]
+        all_output[variable_names[j]] = output[j, : step + 1, :]
 
     # Stop the Dask distributed scheduler
     client.close()

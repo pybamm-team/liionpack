@@ -13,68 +13,71 @@ import time as ticker
 from tqdm import tqdm
 from liionpack.solver_utils import _create_casadi_objects, _serial_step, _mapped_step
 from dask.distributed import Client
+
 if __name__ == "__main__":
-    plt.close('all')
-    pybamm.logger.setLevel('NOTICE')
+    plt.close("all")
+    pybamm.logger.setLevel("NOTICE")
     Np = 12
     Ns = 2
     Nspm = 12 * 2
     # Generate the netlist
     netlist = lp.setup_circuit(Np=12, Ns=2, Rb=1.5e-3, Rc=1e-2, Ri=5e-2, V=4.0, I=5.0)
-    
+
     output_variables = None
-    
+
     # Heat transfer coefficients
     htc = np.ones(Nspm) * 10
-    
-    
+
     # Cycling protocol
-    experiment = pybamm.Experiment([
-        "Discharge at 5 A for 1 minutes",
-        # "Rest for 10 minutes",
-        # "CHarge at 5 A for 30 minutes",
-        # "Rest for 10 minutes"
+    experiment = pybamm.Experiment(
+        [
+            "Discharge at 5 A for 1 minutes",
+            # "Rest for 10 minutes",
+            # "CHarge at 5 A for 30 minutes",
+            # "Rest for 10 minutes"
         ],
-        period="10 seconds")
-    
+        period="10 seconds",
+    )
+
     # PyBaMM parameters
     chemistry = pybamm.parameter_sets.Chen2020
     parameter_values = pybamm.ParameterValues(chemistry=chemistry)
-    
-    initial_soc=0.5
+
+    initial_soc = 0.5
     I_init = 1.0
     mapped = False
-    nproc=12
-    
-    
+    nproc = 12
+
     if netlist is None or parameter_values is None or experiment is None:
-        raise Exception('Please supply a netlist, paramater_values, and experiment')
-    
+        raise Exception("Please supply a netlist, paramater_values, and experiment")
+
     # Get netlist indices for resistors, voltage sources, current sources
-    Ri_map = netlist['desc'].str.find('Ri') > -1
-    V_map = netlist['desc'].str.find('V') > -1
-    I_map = netlist['desc'].str.find('I') > -1
-    
+    Ri_map = netlist["desc"].str.find("Ri") > -1
+    V_map = netlist["desc"].str.find("V") > -1
+    I_map = netlist["desc"].str.find("I") > -1
+
     # Nspm = np.sum(V_map)
-    
+
     protocol = lp.generate_protocol_from_experiment(experiment)
     dt = experiment.period
     Nsteps = len(protocol)
-    
+
     # Solve the circuit to initialise the electrochemical models
     V_node, I_batt = lp.solve_circuit(netlist)
-    
+
     sim = lp.create_simulation(parameter_values, make_inputs=True)
     lp.update_init_conc(sim, SoC=initial_soc)
-    
-    v_cut_lower = parameter_values['Lower voltage cut-off [V]']
-    v_cut_higher = parameter_values['Upper voltage cut-off [V]']
-    
+
+    v_cut_lower = parameter_values["Lower voltage cut-off [V]"]
+    v_cut_higher = parameter_values["Upper voltage cut-off [V]"]
+
     # The simulation output variables calculated at each step for each battery
     # Must be a 0D variable i.e. battery wide volume average - or X-averaged for 1D model
-    variable_names = ['Terminal voltage [V]',
-                      'Measured battery open circuit voltage [V]',
-                      'Local ECM resistance [Ohm]']
+    variable_names = [
+        "Terminal voltage [V]",
+        "Measured battery open circuit voltage [V]",
+        "Local ECM resistance [Ohm]",
+    ]
     if output_variables is not None:
         for out in output_variables:
             if out not in variable_names:
@@ -85,25 +88,21 @@ if __name__ == "__main__":
     shm_i_app = np.zeros([Nsteps, Nspm], dtype=float)
     shm_Ri = np.zeros([Nsteps, Nspm], dtype=float)
     output = np.zeros([Nvar, Nsteps, Nspm], dtype=float)
-    
+
     # Initialize currents in battery models
     shm_i_app[0, :] = I_batt * -1
-    
-    
+
     time = 0
     # step = 0
-    end_time = dt*Nsteps
+    end_time = dt * Nsteps
     step_solutions = [None] * Nspm
     V_terminal = []
     record_times = []
-    
-       
-    integrator, variables_fn, t_eval = _create_casadi_objects(I_init, htc[0],
-                                                              sim, dt, Nspm,
-                                                              nproc,
-                                                              variable_names,
-                                                              mapped)
-    
+
+    integrator, variables_fn, t_eval = _create_casadi_objects(
+        I_init, htc[0], sim, dt, Nspm, nproc, variable_names, mapped
+    )
+
     # if mapped:
     #     step_fn = _mapped_step
     # else:
@@ -114,19 +113,18 @@ if __name__ == "__main__":
     #                                        lp.build_inputs_dict(shm_i_app[step, :], htc),
     #                                        integrator, variables_fn, t_eval)
     #     output[:, step, :] = var_eval
-    
+
     #     time += dt
     #     # Calculate internal resistance and update netlist
     #     temp_v = output[0, step, :]
     #     temp_ocv = output[1, step, :]
     #     temp_Ri = np.abs(output[2, step, :])
     #     shm_Ri[step, :] = temp_Ri
-    
-    
+
     #     netlist.loc[V_map, ('value')] = temp_ocv
     #     netlist.loc[Ri_map, ('value')] = temp_Ri
     #     netlist.loc[I_map, ('value')] = protocol[step]
-    
+
     #     # print('Stepping time', np.around(ticker.time()-tic, 2), 's')
     #     if np.any(temp_v < v_cut_lower):
     #         print('Low V limit reached')
@@ -148,12 +146,12 @@ if __name__ == "__main__":
     # all_output['Cell current [A]'] = shm_i_app[:step+1, :]
     # for j in range(Nvar):
     #     all_output[variable_names[j]] = output[j, :step+1, :]
-    
+
     # toc = ticker.time()
     # pybamm.logger.notice('Solve circuit time '+
     #                       str(np.around(toc-sim_start_time, 3)) + 's')
     #     # return all_output
-    
+
     # # Serial step
     # # srlout = solve(netlist=netl1,
     # #                parameter_values=parameter_values,
@@ -161,11 +159,12 @@ if __name__ == "__main__":
     # #                output_variables=output_variables,
     # #                htc=htc, mapped=False)
     # lp.plot_pack(all_output)
-    
+
     import casadi
+
     model = sim.built_model
     len_rhs = model.concatenated_rhs.size
-    inputs_dict = lp.build_inputs_dict([I_init]*Nspm, htc)
+    inputs_dict = lp.build_inputs_dict([I_init] * Nspm, htc)
     N = len(step_solutions)
     t_min = 0.0
     timer = pybamm.Timer()
@@ -174,7 +173,7 @@ if __name__ == "__main__":
     dx0 = []
     dz0 = []
     dp = []
-    
+
     for k in range(N):
         if step_solutions[k] is None:
             # First pass
@@ -184,7 +183,7 @@ if __name__ == "__main__":
             x0 = step_solutions[k].y[:len_rhs, -1]
             z0 = step_solutions[k].y[len_rhs:, -1]
         temp = inputs_dict[k]
-        inputs = casadi.vertcat(*[x for x in temp.values()]+[t_min])
+        inputs = casadi.vertcat(*[x for x in temp.values()] + [t_min])
         ninputs = len(temp.values())
         # Call the integrator once, with the grid
         dx0.append(np.array(x0))
@@ -194,19 +193,15 @@ if __name__ == "__main__":
         # dz0.append(z0)
         # dp.append(inputs)
 
- 
     def integrate(integrator, x0, p, z0):
-        casadi_sol = integrator(
-            x0=x0, z0=z0, p=p
-        )
+        casadi_sol = integrator(x0=x0, z0=z0, p=p)
         y_sol = np.array(casadi_sol["xf"])[:, -1]
         return y_sol
-    
-    
+
     client = Client()
     print(client)
     print(client.dashboard_link)
-    intgs = [integrator]*Nspm
+    intgs = [integrator] * Nspm
     for i in range(10):
         print(i)
         lazy_results = client.map(integrate, intgs, dx0, dp, dz0)
@@ -215,7 +210,7 @@ if __name__ == "__main__":
     # Stop the Dask distributed scheduler
     client.close()
     print(client)
-    
+
     # y_sols = []
     # for k in range(N):
     #     casadi_sol = integrator(

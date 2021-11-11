@@ -11,7 +11,7 @@ from tqdm import tqdm
 
 
 def _serial_step(model, solutions, inputs_dict, integrator, variables, t_eval):
-    r'''
+    r"""
     Internal function to process the model for one timestep in a serial way.
 
     Parameters
@@ -37,7 +37,7 @@ def _serial_step(model, solutions, inputs_dict, integrator, variables, t_eval):
     var_eval : list
         evaluated variables for final state of system
 
-    '''
+    """
     len_rhs = model.concatenated_rhs.size
     N = len(solutions)
     t_min = 0.0
@@ -53,21 +53,19 @@ def _serial_step(model, solutions, inputs_dict, integrator, variables, t_eval):
             x0 = solutions[k].y[:len_rhs, -1]
             z0 = solutions[k].y[len_rhs:, -1]
         temp = inputs_dict[k]
-        inputs = casadi.vertcat(*[x for x in temp.values()]+[t_min])
+        inputs = casadi.vertcat(*[x for x in temp.values()] + [t_min])
         ninputs = len(temp.values())
         # Call the integrator once, with the grid
-        casadi_sol = integrator(
-            x0=x0, z0=z0, p=inputs
-        )
+        casadi_sol = integrator(x0=x0, z0=z0, p=inputs)
         y_sol = casadi_sol["xf"]
         xend = y_sol[:, -1]
-        sol.append(pybamm.Solution(t_eval, y_sol, model,
-                                   inputs_dict[k]))
+        sol.append(pybamm.Solution(t_eval, y_sol, model, inputs_dict[k]))
         var_eval.append(variables(0, xend, 0, inputs[0:ninputs]))
         integration_time = timer.time()
         sol[-1].integration_time = integration_time
 
     return sol, casadi.horzcat(*var_eval)
+
 
 def _mapped_step(model, solutions, inputs_dict, integrator, variables, t_eval):
     """
@@ -128,7 +126,7 @@ def _mapped_step(model, solutions, inputs_dict, integrator, variables, t_eval):
     xend = []
     for i in range(N):
         start = i * nt
-        y_sol = xf[:, start:start + nt]
+        y_sol = xf[:, start : start + nt]
         xend.append(y_sol[:, -1])
         # Not sure how to index into zf - need an example
         sol.append(pybamm.Solution(t_eval, y_sol, model, inputs_dict[i]))
@@ -139,9 +137,9 @@ def _mapped_step(model, solutions, inputs_dict, integrator, variables, t_eval):
     var_eval = variables(0, xend, 0, inputs[0:ninputs, :])
     return sol, var_eval
 
-def _create_casadi_objects(I_init, htc, sim, dt, Nspm, nproc, variable_names,
-                           mapped):
-    r'''
+
+def _create_casadi_objects(I_init, htc, sim, dt, Nspm, nproc, variable_names, mapped):
+    r"""
     Internal function to produce the casadi objects in their mapped form for
     parallel evaluation
 
@@ -178,7 +176,7 @@ def _create_casadi_objects(I_init, htc, sim, dt, Nspm, nproc, variable_names,
     t_eval : float array of times to evaluate
         times to evaluate in a single step, starting at zero for each step
 
-    '''
+    """
     inputs = {
         "Current function [A]": I_init,
         "Total heat transfer coefficient [W.m-2.K-1]": htc,
@@ -218,16 +216,22 @@ def _create_casadi_objects(I_init, htc, sim, dt, Nspm, nproc, variable_names,
     variables_stacked = casadi.vertcat(*variables.values())
     variables_fn = casadi.Function("variables", [t, x, z, p], [variables_stacked])
     if mapped:
-        variables_fn = variables_fn.map(Nspm, 'thread', nproc)
+        variables_fn = variables_fn.map(Nspm, "thread", nproc)
     return integrator, variables_fn, t_eval
 
 
-def solve(netlist=None, parameter_values=None, experiment=None,
-          I_init=1.0, htc=None, initial_soc=0.5,
-          nproc=12,
-          output_variables=None,
-          mapped=True):
-    r'''
+def solve(
+    netlist=None,
+    parameter_values=None,
+    experiment=None,
+    I_init=1.0,
+    htc=None,
+    initial_soc=0.5,
+    nproc=12,
+    output_variables=None,
+    mapped=True,
+):
+    r"""
     Solves a pack simulation
 
     Parameters
@@ -264,7 +268,7 @@ def solve(netlist=None, parameter_values=None, experiment=None,
     output : ndarray shape [# variable, # steps, # batteries]
         simulation output array
 
-    '''
+    """
 
     if netlist is None or parameter_values is None or experiment is None:
         raise Exception("Please supply a netlist, paramater_values, and experiment")
@@ -309,21 +313,17 @@ def solve(netlist=None, parameter_values=None, experiment=None,
     # Initialize currents in battery models
     shm_i_app[0, :] = I_batt * -1
 
-    
-
     # Step forward in time
     time = 0
     end_time = dt * Nsteps
     step_solutions = [None] * Nspm
     V_terminal = []
     record_times = []
-    
+
     # Set up integrator
-    integrator, variables_fn, t_eval = _create_casadi_objects(I_init, htc[0],
-                                                              sim, dt, Nspm,
-                                                              nproc,
-                                                              variable_names,
-                                                              mapped)
+    integrator, variables_fn, t_eval = _create_casadi_objects(
+        I_init, htc[0], sim, dt, Nspm, nproc, variable_names, mapped
+    )
 
     if mapped:
         step_fn = _mapped_step
@@ -334,10 +334,15 @@ def solve(netlist=None, parameter_values=None, experiment=None,
 
     sim_start_time = ticker.time()
 
-    for step in tqdm(range(Nsteps), desc='Solving Pack'):
-        step_solutions, var_eval = step_fn(sim.built_model, step_solutions,
-                                           lp.build_inputs_dict(shm_i_app[step, :], htc),
-                                           integrator, variables_fn, t_eval)
+    for step in tqdm(range(Nsteps), desc="Solving Pack"):
+        step_solutions, var_eval = step_fn(
+            sim.built_model,
+            step_solutions,
+            lp.build_inputs_dict(shm_i_app[step, :], htc),
+            integrator,
+            variables_fn,
+            t_eval,
+        )
         output[:, step, :] = var_eval
 
         time += dt
