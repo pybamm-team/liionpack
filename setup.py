@@ -41,6 +41,7 @@ setup(
         "scikit-spatial",
         "networkx",
         "textwrapper",
+        "dask",
     ],
     author="Tom Tranter",
     author_email="t.g.tranter@gmail.com",

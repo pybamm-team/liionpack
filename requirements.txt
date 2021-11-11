@@ -11,4 +11,4 @@ Ipython
 scikit-spatial
 networkx
 textwrapper
-
+dask
