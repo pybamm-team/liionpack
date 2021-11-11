@@ -42,6 +42,7 @@ setup(
         "networkx",
         "textwrapper",
         "dask",
+        "distributed",
     ],
     author="Tom Tranter",
     author_email="t.g.tranter@gmail.com",

@@ -12,3 +12,4 @@ scikit-spatial
 networkx
 textwrapper
 dask
+distributed
