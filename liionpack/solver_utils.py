@@ -202,7 +202,8 @@ def _create_casadi_objects(I_init, htc, sim, dt, Nspm, nproc, variable_names, ma
     integrator = solver.create_integrator(
         sim.built_model, inputs=inp_and_ext, t_eval=t_eval_ndim
     )
-    integrator = integrator.map(Nspm, "thread", nproc)
+    if mapped:
+        integrator = integrator.map(Nspm, "thread", nproc)
 
     # Variables function for parallel evaluation
     casadi_objs = sim.built_model.export_casadi_objects(variable_names=variable_names)
