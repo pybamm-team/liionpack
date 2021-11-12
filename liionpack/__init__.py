@@ -16,5 +16,6 @@ from .dask_utils import solve_dask
 from .protocols import *
 from .plots import *
 from .logger import *
+from .dask_actor import *
 
 __version__ = "0.0.1"

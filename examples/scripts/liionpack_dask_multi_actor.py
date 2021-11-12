@@ -47,6 +47,7 @@ class liionpack_actor:
         )
         self.step_solutions = step_solutions
         self.var_eval = np.asarray(var_eval)
+        return self.var_eval[0, :]
 
     def voltage(
         self,
@@ -65,7 +66,7 @@ class liionpack_actor:
 if __name__ == "__main__":
     plt.close("all")
     # Start client
-    Nspm = 10000
+    Nspm = 1000
     Nworkers = 10
     client = Client(n_workers=Nworkers)
     print(client.dashboard_link)
@@ -103,10 +104,11 @@ if __name__ == "__main__":
     actors = [af.result() for af in futures]
     # Cycle through steps
     for n in tqdm(range(Nt), desc="Stepping dask actors"):
+        future_steps = []
         for i, pa in enumerate(actors):
-            pa.step(dt=dt, inputs=inputs[i])
-        for i, pa in enumerate(actors):
-            voltages[i].append(pa.voltage().result())
+            future_steps.append(pa.step(dt=dt, inputs=inputs[i]))
+        for i, fs in enumerate(future_steps):
+            voltages[i].append(fs.result())
 
     v_amalg = np.hstack(([np.asarray(v) for v in voltages]))
     fig, ax = plt.subplots()
@@ -117,3 +119,4 @@ if __name__ == "__main__":
     plt.show()
     plt.colorbar(_)
     plt.tight_layout()
+    client.close()
