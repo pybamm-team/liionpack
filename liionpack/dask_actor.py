@@ -5,6 +5,8 @@
 import pybamm
 import liionpack as lp
 import numpy as np
+from liionpack.solver_utils import _create_casadi_objects as cco
+from liionpack.solver_utils import _serial_step as ss
 
 
 class dask_actor:
@@ -57,3 +59,48 @@ class dask_actor:
                 self._out[vi, i] = self._state[i][var].entries[-1]
 
         return self._out
+
+
+class liionpack_actor:
+    def __init__(self, **kwargs):
+        I_init = kwargs["I_init"]
+        htc_init = kwargs["htc_init"]
+        dt = kwargs["dt"]
+        Nspm = kwargs["Nspm"]
+        initial_soc = kwargs["initial_soc"]
+        self.output_variables = kwargs["output_variables"]
+        self.parameter_values = kwargs["parameter_values"]
+        # integrator arguments - create serial integrator for this actor
+        nproc = 1
+        mapped = False
+        self.simulation = lp.create_simulation(self.parameter_values, make_inputs=True)
+        lp.update_init_conc(self.simulation, SoC=initial_soc)
+        integrator, variables_fn, t_eval = cco(
+            I_init,
+            htc_init,
+            self.simulation,
+            dt,
+            Nspm,
+            nproc,
+            self.output_variables,
+            mapped,
+        )
+        self.integrator = integrator
+        self.variables_fn = variables_fn
+        self.t_eval = t_eval
+        self.simulation.build()
+        self.solution = None
+        self.step_solutions = [None] * Nspm
+
+    def step(self, dt=10, inputs=None):
+        step_solutions, var_eval = ss(
+            self.simulation.built_model,
+            self.step_solutions,
+            inputs,
+            self.integrator,
+            self.variables_fn,
+            self.t_eval,
+        )
+        self.step_solutions = step_solutions
+        self.var_eval = np.asarray(var_eval)
+        return self.var_eval

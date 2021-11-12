@@ -518,7 +518,7 @@ def solve_dask_actor(
     for i in range(nproc):
         # Create actor on each worker containing a simulation
         pa = client.submit(
-            lp.dask_actor,
+            lp.liionpack_actor,
             actor=True,
             pure=False,
             parameter_values=parameter_values,
