@@ -398,6 +398,7 @@ def solve(
 
     return all_output
 
+
 def solve_dask_actor(
     netlist=None,
     parameter_values=None,
@@ -458,7 +459,7 @@ def solve_dask_actor(
     Terminal_Node = np.array(netlist[I_map].node1)
     Nspm = np.sum(V_map)
     client = Client(n_workers=nproc)
-    spm_per_worker = int(Nspm / nproc) # make sure no remainders
+    spm_per_worker = int(Nspm / nproc)  # make sure no remainders
     # Generate the protocol from the supplied experiment
     protocol = lp.generate_protocol_from_experiment(experiment)
     dt = experiment.period
@@ -508,7 +509,7 @@ def solve_dask_actor(
     v_cut_higher = parameter_values["Upper voltage cut-off [V]"]
 
     sim_start_time = ticker.time()
-    
+
     # Dask setup an actor for each worker
     futures = []
     inputs = []
@@ -533,8 +534,6 @@ def solve_dask_actor(
         inputs.append(lp.build_inputs_dict(split_I_app[i], split_HTC[i]))
 
     actors = [af.result() for af in futures]
-    
-    
 
     for step in tqdm(range(Nsteps), desc="Solving Pack"):
         future_steps = []
@@ -542,7 +541,7 @@ def solve_dask_actor(
             future_steps.append(pa.step(dt=dt, inputs=inputs[i]))
         for i, fs in enumerate(future_steps):
             out = fs.result()
-            slc = slice(i*spm_per_worker, (i+1)*spm_per_worker)
+            slc = slice(i * spm_per_worker, (i + 1) * spm_per_worker)
             output[:, step, slc] = out
         # Nvar, Nsteps, Nspm
         # output[:, step, :] = var_eval
@@ -579,7 +578,7 @@ def solve_dask_actor(
             V_node, I_batt = lp.solve_circuit(netlist)
             V_terminal.append(V_node[Terminal_Node][0])
         if time < end_time:
-            shm_i_app[step + 1, :] = I_batt[:] * -1       
+            shm_i_app[step + 1, :] = I_batt[:] * -1
             # split currents and htc for workers
             split_I_app = np.split(shm_i_app[step + 1, :], nproc)
             # split_HTC = np.split(HTC, nproc)
