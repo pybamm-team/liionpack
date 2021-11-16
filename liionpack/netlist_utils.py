@@ -492,7 +492,7 @@ def solve_circuit_vectorized(netlist):
     % See http://lpsa.swarthmore.edu/Systems/Electrical/mna/MNA3.html
     """
 
-    node1 = node1 - 1  #  get the two node numbers in python index format
+    node1 = node1 - 1  # get the two node numbers in python index format
     node2 = node2 - 1
     # Resistance elements: fill the G matrix only
     g = 1 / value  # conductance = 1 / R
