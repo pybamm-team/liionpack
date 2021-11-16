@@ -97,36 +97,6 @@ def read_netlist(filepath, Ri=1e-2, Rc=1e-2, Rb=1e-4, Rl=5e-4, I=80.0, V=4.2):
     return netlist
 
 
-def _make_contiguous(node1, node2):
-    r"""
-
-    Internal helper function to make the netlist nodes contiguous
-
-    Parameters
-    ----------
-    node1 : array
-        First node in the netlist.
-    node2 : array
-        Second node in the netlist.
-
-    Returns
-    -------
-    array
-        First nodes.
-    array
-        Second nodes.
-
-    """
-    nodes = np.vstack((node1, node2)).astype(int)
-    nodes = nodes.T
-    unique_nodes = np.unique(nodes)
-    nodes_copy = nodes.copy()
-    for i in range(len(unique_nodes)):
-        nodes_copy[nodes == unique_nodes[i]] = i
-
-    return nodes_copy[:, 0], nodes_copy[:, 1]
-
-
 def setup_circuit(
     Np=1, Ns=1, Ri=1e-2, Rc=1e-2, Rb=1e-4, Rl=5e-4, I=80.0, V=4.2, plot=False
 ):
