@@ -2,6 +2,7 @@ import liionpack as lp
 import numpy as np
 import matplotlib.pyplot as plt
 import unittest
+import time as time
 
 
 class netlist_utilsTest(unittest.TestCase):
@@ -27,6 +28,20 @@ class netlist_utilsTest(unittest.TestCase):
         netlist = lp.setup_circuit(Np=1, Ns=2, Rb=1e-4, Rc=1e-2, Ri=1e-3, V=2.0, I=1.0)
         V_node, I_batt = lp.solve_circuit(netlist)
         assert np.all(I_batt) == 1.0
+
+    def test_solve_circuit_vectorized(self):
+        netlist = lp.setup_circuit(
+            Np=1, Ns=100, Rb=1e-4, Rc=1e-2, Ri=1e-3, V=2.0, I=1.0
+        )
+        t1 = time.time()
+        V_node, I_batt = lp.solve_circuit(netlist)
+        t2 = time.time()
+        V_node_v, I_batt_v = lp.solve_circuit_vectorized(netlist)
+        t3 = time.time()
+        vector_time = t3 - t2
+        serial_time = t2 - t1
+        assert np.allclose(V_node, V_node_v)
+        assert serial_time > vector_time
 
 
 if __name__ == "__main__":
