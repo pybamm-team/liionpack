@@ -289,7 +289,7 @@ def solve(
     Nsteps = len(protocol)
 
     # Solve the circuit to initialise the electrochemical models
-    V_node, I_batt = lp.solve_circuit(netlist)
+    V_node, I_batt = lp.solve_circuit_vectorized(netlist)
 
     # Create battery simulation and update initial state of charge
     sim = lp.create_simulation(parameter_values, make_inputs=True)
@@ -377,7 +377,7 @@ def solve(
 
         if time <= end_time:
             record_times.append(time)
-            V_node, I_batt = lp.solve_circuit(netlist)
+            V_node, I_batt = lp.solve_circuit_vectorized(netlist)
             V_terminal.append(V_node[Terminal_Node][0])
         if time < end_time:
             shm_i_app[step + 1, :] = I_batt[:] * -1
@@ -467,7 +467,7 @@ def solve_dask_actor(
     Nsteps = len(protocol)
 
     # Solve the circuit to initialise the electrochemical models
-    V_node, I_batt = lp.solve_circuit(netlist)
+    V_node, I_batt = lp.solve_circuit_vectorized(netlist)
 
     # The simulation output variables calculated at each step for each battery
     # Must be a 0D variable i.e. battery wide volume average - or X-averaged for 1D model
@@ -576,7 +576,7 @@ def solve_dask_actor(
 
         if time <= end_time:
             record_times.append(time)
-            V_node, I_batt = lp.solve_circuit(netlist)
+            V_node, I_batt = lp.solve_circuit_vectorized(netlist)
             V_terminal.append(V_node[Terminal_Node][0])
         if time < end_time:
             shm_i_app[step + 1, :] = I_batt[:] * -1
@@ -676,7 +676,7 @@ def solve_ray_actor(
     Nsteps = len(protocol)
 
     # Solve the circuit to initialise the electrochemical models
-    V_node, I_batt = lp.solve_circuit(netlist)
+    V_node, I_batt = lp.solve_circuit_vectorized(netlist)
 
     # The simulation output variables calculated at each step for each battery
     # Must be a 0D variable i.e. battery wide volume average - or X-averaged for 1D model
@@ -765,7 +765,7 @@ def solve_ray_actor(
 
         if time <= end_time:
             record_times.append(time)
-            V_node, I_batt = lp.solve_circuit(netlist)
+            V_node, I_batt = lp.solve_circuit_vectorized(netlist)
             V_terminal.append(V_node[Terminal_Node][0])
         if time < end_time:
             shm_i_app[step + 1, :] = I_batt[:] * -1
