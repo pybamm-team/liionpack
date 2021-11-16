@@ -666,9 +666,9 @@ def solve_ray_actor(
     I_map = netlist["desc"].str.find("I") > -1
     Terminal_Node = np.array(netlist[I_map].node1)
     Nspm = np.sum(V_map)
-    
+
     ray.init()
-    
+
     spm_per_worker = int(Nspm / nproc)  # make sure no remainders
     # Generate the protocol from the supplied experiment
     protocol = lp.generate_protocol_from_experiment(experiment)
@@ -717,16 +717,17 @@ def solve_ray_actor(
     split_HTC = np.split(htc, nproc)
     for i in range(nproc):
         # Create actor on each worker containing a simulation
-        pa = lp.ray_actor.remote(Nspm=spm_per_worker,
-                                 parameter_values=parameter_values,
-                                 dt=dt,
-                                 I_init=shm_i_app[0, 0],
-                                 htc_init=htc[0],
-                                 variable_names=variable_names)
+        pa = lp.ray_actor.remote(
+            Nspm=spm_per_worker,
+            parameter_values=parameter_values,
+            dt=dt,
+            I_init=shm_i_app[0, 0],
+            htc_init=htc[0],
+            variable_names=variable_names,
+        )
         actors.append(pa)
         # This could be nicer in a dask array
         inputs.append(lp.build_inputs_dict(split_I_app[i], split_HTC[i]))
-
 
     for step in tqdm(range(Nsteps), desc="Solving Pack"):
         future_steps = []
