@@ -5,12 +5,8 @@
 import liionpack as lp
 from liionpack.solver_utils import _create_casadi_objects as cco
 from liionpack.solver_utils import _serial_step as ss
-import matplotlib.pyplot as plt
 import ray
-from tqdm import tqdm
 import numpy as np
-import pybamm
-import liionpack as lp
 import time as ticker
 
 
@@ -18,7 +14,7 @@ import time as ticker
 class ray_actor:
     def __init__(self):
         pass
-    
+
     def setup(
         self,
         Nspm,
@@ -68,7 +64,7 @@ class ray_actor:
         self.var_eval = np.asarray(var_eval)
         # return self.var_eval
         return True
-    
+
     def output(self):
         return self.var_eval
 
@@ -139,8 +135,6 @@ class ray_manager:
         v_cut_lower = parameter_values["Lower voltage cut-off [V]"]
         v_cut_higher = parameter_values["Upper voltage cut-off [V]"]
 
-        
-
         # Ray setup an actor for each worker
         self.actors = []
 
@@ -154,20 +148,20 @@ class ray_manager:
             # Create actor on each worker containing a simulation
             setup_futures.append(
                 a.setup.remote(
-                Nspm=self.spm_per_worker,
-                parameter_values=parameter_values,
-                dt=dt,
-                I_init=self.shm_i_app[0, 0],
-                htc_init=htc[0],
-                variable_names=variable_names,
-                index=i,
-                # manager=self,
+                    Nspm=self.spm_per_worker,
+                    parameter_values=parameter_values,
+                    dt=dt,
+                    I_init=self.shm_i_app[0, 0],
+                    htc_init=htc[0],
+                    variable_names=variable_names,
+                    index=i,
+                    # manager=self,
                 )
             )
         setup_done = [ray.get(f) for f in setup_futures]
         toc = ticker.time()
-        print('Actors setup', np.all(setup_done), 'in time', toc-tic)
-            # actors.append(pa)
+        print("Actors setup", np.all(setup_done), "in time", toc - tic)
+        # actors.append(pa)
         sim_start_time = ticker.time()
         print("Starting step solve")
         for step in range(Nsteps):
@@ -230,7 +224,7 @@ class ray_manager:
             "Total stepping time " + str(np.around(toc - sim_start_time, 3)) + "s"
         )
         lp.logger.notice(
-            "Time per step " + str(np.around((toc - sim_start_time)/Nsteps, 3)) + "s"
+            "Time per step " + str(np.around((toc - sim_start_time) / Nsteps, 3)) + "s"
         )
         return self.all_output
 
@@ -259,7 +253,9 @@ class ray_manager:
             out = ray.get(f)
             self.output[:, step, slc] = out
         t2 = ticker.time()
-        # print('Getting output', t2 - t1)
+        lp.logger.debug(
+            "Actor output retrieved in " + str(np.around(t2 - t1, 3)) + "s"
+        )
 
     def step_actors(self):
         t1 = ticker.time()
@@ -268,5 +264,10 @@ class ray_manager:
         for i, pa in enumerate(self.actors):
             future_steps.append(pa.step.remote(inputs[i]))
         done = [ray.get(fs) for fs in future_steps]
+        lp.logger.debug(
+            "Actors all done: " + str(np.all(done))
+        )
         t2 = ticker.time()
-        # print('Stepping models', t2-t1)
+        lp.logger.debug(
+            "Actors stepped in " + str(np.around(t2 - t1, 3)) + "s"
+        )
