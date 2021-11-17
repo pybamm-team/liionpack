@@ -16,7 +16,10 @@ import time as ticker
 
 @ray.remote(num_cpus=1)
 class ray_actor:
-    def __init__(
+    def __init__(self):
+        pass
+    
+    def setup(
         self,
         Nspm,
         parameter_values,
@@ -25,7 +28,7 @@ class ray_actor:
         htc_init,
         variable_names,
         index,
-        manager,
+        # manager,
         **kwargs,
     ):
         # Create an actor
@@ -44,13 +47,14 @@ class ray_actor:
         self.solution = None
         self.step_solutions = [None] * Nspm
         self.index = index
-        self.manager = manager
+        # self.manager = manager
+        return True
 
-    def step(self):
+    def step(self, inputs):
         # Get inputs from manager arrays
-        i_app = self.manager.actor_i_app(self.index)
-        htc = self.manager.actor_htc(self.index)
-        inputs = lp.build_inputs_dict(i_app, htc)
+        # i_app = self.manager.actor_i_app(self.index)
+        # htc = self.manager.actor_htc(self.index)
+        # inputs = lp.build_inputs_dict(i_app, htc)
 
         step_solutions, var_eval = ss(
             self.simulation.built_model,
@@ -62,6 +66,10 @@ class ray_actor:
         )
         self.step_solutions = step_solutions
         self.var_eval = np.asarray(var_eval)
+        # return self.var_eval
+        return True
+    
+    def output(self):
         return self.var_eval
 
     def voltage(
@@ -78,7 +86,7 @@ class ray_actor:
         return self.var_eval[2, :]
 
 
-@ray.remote(num_cpus=1)
+# @ray.remote(num_cpus=1)
 class ray_manager:
     def __init__(self, Np, Ns, Rb, Rc, Ri, V, I):
         self.netlist = lp.setup_circuit(Np=Np, Ns=Ns, Rb=Rb, Rc=Rc, Ri=Ri, V=V, I=I)
@@ -91,7 +99,7 @@ class ray_manager:
         I_map = netlist["desc"].str.find("I") > -1
         Terminal_Node = np.array(netlist[I_map].node1)
         Nspm = np.sum(V_map)
-        spm_per_worker = int(Nspm / nproc)  # make sure no remainders
+        self.spm_per_worker = int(Nspm / nproc)  # make sure no remainders
         # Generate the protocol from the supplied experiment
         protocol = lp.generate_protocol_from_experiment(experiment)
         dt = experiment.period
@@ -116,7 +124,7 @@ class ray_manager:
         # Storage variables for simulation data
         self.shm_i_app = np.zeros([Nsteps, Nspm], dtype=float)
         shm_Ri = np.zeros([Nsteps, Nspm], dtype=float)
-        output = np.zeros([Nvar, Nsteps, Nspm], dtype=float)
+        self.output = np.zeros([Nvar, Nsteps, Nspm], dtype=float)
 
         # Initialize currents in battery models
         self.shm_i_app[0, :] = I_batt * -1
@@ -131,42 +139,50 @@ class ray_manager:
         v_cut_lower = parameter_values["Lower voltage cut-off [V]"]
         v_cut_higher = parameter_values["Upper voltage cut-off [V]"]
 
-        sim_start_time = ticker.time()
+        
 
-        # Dask setup an actor for each worker
-        actors = []
+        # Ray setup an actor for each worker
+        self.actors = []
 
         self.htc = np.split(htc, nproc)
         self.split_index = np.split(np.arange(Nspm), nproc)
+        tic = ticker.time()
         for i in range(nproc):
+            self.actors.append(lp.ray_actor.remote())
+        setup_futures = []
+        for a in self.actors:
             # Create actor on each worker containing a simulation
-            pa = lp.ray_actor.remote(
-                Nspm=spm_per_worker,
+            setup_futures.append(
+                a.setup.remote(
+                Nspm=self.spm_per_worker,
                 parameter_values=parameter_values,
                 dt=dt,
                 I_init=self.shm_i_app[0, 0],
                 htc_init=htc[0],
                 variable_names=variable_names,
                 index=i,
-                manager=self,
+                # manager=self,
+                )
             )
-            actors.append(pa)
-
+        setup_done = [ray.get(f) for f in setup_futures]
+        toc = ticker.time()
+        print('Actors setup', np.all(setup_done), 'in time', toc-tic)
+            # actors.append(pa)
+        sim_start_time = ticker.time()
         print("Starting step solve")
         for step in range(Nsteps):
-            future_steps = []
-            for i, pa in enumerate(actors):
-                future_steps.append(pa.step.remote())
-            for i, fs in enumerate(future_steps):
-                slc = slice(i * spm_per_worker, (i + 1) * spm_per_worker)
-                out = ray.get(fs)
-                output[:, step, slc] = out
+            self.step_actors()
+            self.get_actor_output(step)
+            # for i, fs in enumerate(future_steps):
+            #     slc = slice(i * self.spm_per_worker, (i + 1) * self.spm_per_worker)
+            #     out = ray.get(fs)
+            #     self.output[:, step, slc] = out
 
             time += dt
 
             # Calculate internal resistance and update netlist
-            temp_v = output[0, step, :]
-            temp_ocv = output[1, step, :]
+            temp_v = self.output[0, step, :]
+            temp_ocv = self.output[1, step, :]
             # This could be used instead of Equivalent ECM resistance which has
             # been changing definition
             temp_Ri = (temp_ocv - temp_v) / self.shm_i_app[step, :]
@@ -196,7 +212,7 @@ class ray_manager:
 
             self.timestep += 1
         print("Step solve finished")
-        for actor in actors:
+        for actor in self.actors:
             ray.kill(actor)
         print("Killed actors")
         # Collect outputs
@@ -206,14 +222,16 @@ class ray_manager:
         self.all_output["Pack terminal voltage [V]"] = np.asarray(V_terminal)
         self.all_output["Cell current [A]"] = self.shm_i_app[: step + 1, :]
         for j in range(Nvar):
-            self.all_output[variable_names[j]] = output[j, : step + 1, :]
+            self.all_output[variable_names[j]] = self.output[j, : step + 1, :]
 
         toc = ticker.time()
 
         lp.logger.notice(
-            "Solve circuit time " + str(np.around(toc - sim_start_time, 3)) + "s"
+            "Total stepping time " + str(np.around(toc - sim_start_time, 3)) + "s"
         )
-
+        lp.logger.notice(
+            "Time per step " + str(np.around((toc - sim_start_time)/Nsteps, 3)) + "s"
+        )
         return self.all_output
 
     def actor_i_app(self, index):
@@ -222,3 +240,33 @@ class ray_manager:
 
     def actor_htc(self, index):
         return self.htc[index]
+
+    def build_inputs(self):
+        inputs = []
+        for i in range(len(self.actors)):
+            I_app = self.actor_i_app(i)
+            htc = self.actor_htc(i)
+            inputs.append(lp.build_inputs_dict(I_app, htc))
+        return inputs
+
+    def get_actor_output(self, step):
+        t1 = ticker.time()
+        futures = []
+        for actor in self.actors:
+            futures.append(actor.output.remote())
+        for i, f in enumerate(futures):
+            slc = slice(i * self.spm_per_worker, (i + 1) * self.spm_per_worker)
+            out = ray.get(f)
+            self.output[:, step, slc] = out
+        t2 = ticker.time()
+        # print('Getting output', t2 - t1)
+
+    def step_actors(self):
+        t1 = ticker.time()
+        future_steps = []
+        inputs = self.build_inputs()
+        for i, pa in enumerate(self.actors):
+            future_steps.append(pa.step.remote(inputs[i]))
+        done = [ray.get(fs) for fs in future_steps]
+        t2 = ticker.time()
+        # print('Stepping models', t2-t1)
