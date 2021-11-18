@@ -24,7 +24,7 @@ class ray_actor:
         htc_init,
         variable_names,
         index,
-        # manager,
+        initial_soc,
         **kwargs,
     ):
         # Create an actor
@@ -32,7 +32,7 @@ class ray_actor:
         mapped = False
         self.parameter_values = parameter_values
         self.simulation = lp.create_simulation(self.parameter_values, make_inputs=True)
-
+        lp.update_init_conc(self.simulation, SoC=initial_soc)
         integrator, variables_fn, t_eval = cco(
             I_init, htc_init, self.simulation, dt, Nspm, nproc, variable_names, mapped
         )
@@ -43,7 +43,6 @@ class ray_actor:
         self.solution = None
         self.step_solutions = [None] * Nspm
         self.index = index
-        # self.manager = manager
         return True
 
     def step(self, inputs):
@@ -87,7 +86,9 @@ class ray_manager:
     def __init__(self, Np, Ns, Rb, Rc, Ri, V, I):
         self.netlist = lp.setup_circuit(Np=Np, Ns=Ns, Rb=Rb, Rc=Rc, Ri=Ri, V=V, I=I)
 
-    def solve(self, nproc, parameter_values, experiment, htc, output_variables):
+    def solve(
+        self, nproc, parameter_values, experiment, htc, output_variables, initial_soc
+    ):
         netlist = self.netlist
         # Get netlist indices for resistors, voltage sources, current sources
         Ri_map = netlist["desc"].str.find("Ri") > -1
@@ -155,7 +156,7 @@ class ray_manager:
                     htc_init=htc[0],
                     variable_names=variable_names,
                     index=i,
-                    # manager=self,
+                    initial_soc=initial_soc,
                 )
             )
         setup_done = [ray.get(f) for f in setup_futures]
@@ -253,9 +254,7 @@ class ray_manager:
             out = ray.get(f)
             self.output[:, step, slc] = out
         t2 = ticker.time()
-        lp.logger.debug(
-            "Actor output retrieved in " + str(np.around(t2 - t1, 3)) + "s"
-        )
+        lp.logger.debug("Actor output retrieved in " + str(np.around(t2 - t1, 3)) + "s")
 
     def step_actors(self):
         t1 = ticker.time()
@@ -264,10 +263,6 @@ class ray_manager:
         for i, pa in enumerate(self.actors):
             future_steps.append(pa.step.remote(inputs[i]))
         done = [ray.get(fs) for fs in future_steps]
-        lp.logger.debug(
-            "Actors all done: " + str(np.all(done))
-        )
+        lp.logger.debug("Actors all done: " + str(np.all(done)))
         t2 = ticker.time()
-        lp.logger.debug(
-            "Actors stepped in " + str(np.around(t2 - t1, 3)) + "s"
-        )
+        lp.logger.debug("Actors stepped in " + str(np.around(t2 - t1, 3)) + "s")
