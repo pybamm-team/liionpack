@@ -740,10 +740,9 @@ def solve_ray_actor(
     for step in tqdm(range(Nsteps), desc="Solving Pack"):
 
         future_steps = []
-        # inputs = self.build_inputs()
         for i, pa in enumerate(actors):
             future_steps.append(pa.step.remote(inputs[i]))
-        done = [ray.get(fs) for fs in future_steps]
+        _ = [ray.get(fs) for fs in future_steps]
         futures = []
         for actor in actors:
             futures.append(actor.output.remote())
