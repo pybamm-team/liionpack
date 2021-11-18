@@ -722,24 +722,23 @@ def solve_ray_actor(
         # Create actor on each worker containing a simulation
         setup_futures.append(
             a.setup.remote(
-            Nspm=spm_per_worker,
-            parameter_values=parameter_values,
-            dt=dt,
-            I_init=shm_i_app[0, 0],
-            htc_init=htc[0],
-            variable_names=variable_names,
-            index=i,
-            initial_soc=initial_soc
-        ))
+                Nspm=spm_per_worker,
+                parameter_values=parameter_values,
+                dt=dt,
+                I_init=shm_i_app[0, 0],
+                htc_init=htc[0],
+                variable_names=variable_names,
+                index=i,
+                initial_soc=initial_soc,
+            )
+        )
         # actors.append(pa)
         # This could be nicer in an array
         inputs.append(lp.build_inputs_dict(split_I_app[i], split_HTC[i]))
     setup_done = [ray.get(f) for f in setup_futures]
-    lp.logger.notice(
-        "Actors set up!?! " + str(np.all(setup_done))
-    )
+    lp.logger.notice("Actors set up!?! " + str(np.all(setup_done)))
     for step in tqdm(range(Nsteps), desc="Solving Pack"):
-        
+
         future_steps = []
         # inputs = self.build_inputs()
         for i, pa in enumerate(actors):
