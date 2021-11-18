@@ -468,7 +468,8 @@ def solve_circuit_vectorized(netlist):
     g = 1 / value  # conductance = 1 / R
     n1_ground = node1 == -1
     n2_ground = node2 == -1
-    for r_string in ["Rb", "Ri", "Rs"]:
+    r_list = [d for d in np.unique(desc2) if d[0] == "R"]
+    for r_string in r_list:
         R_map = desc2 == r_string
 
         R_map_n1_ground = np.logical_and(R_map, n1_ground)
