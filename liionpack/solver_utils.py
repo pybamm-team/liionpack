@@ -223,7 +223,7 @@ def _create_casadi_objects(I_init, htc, sim, dt, Nspm, nproc, variable_names, ma
     return integrator, variables_fn, t_eval
 
 
-def solve(
+def solve_legacy(
     netlist=None,
     parameter_values=None,
     experiment=None,
@@ -807,3 +807,77 @@ def solve_ray_actor(
     ray.shutdown()
 
     return all_output
+
+def solve(
+    netlist=None,
+    parameter_values=None,
+    experiment=None,
+    I_init=1.0,
+    htc=None,
+    initial_soc=0.5,
+    nproc=1,
+    output_variables=None,
+    manager="casadi",
+):
+    r"""
+    Solves a pack simulation
+
+    Parameters
+    ----------
+    netlist : pandas.DataFrame
+        A netlist of circuit elements with format. desc, node1, node2, value.
+        Produced by liionpack.read_netlist or liionpack.setup_circuit
+    parameter_values : pybamm.ParameterValues class
+        A dictionary of all the model parameters
+    experiment : pybamm.Experiment class
+        The experiment to be simulated. experiment.period is used to
+        determine the length of each timestep.
+    I_init : float, optional
+        Initial guess for single battery current [A]. The default is 1.0.
+    htc : float array, optional
+        Heat transfer coefficient array of length Nspm. The default is None.
+    initial_soc : float
+        The initial state of charge for every battery. The default is 0.5
+    nproc : int, optional
+        Number of processes to start in parallel for mapping. The default is 1.
+    output_variables : list, optional
+        Variables to evaluate during solve. Must be a valid key in the
+        model.variables
+    manager : string options ["casadi", "ray", "dask"]
+        The solver manager to use for solving the electrochemical problem.
+
+    Raises
+    ------
+    Exception
+        DESCRIPTION.
+
+    Returns
+    -------
+    output : ndarray shape [# variable, # steps, # batteries]
+        simulation output array
+
+    """
+
+    if netlist is None or parameter_values is None or experiment is None:
+        raise Exception("Please supply a netlist, paramater_values, and experiment")
+
+    if manager == "casadi":
+        rm = lp.casadi_manager()
+    elif manager == "ray":
+        rm = lp.ray_manager()
+    elif manager == "dask":
+        rm = lp.dask_manager()
+    else:
+        rm = lp.casadi_manager()
+        lp.logger.notice("manager instruction not supported, using default")
+
+    output = rm.solve(
+        netlist=netlist,
+        parameter_values=parameter_values,
+        experiment=experiment,
+        output_variables=output_variables,
+        htc=htc,
+        nproc=nproc,
+        initial_soc=initial_soc
+    )
+    return output

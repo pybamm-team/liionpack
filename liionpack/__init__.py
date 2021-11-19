@@ -17,6 +17,7 @@ from .protocols import *
 from .plots import *
 from .logger import *
 from .dask_actor import *
-from .ray_actor import *
+# from .ray_actor import *
+from .solvers import *
 
 __version__ = "0.0.1"
