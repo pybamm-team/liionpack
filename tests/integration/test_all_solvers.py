@@ -30,22 +30,25 @@ class TestSolvers(unittest.TestCase):
             experiment=experiment,
             htc=htc,
             nproc=1,
+            manager="casadi"
         )
         # Solve pack with dask
-        b = lp.solve_dask_actor(
+        b = lp.solve(
             netlist=netlist,
             parameter_values=parameter_values,
             experiment=experiment,
             htc=htc,
             nproc=1,
+            manager="dask"
         )
         # Solve pack with ray
-        c = lp.solve_ray_actor(
+        c = lp.solve(
             netlist=netlist,
             parameter_values=parameter_values,
             experiment=experiment,
             htc=htc,
             nproc=1,
+            manager="ray"
         )
 
         v_a = a["Terminal voltage [V]"]
