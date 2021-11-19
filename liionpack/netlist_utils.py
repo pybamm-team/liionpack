@@ -19,34 +19,39 @@ import scipy as sp
 import time as ticker
 
 
-def read_netlist(filepath, Ri=1e-2, Rc=1e-2, Rb=1e-4, Rl=5e-4, I=80.0, V=4.2):
-    r"""
+def read_netlist(
+    filepath: str,
+    Ri: float = 1e-2,
+    Rc: float = 1e-2,
+    Rb: float = 1e-4,
+    Rl: float = 5e-4,
+    I: float = 80.0,
+    V: float = 4.2,
+):
+    """
     Assumes netlist has been saved by LTSpice with format Descriptor Node1 Node2 Value
     Any lines starting with * are comments and . are commands so ignore them
     Nodes begin with N so remove that
     Open ended components are not allowed and their nodes start with NC (no-connection)
 
-    Parameters
-    ----------
-    filepath : str
-        path to netlist circuit file '.cir'.
-    Ri : float
-        Internal resistance (:math:`\Omega`). The default is 1e-2.
-    Rc : float
-        Connection resistance (:math:`\Omega`). The default is 1e-2.
-    Rb : float
-        Busbar resistance (:math:`\Omega`). The default is 1e-4.
-    Rl : float
-        Long Busbar resistance (:math:`\Omega`). The default is 5e-4.
-    I : float
-        Current (A). The default is 80.0.
-    V : float
-        Initial battery voltage (V). The default is 4.2.
+    Args:
+        filepath: str. Path to netlist circuit file '.cir'.
+        Ri: float
+            Internal resistance (:math:`\Omega`). The default is 1e-2.
+        Rc: float
+            Connection resistance (:math:`\Omega`). The default is 1e-2.
+        Rb: float
+            Busbar resistance (:math:`\Omega`). The default is 1e-4.
+        Rl: float
+            Long Busbar resistance (:math:`\Omega`). The default is 5e-4.
+        I: float
+            Current (A). The default is 80.0.
+        V: float
+            Initial battery voltage (V). The default is 4.2.
 
-    Returns
-    -------
-    netlist : pandas.DataFrame
-        A netlist of circuit elements with format desc, node1, node2, value.
+    Returns:
+        netlist : pandas.DataFrame
+            A netlist of circuit elements with format desc, node1, node2, value.
 
 
     """
