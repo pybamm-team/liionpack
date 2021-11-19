@@ -160,6 +160,13 @@ class generic_manager:
             netlist.loc[Ri_map, ("value")] = temp_Ri
             netlist.loc[I_map, ("value")] = protocol[step]
 
+            if time <= end_time:
+                record_times.append(time)
+                V_node, I_batt = lp.solve_circuit_vectorized(netlist)
+                V_terminal.append(V_node[Terminal_Node][0])
+            if time < end_time:
+                self.shm_i_app[step + 1, :] = I_batt[:] * -1
+
             # Stop if voltage limits are reached
             if np.any(temp_v < v_cut_lower):
                 print("Low voltage limit reached")
@@ -167,13 +174,6 @@ class generic_manager:
             if np.any(temp_v > v_cut_higher):
                 print("High voltage limit reached")
                 break
-
-            if time <= end_time:
-                record_times.append(time)
-                V_node, I_batt = lp.solve_circuit_vectorized(netlist)
-                V_terminal.append(V_node[Terminal_Node][0])
-            if time < end_time:
-                self.shm_i_app[step + 1, :] = I_batt[:] * -1
 
             self.timestep += 1
         lp.logger.notice("Step solve finished")
