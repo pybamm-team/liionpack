@@ -133,10 +133,15 @@ def setup_circuit(
     Nr = Ns * 3 + 1
 
     grid = np.arange(Nc * Nr).reshape([Nr, Nc])
+    coords = np.indices(grid.shape)
+    y = coords[0, :, :]
+    x = coords[1, :, :]
     # make contiguous now instead of later when netlist is done as very slow
     mask = np.ones([Nr, Nc], dtype=bool)
     mask[1:-1, 0] = False
     grid[mask] = np.arange(np.sum(mask))
+    x = x[mask].flatten()
+    y = y[mask].flatten()
     grid[~mask] = -2  # These should never be used
     # grid is a Nr x Nc matrix
     # 1st column is terminals only
@@ -229,45 +234,26 @@ def setup_circuit(
     node2.append(grid[0, 0])
     value.append(I)
 
-    coords = np.indices(grid.shape)
-    y = coords[0, :, :].flatten()
-    x = coords[1, :, :].flatten()
-    if plot:
-        plt.figure()
-        for netline in zip(desc, node1, node2):
-            (
-                elem,
-                n1,
-                n2,
-            ) = netline
-            if elem[0] == "I":
-                color = "g"
-            elif elem[:2] == "Rs":
-                color = "r"
-            elif elem[:2] == "Rb":
-                color = "k"
-            elif elem[:2] == "Ri":
-                color = "y"
-            elif elem[0] == "V":
-                color = "b"
-            else:
-                color = "k"
-            x1 = x[n1]
-            x2 = x[n2]
-            y1 = y[n1]
-            y2 = y[n2]
-            plt.scatter([x1, x2], [y1, y2], c="k")
-            plt.plot([x1, x2], [y1, y2], c=color)
-
     desc = np.asarray(desc)
     node1 = np.asarray(node1)
     node2 = np.asarray(node2)
     value = np.asarray(value)
 
     netlist = pd.DataFrame(
-        {"desc": desc, "node1": node1, "node2": node2, "value": value}
+        {
+            "desc": desc,
+            "node1": node1,
+            "node2": node2,
+            "value": value,
+            "node1_x": x[node1],
+            "node1_y": y[node1],
+            "node2_x": x[node2],
+            "node2_y": y[node2],
+        }
     )
 
+    if plot:
+        lp.simple_netlist_plot(netlist)
     lp.logger.notice("Circuit created")
     return netlist
 

@@ -284,3 +284,36 @@ def show_plots():  # pragma: no cover
     Wrapper function for the Matplotlib show() function.
     """
     plt.show()
+
+
+def simple_netlist_plot(netlist):
+    """
+    Simple matplotlib netlist plot with colored lines for different elements
+
+    Parameters
+    ----------
+    netlist : TYPE
+        DESCRIPTION.
+
+    Returns
+    -------
+    None.
+
+    """
+    plt.figure()
+    for row in netlist.iterrows():
+        elem, node1, node2, value, x1, y1, x2, y2 = row[1]
+        if elem[0] == "I":
+            color = "g"
+        elif elem[:2] == "Rs":
+            color = "r"
+        elif elem[:2] == "Rb":
+            color = "k"
+        elif elem[:2] == "Ri":
+            color = "y"
+        elif elem[0] == "V":
+            color = "b"
+        else:
+            color = "k"
+        plt.scatter([x1, x2], [y1, y2], c="k")
+        plt.plot([x1, x2], [y1, y2], c=color)
