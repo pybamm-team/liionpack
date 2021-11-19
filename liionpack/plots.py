@@ -42,21 +42,22 @@ def draw_circuit(netlist, **kwargs):
         # print(row['desc'])
         string = ""
         direction = ""
-        for col in row.iteritems():
-            if col[0] == "desc":
-                if col[1][0] == "V":
-                    direction = "up"
-                elif col[1][0] == "I":
-                    direction = "up"
-                elif col[1][0] == "R":
-                    if col[1][1] == "b":
-                        if col[1][2] == "n":
-                            direction = "right"
+        for ei, col in enumerate(row.iteritems()):
+            if ei < 3:
+                if col[0] == "desc":
+                    if col[1][0] == "V":
+                        direction = "up"
+                    elif col[1][0] == "I":
+                        direction = "up"
+                    elif col[1][0] == "R":
+                        if col[1][1] == "b":
+                            if col[1][2] == "n":
+                                direction = "right"
+                            else:
+                                direction = "left"
                         else:
-                            direction = "left"
-                    else:
-                        direction = "down"
-            string = string + str(col[1]) + " "
+                            direction = "down"
+                string = string + str(col[1]) + " "
 
         string = string + "; " + direction
         cct.add(string)
