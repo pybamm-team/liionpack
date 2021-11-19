@@ -9,24 +9,13 @@ import matplotlib.pyplot as plt
 
 
 if __name__ == "__main__":
-
     plt.close("all")
     lp.logger.setLevel("NOTICE")
-
+    managers = ["casadi", "ray", "dask"]
     Np = 32
     Ns = 12
     Nspm = Np * Ns
     I_app = Np * 2.0
-
-    # Generate the netlist
-    netlist = lp.setup_circuit(Np=Np, Ns=Ns, Rb=1e-4, Rc=1e-2, Ri=5e-2, V=3.2, I=I_app)
-
-    output_variables = [
-        "X-averaged total heating [W.m-3]",
-        "Volume-averaged cell temperature [K]",
-        "X-averaged negative particle surface concentration [mol.m-3]",
-        "X-averaged positive particle surface concentration [mol.m-3]",
-    ]
 
     # Heat transfer coefficients
     htc = np.ones(Nspm) * 10
@@ -35,9 +24,6 @@ if __name__ == "__main__":
     experiment = pybamm.Experiment(
         [
             f"Discharge at {I_app} A for 500 seconds",
-            "Rest for 100 seconds",
-            f"Charge at {I_app} A for 500 seconds",
-            "Rest for 100 seconds",
         ],
         period="10 seconds",
     )
@@ -47,13 +33,18 @@ if __name__ == "__main__":
     parameter_values = pybamm.ParameterValues(chemistry=chemistry)
 
     # Solve pack
+
+    netlist = lp.setup_circuit(Np=Np, Ns=Ns, Rb=1e-4, Rc=1e-2, Ri=5e-2, V=3.2, I=I_app)
+
     output = lp.solve(
         netlist=netlist,
         parameter_values=parameter_values,
         experiment=experiment,
-        output_variables=output_variables,
+        output_variables=None,
         htc=htc,
         nproc=12,
+        initial_soc=0.5,
+        manager=managers[1],
     )
 
     lp.plot_output(output)

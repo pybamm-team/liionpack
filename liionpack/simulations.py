@@ -57,10 +57,5 @@ def create_simulation(parameter_values=None, experiment=None, make_inputs=False)
         parameter_values=parameter_values,
         solver=solver,
     )
+
     return sim
-
-
-if __name__ == "__main__":
-    sim = create_simulation()
-    sim.solve([0, 1800])
-    sim.plot()

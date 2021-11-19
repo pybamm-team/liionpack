@@ -49,6 +49,30 @@ class protocolsTest(unittest.TestCase):
         assert len(p) == 601
         assert np.allclose(np.mean(p), 0.8404807891846922)
 
+    def test_time_exception(self):
+        def bad_timing():
+            experiment = pybamm.Experiment(
+                [
+                    "Charge at 50 A for 31 seconds",
+                ],
+                period="10 seconds",
+            )
+            _ = lp.generate_protocol_from_experiment(experiment)
+        with self.assertRaises(ValueError):
+            bad_timing()
+
+    def test_current_exception(self):
+        def bad_current():
+            experiment = pybamm.Experiment(
+                [
+                    "Charge at 1 C for 30 seconds",
+                ],
+                period="10 seconds",
+            )
+            _ = lp.generate_protocol_from_experiment(experiment)
+        with self.assertRaises(ValueError):
+            bad_current()
+
 
 if __name__ == "__main__":
     unittest.main()

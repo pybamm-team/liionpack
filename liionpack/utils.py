@@ -224,7 +224,7 @@ def build_inputs_dict(I_batt, htc):
         inputs_dict.append(
             {
                 # 'Volume-averaged cell temperature': T_batt[i],
-                "Current": I_batt[i],
+                "Current function [A]": I_batt[i],
                 "Total heat transfer coefficient [W.m-2.K-1]": htc[i],
             }
         )
