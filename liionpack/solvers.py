@@ -37,6 +37,7 @@ class generic_actor:
         # Set up simulation
         self.parameter_values = parameter_values
         self.simulation = lp.create_simulation(self.parameter_values, make_inputs=True)
+        lp.update_init_conc(self.simulation, SoC=initial_soc)
         # Set up integrator
         self.integrator, self.variables_fn, self.t_eval = cco(
             I_init, htc_init, self.simulation, dt, Nspm, nproc, variable_names, mapped

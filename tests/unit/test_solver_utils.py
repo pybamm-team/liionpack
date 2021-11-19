@@ -26,9 +26,9 @@ class solver_utilsTest(unittest.TestCase):
         # Cycling experiment
         self.experiment = pybamm.Experiment(
             [
-                "Charge at 50 A for 300 seconds",
+                f"Charge at {I_app} A for 300 seconds",
                 "Rest for 150 seconds",
-                "Discharge at 50 A for 300 seconds",
+                f"Discharge at {I_app} A for 300 seconds",
                 "Rest for 150 seconds",
             ],
             period="10 seconds",
@@ -50,6 +50,7 @@ class solver_utilsTest(unittest.TestCase):
             experiment=self.experiment,
             output_variables=None,
             htc=self.htc,
+            initial_soc=0.5
         )
         self.assertEqual(output["Terminal voltage [V]"].shape, (90, 32))
         plt.close("all")
@@ -67,6 +68,7 @@ class solver_utilsTest(unittest.TestCase):
             experiment=self.experiment,
             output_variables=output_variables,
             htc=self.htc,
+            initial_soc=0.5
         )
         self.assertEqual(output["X-averaged total heating [W.m-3]"].shape, (90, 32))
         plt.close("all")
