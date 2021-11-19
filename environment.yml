@@ -13,6 +13,20 @@ dependencies:
   - jupyter
   - sympy
   - ipython
+  - wrapt
+  - sympy
+  - redis
+  - pyyaml
+  - protobuf
+  - imageio
+  - grpcio
+  - future
+  - flatbuffers
+  - filelock
+  - deprecated
+  - click
+  - autograd
+  - absl-py
   - pip:
     - pybamm
     - lcapy
