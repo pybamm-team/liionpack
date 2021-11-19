@@ -808,6 +808,7 @@ def solve_ray_actor(
 
     return all_output
 
+
 def solve(
     netlist=None,
     parameter_values=None,
@@ -878,6 +879,6 @@ def solve(
         output_variables=output_variables,
         htc=htc,
         nproc=nproc,
-        initial_soc=initial_soc
+        initial_soc=initial_soc,
     )
     return output
