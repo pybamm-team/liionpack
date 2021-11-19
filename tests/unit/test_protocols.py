@@ -73,5 +73,6 @@ class protocolsTest(unittest.TestCase):
         with self.assertRaises(ValueError):
             bad_current()
 
+
 if __name__ == "__main__":
     unittest.main()
