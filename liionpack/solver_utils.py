@@ -55,10 +55,16 @@ def _serial_step(model, solutions, inputs_dict, integrator, variables, t_eval):
         ninputs = len(temp.values())
         # Call the integrator once, with the grid
         casadi_sol = integrator(x0=x0, z0=z0, p=inputs)
-        y_sol = casadi_sol["xf"]
+        xf = casadi_sol["xf"]
+        zf = casadi_sol["zf"]
+        if zf.is_empty():
+            y_sol = xf
+        else:
+            y_sol = casadi.vertcat(xf, zf)
         xend = y_sol[:, -1]
         sol.append(pybamm.Solution(t_eval, y_sol, model, inputs_dict[k]))
-        var_eval.append(variables(0, xend, 0, inputs[0:ninputs]))
+        var_eval.append(variables(0, xend[:len_rhs],
+                                  xend[len_rhs:], inputs[0:ninputs]))
         integration_time = timer.time()
         sol[-1].integration_time = integration_time
 
@@ -119,12 +125,17 @@ def _mapped_step(model, solutions, inputs_dict, integrator, variables, t_eval):
     integration_time = timer.time()
     nt = len(t_eval)
     xf = casadi_sol["xf"]
-    # zf = casadi_sol["zf"]
+    zf = casadi_sol["zf"]
     sol = []
     xend = []
     for i in range(N):
         start = i * nt
-        y_sol = xf[:, start : start + nt]
+        y_diff = xf[:, start:start + nt]
+        if zf.is_empty():
+            y_sol = y_diff
+        else:
+            y_alg = zf[:, start:start + nt]
+            y_sol = casadi.vertcat(y_diff, y_alg)
         xend.append(y_sol[:, -1])
         # Not sure how to index into zf - need an example
         sol.append(pybamm.Solution(t_eval, y_sol, model, inputs_dict[i]))
@@ -132,7 +143,8 @@ def _mapped_step(model, solutions, inputs_dict, integrator, variables, t_eval):
     toc = timer.time()
     lp.logger.debug(f"Mapped step completed in {toc - tic}")
     xend = casadi.horzcat(*xend)
-    var_eval = variables(0, xend, 0, inputs[0:ninputs, :])
+    var_eval = variables(0, xend[:len_rhs, :],
+                         xend[len_rhs:, :], inputs[0:ninputs, :])
     return sol, var_eval
 
 
