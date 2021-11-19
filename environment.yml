@@ -1,4 +1,4 @@
-name: lipack
+name: liionpack
 dependencies:
   - python
   - pip
@@ -17,3 +17,4 @@ dependencies:
     - pybamm
     - lcapy
     - scikit-spatial
+    - ray
