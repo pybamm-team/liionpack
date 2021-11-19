@@ -44,7 +44,7 @@ $ cd liionpack
 $ conda env create -f environment.yml
 
 # Activate the conda environment
-$ conda activate lipack
+$ conda activate liionpack
 
 # Install the liionpack package from within the repository
 $ pip install -e .

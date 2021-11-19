@@ -1,4 +1,4 @@
-name: lipack
+name: liionpack
 dependencies:
   - python
   - pip
@@ -13,7 +13,23 @@ dependencies:
   - jupyter
   - sympy
   - ipython
+  - wrapt
+  - sympy
+  - redis
+  - pyyaml
+  - protobuf
+  - imageio
+  - grpcio
+  - future
+  - flatbuffers
+  - filelock
+  - deprecated
+  - click
+  - autograd
+  - absl-py
+  - dask
   - pip:
     - pybamm
     - lcapy
     - scikit-spatial
+    - ray
