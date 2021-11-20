@@ -36,10 +36,10 @@ def read_netlist(
 
     Args:
         filepath (str): Path to netlist circuit file '.cir'.
-        Ri (float): Internal resistance (:math:`\Omega`).
-        Rc (float): Connection resistance (:math:`\Omega`).
-        Rb (float): Busbar resistance (:math:`\Omega`).
-        Rl (float): Long Busbar resistance (:math:`\Omega`).
+        Ri (float): Internal resistance ($\Omega$).
+        Rc (float): Connection resistance ($\Omega$).
+        Rb (float): Busbar resistance ($\Omega$).
+        Rl (float): Long Busbar resistance ($\Omega$).
         I (float): Current (A).
         V (float): Initial battery voltage (V).
 
@@ -102,9 +102,9 @@ def setup_circuit(
     Args:
         Np (int): Number of batteries in parallel.
         Ns (int): Number of batteries in series.
-        Ri (float): Internal resistance (:math:`\Omega`).
-        Rc (float): Connection resistance (:math:`\Omega`).
-        Rb (float): Busbar resistance (:math:`\Omega`).
+        Ri (float): Internal resistance ($\Omega$).
+        Rc (float): Connection resistance ($\Omega$).
+        Rb (float): Busbar resistance ($\Omega$).
         I (float): Current (A).
         V (float): Initial battery voltage (V).
         plot (bool): Plot the circuit.
