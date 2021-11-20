@@ -28,7 +28,7 @@ def interp_current(df):
             construct an interpolant function
 
     Returns:
-        f (function):
+        function:
             interpolant function of total cell current with time.
 
     """
@@ -108,7 +108,7 @@ def read_cfd_data(data_dir=None, filename="cfd_data.xlsx", fit="linear"):
             options are 'linear' (default) and 'interpolated'.
 
     Returns:
-        funcs (list):
+        list:
             an interpolant is returned for each cell in the excel file.
 
     """
@@ -150,7 +150,7 @@ def get_linear_htc(planes, T, Q):
             The flow rate for the system.
 
     Returns:
-        htc (float):
+        float:
             Heat transfer coefficient for each battery.
 
     """
@@ -175,7 +175,7 @@ def get_interpolated_htc(funcs, T, Q):
             The flow rate for the system.
 
     Returns:
-        htc (float):
+        float:
             Heat transfer coefficient for each battery.
 
     """
@@ -200,7 +200,7 @@ def build_inputs_dict(I_batt, htc):
             the heat transfer coefficient for each battery.
 
     Returns:
-        inputs_dict (list):
+        list:
             each element of the list is an inputs dictionary corresponding to each
             battery.
 

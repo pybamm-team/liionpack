@@ -20,7 +20,7 @@ def create_simulation(parameter_values=None, experiment=None, make_inputs=False)
             The default is False.
 
     Returns:
-        sim (pybamm.Simulation):
+        pybamm.Simulation:
             A simulation that can be solved individually or passed into the
             liionpack solve method
 

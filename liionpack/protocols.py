@@ -8,10 +8,12 @@ def generate_protocol_from_experiment(experiment):
     """
 
     Args:
-        experiment (`pybamm.Experiment`): The experiment to generate the protocol from.
+        experiment (pybamm.Experiment):
+            The experiment to generate the protocol from.
 
     Returns:
-        list: a sequence of terminal currents to apply at each timestep
+        list:
+            a sequence of terminal currents to apply at each timestep
 
     """
     proto = []

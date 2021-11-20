@@ -15,7 +15,8 @@ def draw_circuit(netlist, **kwargs):
     N.B only works with generated netlists not imported ones.
 
     Args:
-        netlist (pandas.DataFrame): A netlist of circuit elements with format. desc, node1, node2, value.
+        netlist (pandas.DataFrame):
+            A netlist of circuit elements with format. desc, node1, node2, value.
 
     Example:
         >>> import liionpack as lp
@@ -176,7 +177,8 @@ def plot_pack(output):
     Plot the battery pack voltage and current.
 
     Args:
-        output (dict): Output from liionpack.solve which contains pack and cell variables.
+        output (dict):
+            Output from liionpack.solve which contains pack and cell variables.
     """
 
     # Get pack level results
@@ -200,7 +202,8 @@ def plot_cells(output):
     Plot results for the battery cells.
 
     Args:
-        output (dict): Output from liionpack.solve which contains pack and cell variables.
+        output (dict):
+            Output from liionpack.solve which contains pack and cell variables.
     """
 
     # Get time and results for battery cells
@@ -226,7 +229,8 @@ def plot_output(output):
     Plot all results for pack and cells
 
     Args:
-        output (dict): Output from liionpack.solve which contains pack and cell variables.
+        output (dict):
+            Output from liionpack.solve which contains pack and cell variables.
 
     """
     plot_pack(output)

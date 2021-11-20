@@ -252,7 +252,7 @@ def solve_circuit(netlist):
         netlist (pandas.DataFrame): A netlist of circuit elements with format desc, node1, node2, value.
 
     Returns:
-        - np.ndarray: Voltages of the voltage elements
+        - np.ndarray: Voltages of the voltage elements.
         - np.ndarray: Currents of the current elements.
 
     """

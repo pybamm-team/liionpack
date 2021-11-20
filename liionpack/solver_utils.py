@@ -264,13 +264,9 @@ def solve(
         manager (string, can be - ["casadi", "ray", "dask"]):
             The solver manager to use for solving the electrochemical problem.
 
-    Raises:
-        Exception
-            "Please supply a netlist, paramater_values, and experiment".
-
     Returns:
-        output (np.ndarray with shape - [# variable, # steps, # batteries]): 
-            simulation output array
+        np.ndarray:
+            simulation output array with shape - [# variable, # steps, # batteries]):   
 
     """
 
