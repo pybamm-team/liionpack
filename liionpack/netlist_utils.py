@@ -20,13 +20,13 @@ import time as ticker
 
 
 def read_netlist(
-    filepath: str,
-    Ri: float = 1e-2,
-    Rc: float = 1e-2,
-    Rb: float = 1e-4,
-    Rl: float = 5e-4,
-    I: float = 80.0,
-    V: float = 4.2,
+    filepath,
+    Ri=1e-2,
+    Rc=1e-2,
+    Rb=1e-4,
+    Rl=5e-4,
+    I=80.0,
+    V=4.2,
 ):
     """
     Assumes netlist has been saved by LTSpice with format Descriptor Node1 Node2 Value
@@ -35,25 +35,16 @@ def read_netlist(
     Open ended components are not allowed and their nodes start with NC (no-connection)
 
     Args:
-        filepath: str. Path to netlist circuit file '.cir'.
-        Ri: float
-            Internal resistance (:math:`\Omega`). The default is 1e-2.
-        Rc: float
-            Connection resistance (:math:`\Omega`). The default is 1e-2.
-        Rb: float
-            Busbar resistance (:math:`\Omega`). The default is 1e-4.
-        Rl: float
-            Long Busbar resistance (:math:`\Omega`). The default is 5e-4.
-        I: float
-            Current (A). The default is 80.0.
-        V: float
-            Initial battery voltage (V). The default is 4.2.
+        filepath (str): Path to netlist circuit file '.cir'.
+        Ri (float): Internal resistance (:math:`\Omega`).
+        Rc (float): Connection resistance (:math:`\Omega`).
+        Rb (float): Busbar resistance (:math:`\Omega`).
+        Rl (float): Long Busbar resistance (:math:`\Omega`).
+        I (float): Current (A).
+        V (float): Initial battery voltage (V).
 
     Returns:
-        netlist : pandas.DataFrame
-            A netlist of circuit elements with format desc, node1, node2, value.
-
-
+        pandas.DataFrame: A netlist of circuit elements with format desc, node1, node2, value.
     """
 
     # Read in the netlist
@@ -105,33 +96,21 @@ def read_netlist(
 def setup_circuit(
     Np=1, Ns=1, Ri=1e-2, Rc=1e-2, Rb=1e-4, Rl=5e-4, I=80.0, V=4.2, plot=False
 ):
-    r"""
-
+    """
     Define a netlist from a number of batteries in parallel and series
 
-    Parameters
-    ----------
-    Np : int
-        Number of batteries in parallel. The default is 1.
-    Ns : int
-        Number of batteries in series. The default is 1.
-    Ri : float
-        Internal resistance (:math:`\Omega`). The default is 1e-2.
-    Rc : float
-        Connection resistance (:math:`\Omega`). The default is 1e-2.
-    Rb : float
-        Busbar resistance (:math:`\Omega`). The default is 1e-4.
-    I : float
-        Current (A). The default is 80.0.
-    V : float
-        Initial battery voltage (V). The default is 4.2.
-    plot : bool, optional
-        Plot the circuit. The default is False.
+    Args:
+        Np (int): Number of batteries in parallel.
+        Ns (int): Number of batteries in series.
+        Ri (float): Internal resistance (:math:`\Omega`).
+        Rc (float): Connection resistance (:math:`\Omega`).
+        Rb (float): Busbar resistance (:math:`\Omega`).
+        I (float): Current (A).
+        V (float): Initial battery voltage (V).
+        plot (bool): Plot the circuit.
 
-    Returns
-    -------
-    netlist : pandas.DataFrame
-        A netlist of circuit elements with format desc, node1, node2, value.
+    Returns:
+        pandas.DataFrame: A netlist of circuit elements with format desc, node1, node2, value.
 
     """
     Nc = Np + 1
@@ -264,22 +243,17 @@ def setup_circuit(
 
 
 def solve_circuit(netlist):
-    r"""
+    """
     Generate and solve the Modified Nodal Analysis (MNA) equations for the circuit.
     The MNA equations are a linear system Ax = z.
     See http://lpsa.swarthmore.edu/Systems/Electrical/mna/MNA3.html
 
-    Parameters
-    ----------
-    netlist : pandas.DataFrame
-        A netlist of circuit elements with format desc, node1, node2, value.
+    Args:
+        netlist (pandas.DataFrame): A netlist of circuit elements with format desc, node1, node2, value.
 
-    Returns
-    -------
-    V_node : array
-        Voltages of the voltage elements
-    I_batt : array
-        Currents of the current elements
+    Returns:
+        - np.ndarray: Voltages of the voltage elements
+        - np.ndarray: Currents of the current elements.
 
     """
     timer = pybamm.Timer()
@@ -400,22 +374,17 @@ def solve_circuit(netlist):
 
 
 def solve_circuit_vectorized(netlist):
-    r"""
+    """
     Generate and solve the Modified Nodal Analysis (MNA) equations for the circuit.
     The MNA equations are a linear system Ax = z.
     See http://lpsa.swarthmore.edu/Systems/Electrical/mna/MNA3.html
 
-    Parameters
-    ----------
-    netlist : pandas.DataFrame
-        A netlist of circuit elements with format desc, node1, node2, value.
+    Args:
+        netlist (pandas.DataFrame): A netlist of circuit elements with format desc, node1, node2, value.
 
-    Returns
-    -------
-    V_node : array
-        Voltages of the voltage elements
-    I_batt : array
-        Currents of the current elements
+    Returns:
+        np.ndarray: Voltages of the voltage elements
+        np.ndarray: Currents of the current elements
 
     """
     timer = pybamm.Timer()
