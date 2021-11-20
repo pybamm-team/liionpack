@@ -60,6 +60,6 @@ jobs:
         $CONDA/bin/conda env update --file environment.yml --name base
     - name: Run tests in the conda environment
       run: |
-        $CONDA/bin/conda -m unittest
+        $CONDA/bin/unittest
     - name: Upload Coverage to Codecov
       uses: codecov/codecov-action@v1
