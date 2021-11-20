@@ -110,7 +110,10 @@ if __name__ == "__main__":
     # sim_start_time = ticker.time()
     # for step in tqdm(range(Nsteps), desc='Solving Pack'):
     #     step_solutions, var_eval = step_fn(sim.built_model, step_solutions,
-    #                                        lp.build_inputs_dict(shm_i_app[step, :], htc),
+    #                                        lp.build_inputs_dict(
+    #                                            shm_i_app[step, :],
+    #                                            htc
+    #                                         ),
     #                                        integrator, variables_fn, t_eval)
     #     output[:, step, :] = var_eval
 
