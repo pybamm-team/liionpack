@@ -1,6 +1,7 @@
 [![Python application](https://github.com/pybamm-team/liionpack/actions/workflows/python-app.yml/badge.svg)](https://github.com/pybamm-team/liionpack/actions/workflows/python-app.yml)
 [![Documentation Status](https://readthedocs.org/projects/liionpack/badge/?version=main)](https://liionpack.readthedocs.io/en/main/?badge=main)
 [![codecov](https://codecov.io/gh/pybamm-team/liionpack/branch/main/graph/badge.svg)](https://codecov.io/gh/pybamm-team/liionpack)
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/pybamm-team/liionpack/blob/main/)
 
 
 ![logo](docs/liionpack.png)
@@ -62,7 +63,7 @@ import pybamm
 # Generate the netlist
 netlist = lp.setup_circuit(Np=16, Ns=2, Rb=1e-4, Rc=1e-2, Ri=5e-2, V=3.2, I=80.0)
 
-output_variables = [  
+output_variables = [
     'X-averaged total heating [W.m-3]',
     'Volume-averaged cell temperature [K]',
     'X-averaged negative particle surface concentration [mol.m-3]',
