@@ -31,8 +31,8 @@ def update_init_conc(sim, SoC=-1, OCV=-1, method="calculation"):
         The method used to compute the initial concentrations. Can be "calculation",
         in which case `pybamm.get_initial_stoichiometries` is used to compute initial
         stoichiometries that give the desired initial state of charge, or "experiment",
-        in which case a slow discharge between voltage limits is used to compute the initial
-        concentrations given a target SoC or OCV. Default is "calculation".
+        in which case a slow discharge between voltage limits is used to compute the
+        initial concentrations given a target SoC or OCV. Default is "calculation".
     """
     param = sim.parameter_values
 
