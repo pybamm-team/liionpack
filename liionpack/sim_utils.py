@@ -16,23 +16,22 @@ def update_init_conc(sim, SoC=-1, OCV=-1, method="calculation"):
     """
     Update initial concentration parameters
 
-    Parameters
-    ----------
-    sim : :class:`pybamm.Simulation`
-        The battery simulation.
-    SoC : float, optional
-        Target initial SoC. Must be between 0 and 1. Default is -1, in which
-        case the initial concentrations are set using the target OCV.
-    OCV : float, optional
-        Target initial OCV. Must be between 0 and 1. Default is -1, in which
-        case the initial concentrations are set using the target SoC. This option is
-        only used if method is "experiment".
-    method : str, optional
-        The method used to compute the initial concentrations. Can be "calculation",
-        in which case `pybamm.get_initial_stoichiometries` is used to compute initial
-        stoichiometries that give the desired initial state of charge, or "experiment",
-        in which case a slow discharge between voltage limits is used to compute the
-        initial concentrations given a target SoC or OCV. Default is "calculation".
+    Args:
+        sim (pybamm.Simulation):
+            The battery simulation.
+        SoC (float):
+            Target initial SoC. Must be between 0 and 1. Default is -1, in which
+            case the initial concentrations are set using the target OCV.
+        OCV (float):
+            Target initial OCV. Must be between 0 and 1. Default is -1, in which
+            case the initial concentrations are set using the target SoC. This option is
+            only used if method is "experiment".
+        method (str):
+            The method used to compute the initial concentrations. Can be "calculation",
+            in which case `pybamm.get_initial_stoichiometries` is used to compute initial
+            stoichiometries that give the desired initial state of charge, or "experiment",
+            in which case a slow discharge between voltage limits is used to compute the
+            initial concentrations given a target SoC or OCV. Default is "calculation".
     """
     param = sim.parameter_values
 
@@ -61,24 +60,22 @@ def initial_conditions_from_experiment(parameter_values, SoC=-1, OCV=-1):
     Update initial concentration parameters using an experiment between voltage limits.
 
 
-    Parameters
-    ----------
-    parameter_values : :class:`pybamm.ParamaterValues`
-        The parameter values used in the simulation.
-    SoC : float, optional
-        Target initial SoC. Must be between 0 and 1. Default is -1, in which
-        case the initial concentrations are set using the target OCV.
-    OCV : float, optional
-        Target initial OCV. Must be between 0 and 1. Default is -1, in which
-        case the initial concentrations are set using the target SoC. This option is
-        only used if method is "experiment".
+    Args:
+        parameter_values (pybamm.ParamaterValues):
+            The parameter values used in the simulation.
+        SoC (float):
+            Target initial SoC. Must be between 0 and 1. Default is -1, in which
+            case the initial concentrations are set using the target OCV.
+        OCV (float):
+            Target initial OCV. Must be between 0 and 1. Default is -1, in which
+            case the initial concentrations are set using the target SoC. This option is
+            only used if method is "experiment".
 
-    Returns
-    -------
-    c_s_n_init : float
-        The initial concentration in the negative electrode.
-    c_s_p_init : float
-        The initial concentration in the positive electrode.
+    Returns:
+        c_s_n_init (float):
+            The initial concentration in the negative electrode.
+        c_s_p_init (float):
+            The initial concentration in the positive electrode.
     """
 
     # TODO: what if someone changes parameters? We should make this every time,
@@ -119,10 +116,9 @@ def create_init_funcs(parameter_values):
     initial concentrations corresponding to a given initial state of charge or
     open circuit voltage.
 
-    Parameters
-    ----------
-    parameter_values : :class:`pybamm.ParamaterValues`
-        The parameter values used in the simulation.
+    Args:
+        parameter_values (pybamm.ParamaterValues):
+            The parameter values used in the simulation.
     """
     V_upper_limit = parameter_values["Upper voltage cut-off [V]"]
     V_lower_limit = parameter_values["Lower voltage cut-off [V]"]

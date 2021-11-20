@@ -7,15 +7,11 @@ import numpy as np
 def generate_protocol_from_experiment(experiment):
     """
 
-    Parameters
-    ----------
-    experiment : :class:`pybamm.Experiment`
-        The experiment to generate the protocol from.
+    Args:
+        experiment (`pybamm.Experiment`): The experiment to generate the protocol from.
 
-    Returns
-    -------
-    proto : list
-        a sequence of terminal currents to apply at each timestep
+    Returns:
+        list: a sequence of terminal currents to apply at each timestep
 
     """
     proto = []
