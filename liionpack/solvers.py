@@ -105,7 +105,8 @@ class generic_manager:
         V_node, I_batt = lp.solve_circuit_vectorized(netlist)
 
         # The simulation output variables calculated at each step for each battery
-        # Must be a 0D variable i.e. battery wide volume average - or X-averaged for 1D model
+        # Must be a 0D variable i.e. battery wide volume average - or X-averaged for
+        # 1D model
         self.variable_names = [
             "Terminal voltage [V]",
             "Measured battery open circuit voltage [V]",

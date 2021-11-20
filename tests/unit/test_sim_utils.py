@@ -15,8 +15,9 @@ class sim_utilsTest(unittest.TestCase):
     def test_create_init_funcs(self):
         if os.path.isfile(self.fname):
             os.remove(self.fname)
-        # initial_conditions_from_experiment calls create_init_funcs when the pkl file is not found
-        # doing it this way tests the try/except block in initial_conditions_from_experiment
+        # initial_conditions_from_experiment calls create_init_funcs when the pkl file
+        # is not found doing it this way tests the try/except block in
+        # initial_conditions_from_experiment
         lp.initial_conditions_from_experiment(self.param, SoC=0.0)
         assert os.path.isfile(self.fname)
         plt.close("all")
