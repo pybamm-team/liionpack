@@ -44,7 +44,8 @@ def read_netlist(
         V (float): Initial battery voltage (V).
 
     Returns:
-        pandas.DataFrame: A netlist of circuit elements with format desc, node1, node2, value.
+        pandas.DataFrame:
+            A netlist of circuit elements with format desc, node1, node2, value.
     """
 
     # Read in the netlist
@@ -110,7 +111,8 @@ def setup_circuit(
         plot (bool): Plot the circuit.
 
     Returns:
-        pandas.DataFrame: A netlist of circuit elements with format desc, node1, node2, value.
+        pandas.DataFrame:
+            A netlist of circuit elements with format desc, node1, node2, value.
 
     """
     Nc = Np + 1
@@ -249,7 +251,8 @@ def solve_circuit(netlist):
     See http://lpsa.swarthmore.edu/Systems/Electrical/mna/MNA3.html
 
     Args:
-        netlist (pandas.DataFrame): A netlist of circuit elements with format desc, node1, node2, value.
+        netlist (pandas.DataFrame):
+            A netlist of circuit elements with format desc, node1, node2, value.
 
     Returns:
         - np.ndarray: Voltages of the voltage elements.
@@ -380,7 +383,8 @@ def solve_circuit_vectorized(netlist):
     See http://lpsa.swarthmore.edu/Systems/Electrical/mna/MNA3.html
 
     Args:
-        netlist (pandas.DataFrame): A netlist of circuit elements with format desc, node1, node2, value.
+        netlist (pandas.DataFrame):
+            A netlist of circuit elements with format desc, node1, node2, value.
 
     Returns:
         np.ndarray: Voltages of the voltage elements

@@ -13,9 +13,9 @@ def _serial_step(model, solutions, inputs_dict, integrator, variables, t_eval):
     Internal function to process the model for one timestep in a serial way.
 
     Args:
-        model (pybamm.Model): 
+        model (pybamm.Model):
             The built model
-        solutions (iter of pybamm.Solution): 
+        solutions (iter of pybamm.Solution):
             Used to get the last state of the system and use as x0 and z0 for the
             casadi integrator. Provide solution objects for each battery.
         inputs_dict (iter of input_dicts):
@@ -78,7 +78,7 @@ def _mapped_step(model, solutions, inputs_dict, integrator, variables, t_eval):
     Arg:
         model (pybamm.lithium_ion.BaseModel):
             The built battery model
-        solutions (iter of pybamm.Solution): 
+        solutions (iter of pybamm.Solution):
             Used to get the last state of the system and use as x0 and z0 for the
             casadi integrator. Provide solution objects for each battery.
         inputs_dict (iter of input_dicts):
@@ -178,7 +178,7 @@ def _create_casadi_objects(I_init, htc, sim, dt, Nspm, nproc, variable_names, ma
             to an algebraic equation and a set of quadratures
         variables_fn (mapped variables evaluator):
             evaluates the simulation and output variables. see casadi function
-        t_eval (np.ndarray): 
+        t_eval (np.ndarray):
             Float array of times to evaluate.
             times to evaluate in a single step, starting at zero for each step
 
@@ -266,7 +266,7 @@ def solve(
 
     Returns:
         np.ndarray:
-            simulation output array with shape - [# variable, # steps, # batteries]):   
+            simulation output array with shape - [# variable, # steps, # batteries]):
 
     """
 
