@@ -3,9 +3,12 @@ site_name: liionpack
 theme:
     name: material
     palette:
-      primary: blue grey
+      scheme: slate
     font:
       text: Saira
+
+extra_css:
+  - stylesheets/extra.css
 
 strict: false
 
