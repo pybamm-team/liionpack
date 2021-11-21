@@ -4,18 +4,21 @@ Created on Thu Sep 23 10:33:13 2021
 
 @author: Tom
 """
-from scipy.interpolate import interp1d, interp2d
+import os
+import pathlib
+
 import numpy as np
 import pandas as pd
-import os
-import liionpack
-from skspatial.objects import Plane
-from skspatial.objects import Points
+from scipy.interpolate import interp1d, interp2d
+from skspatial.objects import Plane, Points
 
-ROOT_DIR = os.path.dirname(os.path.abspath(liionpack.__file__))
-CIRCUIT_DIR = os.path.join(ROOT_DIR, "circuits")
-DATA_DIR = os.path.join(ROOT_DIR, "data")
-INIT_FUNCS = os.path.join(ROOT_DIR, "init_funcs")
+import liionpack as lp
+
+ROOT_DIR = str(pathlib.Path(lp.__path__[0]).parent)
+MODULE_DIR = os.path.dirname(os.path.abspath(lp.__file__))
+CIRCUIT_DIR = os.path.join(MODULE_DIR, "circuits")
+DATA_DIR = os.path.join(MODULE_DIR, "data")
+INIT_FUNCS = os.path.join(MODULE_DIR, "init_funcs")
 
 
 def interp_current(df):
@@ -113,7 +116,7 @@ def read_cfd_data(data_dir=None, filename="cfd_data.xlsx", fit="linear"):
 
     """
     if data_dir is None:
-        data_dir = liionpack.DATA_DIR
+        data_dir = lp.DATA_DIR
     fpath = os.path.join(data_dir, filename)
     ncells = 32
     flow_bps = np.array(pd.read_excel(fpath, sheet_name="massflow_bps", header=None))
