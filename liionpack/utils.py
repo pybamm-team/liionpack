@@ -19,19 +19,17 @@ INIT_FUNCS = os.path.join(ROOT_DIR, "init_funcs")
 
 
 def interp_current(df):
-    r"""
+    """
     Returns an interpolation function for current w.r.t time
 
-    Parameters
-    ----------
-    df : pandas.DataFrame or Dict
-        Contains data for 'Time' and 'Cells Total Current' from which to
-        construct an interpolant function
+    Args:
+        df (pandas.DataFrame or Dict):
+            Contains data for 'Time' and 'Cells Total Current' from which to
+            construct an interpolant function
 
-    Returns
-    -------
-    f : function
-        interpolant function of total cell current with time.
+    Returns:
+        function:
+            interpolant function of total cell current with time.
 
     """
     t = df["Time"]
@@ -41,25 +39,23 @@ def interp_current(df):
 
 
 def _z_from_plane(X, Y, plane):
-    r"""
+    """
     Given X and Y and a plane provide Z
     X - temperature
     Y - flow rate
     Z - heat transfer coefficient
 
-    Parameters
-    ----------
-    X : float (array)
-        x-coordinate.
-    Y : float (array)
-        z-coordinate.
-    plane : skspatial.object.Plane
-        plane returned from read_cfd_data.
+    Args:
+        X (np.ndarray):
+            x-coordinate.
+        Y (np.ndarray):
+            z-coordinate.
+        plane (skspatial.object.Plane):
+            plane returned from read_cfd_data.
 
-    Returns
-    -------
-    z : float (array)
-        z-coordinate.
+    Returns:
+        z (np.ndarray):
+            z-coordinate.
 
     """
     a, b, c = plane.normal
@@ -69,23 +65,21 @@ def _z_from_plane(X, Y, plane):
 
 
 def _fit_plane(xv, yv, dbatt):
-    r"""
+    """
     Private method to fit plane to CFD data
 
-    Parameters
-    ----------
-    xv : ndarray
-        temperature meshgrid points.
-    yv : ndarray
-        flow_rate meshgrid points.
-    dbatt : ndarray
-        cfd data for heat transfer coefficient.
+    Args:
+        xv (np.ndarray):
+            temperature meshgrid points.
+        yv (np.ndarray):
+            flow_rate meshgrid points.
+        dbatt (np.ndarray):
+            cfd data for heat transfer coefficient.
 
-    Returns
-    -------
-    plane : skspatial.object.Plane
-        htc varies linearly with temperature and flow rate so relationship
-        describes a plane
+    Returns:
+        plane (skspatial.object.Plane):
+            htc varies linearly with temperature and flow rate so relationship
+            describes a plane
 
     """
     nx, ny = xv.shape
@@ -100,23 +94,22 @@ def _fit_plane(xv, yv, dbatt):
 
 
 def read_cfd_data(data_dir=None, filename="cfd_data.xlsx", fit="linear"):
-    r"""
+    """
     A very bespoke function to read heat transfer coefficients from an excel
     file
 
-    Parameters
-    ----------
-    data_dir : str, optional
-        Path to data file. The default is None. If unspecified the module
-        liionpack.DATA_DIR folder will be used
-    filename : str, optional
-        The default is 'cfd_data.xlsx'.
-    fit : str
-        options are 'linear' (default) and 'interpolated'.
-    Returns
-    -------
-    funcs : list
-        an interpolant is returned for each cell in the excel file.
+    Args:
+        data_dir (str):
+            Path to data file. The default is None. If unspecified the module
+            liionpack.DATA_DIR folder will be used
+        filename (str):
+            The default is 'cfd_data.xlsx'.
+        fit (str):
+            options are 'linear' (default) and 'interpolated'.
+
+    Returns:
+        list:
+            an interpolant is returned for each cell in the excel file.
 
     """
     if data_dir is None:
@@ -142,25 +135,23 @@ def read_cfd_data(data_dir=None, filename="cfd_data.xlsx", fit="linear"):
 
 
 def get_linear_htc(planes, T, Q):
-    r"""
+    """
     A very bespoke function that is called in the solve process to update the
     heat transfer coefficients for every battery - assuming linear relation
     between temperature, flow rate and heat transfer coefficient.
 
-    Parameters
-    ----------
-    planes : list
-        each element of the list is a plane equation describing linear relation
-        between temperature, flow rate and heat transfer coefficient.
-    T : float array
-        The temperature of each battery.
-    Q : float
-        The flow rate for the system.
+    Args:
+        planes (list):
+            each element of the list is a plane equation describing linear relation
+            between temperature, flow rate and heat transfer coefficient.
+        T (np.ndarray):
+            The temperature of each battery.
+        Q (float):
+            The flow rate for the system.
 
-    Returns
-    -------
-    htc : float
-        Heat transfer coefficient for each battery.
+    Returns:
+        float:
+            Heat transfer coefficient for each battery.
 
     """
     ncell = len(T)
@@ -171,23 +162,21 @@ def get_linear_htc(planes, T, Q):
 
 
 def get_interpolated_htc(funcs, T, Q):
-    r"""
+    """
     A very bespoke function that is called in the solve process to update the
     heat transfer coefficients for every battery
 
-    Parameters
-    ----------
-    funcs : list
-        each element of the list is an interpolant function.
-    T : float array
-        The temperature of each battery.
-    Q : float
-        The flow rate for the system.
+    Args:
+        funcs (list):
+            each element of the list is an interpolant function.
+        T (np.ndarray):
+            The temperature of each battery.
+        Q (float):
+            The flow rate for the system.
 
-    Returns
-    -------
-    htc : float
-        Heat transfer coefficient for each battery.
+    Returns:
+        float:
+            Heat transfer coefficient for each battery.
 
     """
     ncell = len(T)
@@ -198,24 +187,22 @@ def get_interpolated_htc(funcs, T, Q):
 
 
 def build_inputs_dict(I_batt, htc):
-    r"""
+    """
     Function to convert inputs and external_variable arrays to list of dicts
     As expected by the casadi solver. These are then converted back for mapped
     solving but stored individually on each returned solution.
     Can probably remove this process later
 
-    Parameters
-    ----------
-    I_batt : float array
-        The input current for each battery.
-    htc : float array
-        the heat transfer coefficient for each battery.
+    Args:
+        I_batt (np.ndarray):
+            The input current for each battery.
+        htc (np.ndarray):
+            the heat transfer coefficient for each battery.
 
-    Returns
-    -------
-    inputs_dict : list
-        each element of the list is an inputs dictionary corresponding to each
-        battery.
+    Returns:
+        list:
+            each element of the list is an inputs dictionary corresponding to each
+            battery.
 
 
     """

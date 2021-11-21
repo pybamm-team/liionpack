@@ -10,24 +10,18 @@ init_printing(pretty_print=False)
 
 
 def draw_circuit(netlist, **kwargs):
-    r"""
+    """
     Draw a latex version of netlist circuit
     N.B only works with generated netlists not imported ones.
 
-    Parameters
-    ----------
-    netlist : pandas.DataFrame
-        A netlist of circuit elements with format. desc, node1, node2, value.
+    Args:
+        netlist (pandas.DataFrame):
+            A netlist of circuit elements with format. desc, node1, node2, value.
 
-    Returns
-    -------
-    None.
-
-
-    Example
-    >>> import liionpack as lp
-    >>> net = lp.setup_circuit(Np=3, Ns=1, Rb=1e-4, Rc=1e-2, Ri=5e-2, V=3.2, I=80.0)
-    >>> lp.draw_circuit(net)
+    Example:
+        >>> import liionpack as lp
+        >>> net = lp.setup_circuit(Np=3, Ns=1, Rb=1e-4, Rc=1e-2, Ri=5e-2, V=3.2, I=80.0)
+        >>> lp.draw_circuit(net)
     """
     cct = Circuit()
     V_map = netlist["desc"].str.find("V") > -1
@@ -66,24 +60,19 @@ def draw_circuit(netlist, **kwargs):
 
 
 def _text_color(vals, vmin, vmax, cmap):
-    r"""
+    """
+    Returns list of either black or white to write text, depending on whether
+    plotted color is closer to white or black
 
-
-    Parameters
+    Args:
     ----------
-    vals : TYPE
-        DESCRIPTION.
-    vmin : TYPE
-        DESCRIPTION.
-    vmax : TYPE
-        DESCRIPTION.
-    cmap : TYPE
-        DESCRIPTION.
+    vals (TYPE): DESCRIPTION.
+    vmin (TYPE): DESCRIPTION.
+    vmax (TYPE): DESCRIPTION.
+    cmap (TYPE): DESCRIPTION.
 
-    Returns
-    -------
-    list
-        DESCRIPTION.
+    Returns:
+        list: DESCRIPTION.
 
     """
     # return list of either black or white to write text, depending on whether
@@ -96,23 +85,13 @@ def _text_color(vals, vmin, vmax, cmap):
 
 
 def _cell_text(ax, X, Y, vals, prec, text_colors):
-    r"""
+    """
 
-
-    Parameters
-    ----------
-    ax : TYPE
-        DESCRIPTION.
-    vals : TYPE
-        DESCRIPTION.
-    prec : TYPE
-        DESCRIPTION.
-    text_colors : TYPE
-        DESCRIPTION.
-
-    Returns
-    -------
-    None.
+    Args:
+        ax (TYPE): DESCRIPTION.
+        vals (TYPE): DESCRIPTION.
+        prec (TYPE): DESCRIPTION.
+        text_colors (TYPE): DESCRIPTION.
 
     """
     # X_pos, Y_pos = cell_XY_positions()
@@ -128,19 +107,11 @@ def _cell_text(ax, X, Y, vals, prec, text_colors):
 
 
 def _cell_text_numbers(ax, X, Y, text_colors):
-    r"""
+    """
 
-
-    Parameters
-    ----------
-    ax : TYPE
-        DESCRIPTION.
-    text_colors : TYPE
-        DESCRIPTION.
-
-    Returns
-    -------
-    None.
+    Args:
+        ax (TYPE): DESCRIPTION.
+        text_colors (TYPE): DESCRIPTION.
 
     """
     # X_pos, Y_pos = cell_XY_positions()
@@ -158,26 +129,15 @@ def _cell_text_numbers(ax, X, Y, text_colors):
 
 
 def cell_scatter_plot(ax, X, Y, c, text_prec=1, **kwargs):
-    r"""
+    """
 
-    Parameters
-    ----------
-    ax : matplotlib axis obj
-        axis to plot on.
-    X : float array
-        x-coordinate of the battery
-    Y : float array
-        y-coordinate of the battery
-    c : like plt.scatter c kwarg
-        colors to plot scatter with.
-    text_prec : int
-        precsition to write text of values on cells.
-    **kwargs :
-        plt.scatter kwargs.
-
-    Returns
-    -------
-    None.
+    Args:
+        ax (matplotlib.axes): axis to plot on.
+        X (np.ndarray): x-coordinate of the battery
+        Y (np.ndarray): y-coordinate of the battery
+        c (like plt.scatter c kwarg): colors to plot scatter with.
+        text_prec (int): precision to write text of values on cells.
+        **kwargs : plt.scatter kwargs.
 
     """
 
@@ -216,10 +176,9 @@ def plot_pack(output):
     """
     Plot the battery pack voltage and current.
 
-    Parameters
-    ----------
-    output : dict
-        Output from liionpack.solve which contains pack and cell variables.
+    Args:
+        output (dict):
+            Output from liionpack.solve which contains pack and cell variables.
     """
 
     # Get pack level results
@@ -242,10 +201,9 @@ def plot_cells(output):
     """
     Plot results for the battery cells.
 
-    Parameters
-    ----------
-    output : dict
-        Output from liionpack.solve which contains pack and cell variables.
+    Args:
+        output (dict):
+            Output from liionpack.solve which contains pack and cell variables.
     """
 
     # Get time and results for battery cells
@@ -267,13 +225,12 @@ def plot_cells(output):
 
 
 def plot_output(output):
-    r"""
+    """
     Plot all results for pack and cells
 
-    Parameters
-    ----------
-    output : dict
-        Output from liionpack.solve which contains pack and cell variables.
+    Args:
+        output (dict):
+            Output from liionpack.solve which contains pack and cell variables.
 
     """
     plot_pack(output)
@@ -291,14 +248,8 @@ def simple_netlist_plot(netlist):
     """
     Simple matplotlib netlist plot with colored lines for different elements
 
-    Parameters
-    ----------
-    netlist : TYPE
-        DESCRIPTION.
-
-    Returns
-    -------
-    None.
+    Args:
+        netlist (TYPE): DESCRIPTION.
 
     """
     plt.figure()
