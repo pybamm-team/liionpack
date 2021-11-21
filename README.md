@@ -67,16 +67,18 @@ output_variables = [
     'Volume-averaged cell temperature [K]',
     'X-averaged negative particle surface concentration [mol.m-3]',
     'X-averaged positive particle surface concentration [mol.m-3]',
-    ]
+]
 
 # Heat transfer coefficients
 htc = np.ones(32) * 10
 
 # Cycling experiment, using PyBaMM
-experiment = pybamm.Experiment(
-    ["Charge at 50 A for 30 minutes", "Rest for 15 minutes", "Discharge at 50 A for 30 minutes", "Rest for 30 minutes"],
-    period="10 seconds",
-)
+experiment = pybamm.Experiment([
+    "Charge at 20 A for 30 minutes",
+    "Rest for 15 minutes",
+    "Discharge at 20 A for 30 minutes",
+    "Rest for 30 minutes"],
+    period="10 seconds")
 
 # PyBaMM parameters
 chemistry = pybamm.parameter_sets.Chen2020
@@ -95,6 +97,7 @@ output = lp.solve(netlist=netlist,
 If you'd like to help us develop liionpack by adding new methods, writing documentation, or fixing embarrassing bugs, please have a look at these [guidelines](https://github.com/pybamm-team/liionpack/blob/main/docs/contributing.md) first.
 
 ## Acknowledgments
+
 PyBaMM-team acknowledges the funding and support of the Faraday Institution's multi-scale modelling project and Innovate UK.
 
 The development work carried out by members at Oak Ridge National Laboratory was partially sponsored by the Office of Electricity under the United States Department of Energy (DOE).
