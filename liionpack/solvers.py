@@ -239,8 +239,8 @@ class ray_manager(generic_manager):
     def split_models(self, Nspm, nproc, htc):
         # Manage the number of SPM models per worker
         self.spm_per_worker = int(Nspm / nproc)  # make sure no remainders
-        self.split_index = np.split(np.arange(Nspm), nproc)
-        self.htc = np.split(htc, nproc)
+        self.split_index = np.array_split(np.arange(Nspm), nproc)
+        self.htc = np.array_split(htc, nproc)
 
     def setup_actors(self, nproc, I_init, htc_init, initial_soc):
         tic = ticker.time()
@@ -309,8 +309,8 @@ class casadi_manager(generic_manager):
         # to the integrator however we still want the global variables to be
         # used in the same generic way
         self.spm_per_worker = Nspm
-        self.split_index = np.split(np.arange(Nspm), 1)
-        self.htc = np.split(htc, 1)
+        self.split_index = np.array_split(np.arange(Nspm), 1)
+        self.htc = np.array_split(htc, 1)
 
     def setup_actors(self, nproc, I_init, htc_init, initial_soc):
         # For casadi we do not use multiple actors but instead the integrator
@@ -362,8 +362,8 @@ class dask_manager(generic_manager):
     def split_models(self, Nspm, nproc, htc):
         # Manage the number of SPM models per worker
         self.spm_per_worker = int(Nspm / nproc)  # make sure no remainders
-        self.split_index = np.split(np.arange(Nspm), nproc)
-        self.htc = np.split(htc, nproc)
+        self.split_index = np.array_split(np.arange(Nspm), nproc)
+        self.htc = np.array_split(htc, nproc)
 
     def setup_actors(self, nproc, I_init, htc_init, initial_soc):
         # Set up a casadi actor on each process
