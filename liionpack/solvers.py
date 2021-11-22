@@ -238,9 +238,9 @@ class ray_manager(generic_manager):
 
     def split_models(self, Nspm, nproc, htc):
         # Manage the number of SPM models per worker
-        self.spm_per_worker = int(Nspm / nproc)  # make sure no remainders
-        self.split_index = np.array_split(np.arange(Nspm), nproc)
         self.htc = np.array_split(htc, nproc)
+        self.split_index = np.array_split(np.arange(Nspm), nproc)
+        self.spm_per_worker = [len(s) for s in self.split_index]
 
     def setup_actors(self, nproc, I_init, htc_init, initial_soc):
         tic = ticker.time()
@@ -249,11 +249,11 @@ class ray_manager(generic_manager):
         for i in range(nproc):
             self.actors.append(lp.ray_actor.remote())
         setup_futures = []
-        for a in self.actors:
+        for i, a in enumerate(self.actors):
             # Create actor on each worker containing a simulation
             setup_futures.append(
                 a.setup.remote(
-                    Nspm=self.spm_per_worker,
+                    Nspm=self.spm_per_worker[i],
                     parameter_values=self.parameter_values,
                     dt=self.dt,
                     I_init=I_init,
@@ -285,7 +285,7 @@ class ray_manager(generic_manager):
         for actor in self.actors:
             futures.append(actor.output.remote())
         for i, f in enumerate(futures):
-            slc = slice(i * self.spm_per_worker, (i + 1) * self.spm_per_worker)
+            slc = slice(i * self.spm_per_worker[0], (i + 1) * self.spm_per_worker[0])
             out = ray.get(f)
             self.output[:, step, slc] = out
         t2 = ticker.time()
@@ -361,9 +361,9 @@ class dask_manager(generic_manager):
 
     def split_models(self, Nspm, nproc, htc):
         # Manage the number of SPM models per worker
-        self.spm_per_worker = int(Nspm / nproc)  # make sure no remainders
-        self.split_index = np.array_split(np.arange(Nspm), nproc)
         self.htc = np.array_split(htc, nproc)
+        self.split_index = np.array_split(np.arange(Nspm), nproc)
+        self.spm_per_worker = [len(s) for s in self.split_index]
 
     def setup_actors(self, nproc, I_init, htc_init, initial_soc):
         # Set up a casadi actor on each process
@@ -377,14 +377,14 @@ class dask_manager(generic_manager):
             futures.append(self.client.submit(generic_actor, actor=True, pure=False))
         self.actors = [af.result() for af in futures]
         futures = []
-        for a in self.actors:
+        for i, a in enumerate(self.actors):
             futures.append(
                 a.setup(
                     parameter_values=self.parameter_values,
                     I_init=I_init,
                     htc_init=htc_init,
                     dt=self.dt,
-                    Nspm=self.spm_per_worker,
+                    Nspm=self.spm_per_worker[i],
                     variable_names=self.variable_names,
                     initial_soc=initial_soc,
                     nproc=1,
@@ -416,7 +416,7 @@ class dask_manager(generic_manager):
             future_gets.append(a.output())
         for i, fg in enumerate(future_gets):
             out = fg.result()
-            slc = slice(i * self.spm_per_worker, (i + 1) * self.spm_per_worker)
+            slc = slice(i * self.spm_per_worker[0], (i + 1) * self.spm_per_worker[0])
             self.output[:, step, slc] = out
         toc = ticker.time()
         lp.logger.info(
