@@ -28,6 +28,7 @@ dependencies:
   - autograd
   - absl-py
   - dask
+  - hiredis
   - pip:
     - pybamm
     - lcapy
