@@ -3,6 +3,15 @@
 #
 
 import pybamm
+from pybamm.simulation import Simulation as pybammSim
+
+
+class Simulation(pybammSim):
+    def __init__(self, **kwargs):
+        self.protocol = kwargs['experiment']
+        kwargs['experiment'] = None
+        kwargs['solver'] = pybamm.CasadiSolver(mode='safe')
+        super().__init__(**kwargs)
 
 
 def create_simulation(parameter_values=None, experiment=None, make_inputs=False):

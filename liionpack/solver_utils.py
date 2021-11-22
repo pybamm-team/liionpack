@@ -229,7 +229,7 @@ def _create_casadi_objects(I_init, htc, sim, dt, Nspm, nproc, variable_names, ma
 
 def solve(
     netlist=None,
-    parameter_values=None,
+    simulation=None,
     experiment=None,
     I_init=1.0,
     htc=None,
@@ -245,11 +245,9 @@ def solve(
         netlist (pandas.DataFrame):
             A netlist of circuit elements with format. desc, node1, node2, value.
             Produced by liionpack.read_netlist or liionpack.setup_circuit
-        parameter_values (pybamm.ParameterValues):
-            A dictionary of all the model parameters
-        experiment (pybamm.Experiment):
-            The experiment to be simulated. experiment.period is used to
-            determine the length of each timestep.
+        simulation (pybamm.Simulation):
+            A simulation object containing the model, parameter_values and the
+            experiment.
         I_init (float):
             Initial guess for single battery current [A]. The default is 1.0.
         htc (np.ndarray):
@@ -270,8 +268,8 @@ def solve(
 
     """
 
-    if netlist is None or parameter_values is None or experiment is None:
-        raise Exception("Please supply a netlist, paramater_values, and experiment")
+    if netlist is None or simulation is None:
+        raise Exception("Please supply a netlist and simulation")
 
     if manager == "casadi":
         rm = lp.casadi_manager()
@@ -285,8 +283,7 @@ def solve(
 
     output = rm.solve(
         netlist=netlist,
-        parameter_values=parameter_values,
-        experiment=experiment,
+        simulation=simulation,
         output_variables=output_variables,
         htc=htc,
         nproc=nproc,

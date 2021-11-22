@@ -19,7 +19,7 @@ class generic_actor:
     def setup(
         self,
         Nspm,
-        parameter_values,
+        simulation,
         dt,
         I_init,
         htc_init,
@@ -35,8 +35,9 @@ class generic_actor:
         # Solver set up
         self.step_solutions = [None] * Nspm
         # Set up simulation
-        self.parameter_values = parameter_values
-        self.simulation = lp.create_simulation(self.parameter_values, make_inputs=True)
+        # self.parameter_values = parameter_values
+        # self.simulation = lp.create_simulation(self.parameter_values, make_inputs=True)
+        self.simulation = simulation
         lp.update_init_conc(self.simulation, SoC=initial_soc)
         # Set up integrator
         self.integrator, self.variables_fn, self.t_eval = cco(
@@ -79,14 +80,14 @@ class generic_manager:
         self,
         netlist,
         nproc,
-        parameter_values,
-        experiment,
+        simulation,
         htc,
         output_variables,
         initial_soc,
     ):
         self.netlist = netlist
-        self.parameter_values = parameter_values
+        self.simulation = simulation
+        parameter_values = simulation.parameter_values
         # Get netlist indices for resistors, voltage sources, current sources
         Ri_map = netlist["desc"].str.find("Ri") > -1
         V_map = netlist["desc"].str.find("V") > -1
@@ -97,6 +98,7 @@ class generic_manager:
         self.split_models(Nspm, nproc, htc)
 
         # Generate the protocol from the supplied experiment
+        experiment = simulation.protocol
         protocol = lp.generate_protocol_from_experiment(experiment)
         self.dt = experiment.period
         Nsteps = len(protocol)
@@ -254,7 +256,7 @@ class ray_manager(generic_manager):
             setup_futures.append(
                 a.setup.remote(
                     Nspm=self.spm_per_worker,
-                    parameter_values=self.parameter_values,
+                    simulation=self.simulation,
                     dt=self.dt,
                     I_init=I_init,
                     htc_init=htc_init,
@@ -322,7 +324,7 @@ class casadi_manager(generic_manager):
         for a in self.actors:
             a.setup(
                 Nspm=self.spm_per_worker,
-                parameter_values=self.parameter_values,
+                simulation=self.simulation,
                 dt=self.dt,
                 I_init=I_init,
                 htc_init=htc_init,
@@ -380,7 +382,7 @@ class dask_manager(generic_manager):
         for a in self.actors:
             futures.append(
                 a.setup(
-                    parameter_values=self.parameter_values,
+                    simulation=self.simulation,
                     I_init=I_init,
                     htc_init=htc_init,
                     dt=self.dt,
