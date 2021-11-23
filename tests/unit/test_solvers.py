@@ -14,7 +14,7 @@ class solversTest(unittest.TestCase):
         R_bus = 1e-4
         R_series = 1e-2
         R_int = 5e-2
-        I_app = 80.0
+        I_app = 20.0
         ref_voltage = 3.2
         # Generate the netlist
         self.netlist = lp.setup_circuit(
@@ -26,7 +26,7 @@ class solversTest(unittest.TestCase):
         # Cycling experiment
         self.experiment = pybamm.Experiment(
             [
-                f"Charge at {I_app} A for 300 seconds",
+                f"Discharge at {I_app} A for 300 seconds",
             ],
             period="10 seconds",
         )
@@ -57,7 +57,7 @@ class solversTest(unittest.TestCase):
         )
         a = output1["Terminal voltage [V]"]
         b = output2["Terminal voltage [V]"]
-        self.assertEqual(a.shape, (30, 32))
+        self.assertEqual(a.shape, (30, 21))
         self.assertTrue(np.allclose(a, b))
 
         plt.close("all")
@@ -85,7 +85,7 @@ class solversTest(unittest.TestCase):
         )
         a = output1["Terminal voltage [V]"]
         b = output2["Terminal voltage [V]"]
-        self.assertEqual(a.shape, (30, 32))
+        self.assertEqual(a.shape, (30, 21))
         self.assertTrue(np.allclose(a, b))
 
         plt.close("all")
@@ -113,7 +113,7 @@ class solversTest(unittest.TestCase):
         )
         a = output1["Terminal voltage [V]"]
         b = output2["Terminal voltage [V]"]
-        self.assertEqual(a.shape, (30, 32))
+        self.assertEqual(a.shape, (30, 21))
         self.assertTrue(np.allclose(a, b))
 
         plt.close("all")
