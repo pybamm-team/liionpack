@@ -38,5 +38,6 @@ class utilsTest(unittest.TestCase):
                 break
         assert events_in
 
+
 if __name__ == "__main__":
     unittest.main()
