@@ -41,7 +41,7 @@ setup(
         "scikit-spatial",
         "networkx",
         "textwrapper",
-        "dask",
+        "dask==2021.10.0",
         "distributed",
         "ray",
     ],
