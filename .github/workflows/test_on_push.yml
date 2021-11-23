@@ -51,15 +51,18 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         python -m pip install -r requirements.txt
+    - name: Install liionpack for ray
+      run: |
+        python setup.py install
     - name: Run tests and generate coverage report
       run: |
         python -m pip install coverage
-        coverage run -m unittest
+        coverage run -m unittest -v
     - name: Install dependencies in conda environment
       run: |
         $CONDA/bin/conda env update --file environment.yml --name base
     - name: Run tests in the conda environment 
       run: |
-        $CONDA/bin/python -m unittest
+        $CONDA/bin/python -m unittest -v
     - name: Upload Coverage to Codecov
       uses: codecov/codecov-action@v1
