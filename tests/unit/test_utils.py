@@ -1,6 +1,7 @@
 import liionpack as lp
 import pandas as pd
 import numpy as np
+import pybamm
 import unittest
 
 
@@ -27,6 +28,15 @@ class utilsTest(unittest.TestCase):
         htc = lp.get_interpolated_htc(funcs, T, Q)
         assert np.allclose(htc[:2], expected)
 
+    def test_add_events_to_model(self):
+        model = pybamm.lithium_ion.SPMe()
+        model = lp.add_events_to_model(model)
+        events_in = False
+        for key in sorted(model.variables.keys()):
+            if "Event:" in key:
+                events_in = True
+                break
+        assert events_in
 
 if __name__ == "__main__":
     unittest.main()

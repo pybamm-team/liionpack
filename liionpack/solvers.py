@@ -38,7 +38,9 @@ class generic_actor:
         # Set up simulation
         self.parameter_values = parameter_values
         if sim_func is None:
-            self.simulation = lp.create_simulation(self.parameter_values, make_inputs=True)
+            self.simulation = lp.create_simulation(
+                self.parameter_values, make_inputs=True
+            )
         else:
             self.simulation = sim_func(parameter_values)
         lp.update_init_conc(self.simulation, SoC=initial_soc)

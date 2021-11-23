@@ -216,3 +216,19 @@ def build_inputs_dict(I_batt, htc):
             }
         )
     return inputs_dict
+
+
+def add_events_to_model(model):
+    """
+    Convert model events into variables to be evaluated in the solver step.
+
+    Args:
+        model (pybamm.lithium_ion.BaseModel)
+
+    Returns:
+        model (pybamm.lithium_ion.BaseModel)
+
+    """
+    for event in model.events:
+        model.variables.update({"Event: " + event.name: event.expression})
+    return model
