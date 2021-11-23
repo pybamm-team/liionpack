@@ -8,7 +8,7 @@ import numpy as np
 import liionpack as lp
 
 
-def _serial_step(model, solutions, inputs_dict, integrator, variables, t_eval):
+def _serial_step(model, solutions, inputs_dict, integrator, variables, t_eval, events):
     """
     Internal function to process the model for one timestep in a serial way.
 
@@ -41,6 +41,7 @@ def _serial_step(model, solutions, inputs_dict, integrator, variables, t_eval):
     timer = pybamm.Timer()
     sol = []
     var_eval = []
+    events_eval = []
     for k in range(N):
         if solutions[k] is None:
             # First pass
@@ -63,13 +64,14 @@ def _serial_step(model, solutions, inputs_dict, integrator, variables, t_eval):
         xend = y_sol[:, -1]
         sol.append(pybamm.Solution(t_eval, y_sol, model, inputs_dict[k]))
         var_eval.append(variables(0, xend[:len_rhs], xend[len_rhs:], inputs[0:ninputs]))
+        events_eval.append(events(0, xend[:len_rhs], xend[len_rhs:], inputs[0:ninputs]))
         integration_time = timer.time()
         sol[-1].integration_time = integration_time
 
-    return sol, casadi.horzcat(*var_eval)
+    return sol, casadi.horzcat(*var_eval), casadi.horzcat(*events_eval)
 
 
-def _mapped_step(model, solutions, inputs_dict, integrator, variables, t_eval):
+def _mapped_step(model, solutions, inputs_dict, integrator, variables, t_eval, events):
     """
     Internal function to process the model for one timestep in a mapped way.
     Mapped versions of the integrator and variables functions should already
@@ -90,6 +92,8 @@ def _mapped_step(model, solutions, inputs_dict, integrator, variables, t_eval):
         t_eval (np.ndarray):
             A float array of times to evaluate.
             Produced by _create_casadi_objects when mapped = False
+        events (mapped events evaluator):
+            Produced by `_create_casadi_objects`
 
     Returns:
         sol (list):
@@ -142,7 +146,8 @@ def _mapped_step(model, solutions, inputs_dict, integrator, variables, t_eval):
     lp.logger.debug(f"Mapped step completed in {toc - tic}")
     xend = casadi.horzcat(*xend)
     var_eval = variables(0, xend[:len_rhs, :], xend[len_rhs:, :], inputs[0:ninputs, :])
-    return sol, var_eval
+    events_eval = events(0, xend[:len_rhs, :], xend[len_rhs:, :], inputs[0:ninputs, :])
+    return sol, var_eval, events_eval
 
 
 def _create_casadi_objects(I_init, htc, sim, dt, Nspm, nproc, variable_names, mapped):
@@ -224,7 +229,35 @@ def _create_casadi_objects(I_init, htc, sim, dt, Nspm, nproc, variable_names, ma
     variables_fn = casadi.Function("variables", [t, x, z, p], [variables_stacked])
     if mapped:
         variables_fn = variables_fn.map(Nspm, "thread", nproc)
-    return integrator, variables_fn, t_eval
+
+    # Look for events in model variables and create a function to evaluate them
+    all_vars = sorted(sim.model.variables.keys())
+    event_vars = [v for v in all_vars if "Event" in v]
+    if len(event_vars) > 0:
+        # Variables function for parallel evaluation
+        casadi_objs = sim.built_model.export_casadi_objects(variable_names=event_vars)
+        events = casadi_objs["variables"]
+        t, x, z, p = (
+            casadi_objs["t"],
+            casadi_objs["x"],
+            casadi_objs["z"],
+            casadi_objs["inputs"],
+        )
+        events_stacked = casadi.vertcat(*events.values())
+        events_fn = casadi.Function("variables", [t, x, z, p], [events_stacked])
+        if mapped:
+            events_fn = events_fn.map(Nspm, "thread", nproc)
+    else:
+        events_fn = None
+
+    output = {
+        "integrator": integrator,
+        "variables_fn": variables_fn,
+        "t_eval": t_eval,
+        "event_names": event_vars,
+        "events_fn": events_fn,
+    }
+    return output
 
 
 def solve(

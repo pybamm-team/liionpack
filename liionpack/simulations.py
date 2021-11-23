@@ -3,6 +3,7 @@
 #
 
 import pybamm
+import liionpack as lp
 
 
 def create_simulation(parameter_values=None, experiment=None, make_inputs=False):
@@ -31,6 +32,9 @@ def create_simulation(parameter_values=None, experiment=None, make_inputs=False)
             "thermal": "lumped",
         }
     )
+
+    # Add events to the model
+    model = lp.add_events_to_model(model)
 
     # Set up parameter values
     if parameter_values is None:

@@ -45,9 +45,16 @@ class generic_actor:
             self.simulation = sim_func(parameter_values)
         lp.update_init_conc(self.simulation, SoC=initial_soc)
         # Set up integrator
-        self.integrator, self.variables_fn, self.t_eval = cco(
+        casadi_objs = cco(
             I_init, htc_init, self.simulation, dt, Nspm, nproc, variable_names, mapped
         )
+        self.integrator = casadi_objs["integrator"]
+        self.variables_fn = casadi_objs["variables_fn"]
+        self.t_eval = casadi_objs["t_eval"]
+        self.event_names = casadi_objs["event_names"]
+        self.events_fn = casadi_objs["events_fn"]
+        self.last_events = None
+        self.event_change = None
         if mapped:
             self.step_fn = ms
         else:
@@ -55,15 +62,34 @@ class generic_actor:
 
     def step(self, inputs):
         # Solver Step
-        self.step_solutions, self.var_eval = self.step_fn(
+        self.step_solutions, self.var_eval, self.events_eval = self.step_fn(
             self.simulation.built_model,
             self.step_solutions,
             inputs,
             self.integrator,
             self.variables_fn,
             self.t_eval,
+            self.events_fn,
         )
-        return True
+        return self.check_events()
+
+    def check_events(self):
+        if self.last_events is not None:
+            # Compare changes
+            new_sign = np.sign(self.events_eval)
+            old_sign = np.sign(self.last_events)
+            self.event_change = (old_sign * new_sign) < 0
+            self.last_events = self.events_eval
+            return np.any(self.event_change)
+        else:
+            self.last_events = self.events_eval
+            return False
+
+    def get_event_change(self):
+        return self.event_change
+
+    def get_event_names(self):
+        return self.event_names
 
     def output(self):
         return self.var_eval
@@ -284,7 +310,9 @@ class ray_manager(generic_manager):
         inputs = self.build_inputs()
         for i, pa in enumerate(self.actors):
             future_steps.append(pa.step.remote(inputs[i]))
-        _ = [ray.get(fs) for fs in future_steps]
+        events = [ray.get(fs) for fs in future_steps]
+        if np.any(events):
+            lp.logger.warning("Events were triggered")
         t2 = ticker.time()
         lp.logger.info("Ray actors stepped in " + str(np.around(t2 - t1, 3)) + "s")
 
@@ -346,7 +374,19 @@ class casadi_manager(generic_manager):
 
     def step_actors(self):
         tic = ticker.time()
-        self.actors[0].step(self.build_inputs()[0])
+        events = self.actors[0].step(self.build_inputs()[0])
+        if events:
+            lp.logger.warning("Events were triggered")
+            event_change = self.actors[0].get_event_change()
+            Nr, Nc = event_change.shape
+            event_names = self.actors[0].get_event_names()
+            for r in range(Nr):
+                if np.any(event_change[r, :]):
+                    lp.logger.warning(
+                        event_names[r]
+                        + ", Batteries: "
+                        + str(np.where(event_change[r, :])[1].tolist())
+                    )
         toc = ticker.time()
         lp.logger.info(
             "Casadi actor stepped in time " + str(np.around(toc - tic, 3)) + "s"
@@ -413,7 +453,9 @@ class dask_manager(generic_manager):
         future_steps = []
         for i, a in enumerate(self.actors):
             future_steps.append(a.step(inputs=inputs[i]))
-        _ = [af.result() for af in future_steps]
+        events = [af.result() for af in future_steps]
+        if np.any(events):
+            lp.logger.warning("Events were triggered")
         toc = ticker.time()
         lp.logger.info(
             "Dask actors stepped in time " + str(np.around(toc - tic, 3)) + "s"
