@@ -52,7 +52,7 @@ class solversTest(unittest.TestCase):
             output_variables=None,
             htc=self.htc,
             initial_soc=0.5,
-            nproc=4,
+            nproc=2,
             manager="casadi",
         )
         a = output1["Terminal voltage [V]"]
@@ -80,7 +80,7 @@ class solversTest(unittest.TestCase):
             output_variables=None,
             htc=self.htc,
             initial_soc=0.5,
-            nproc=4,
+            nproc=2,
             manager="ray",
         )
         a = output1["Terminal voltage [V]"]
@@ -108,7 +108,7 @@ class solversTest(unittest.TestCase):
             output_variables=None,
             htc=self.htc,
             initial_soc=0.5,
-            nproc=4,
+            nproc=2,
             manager="dask",
         )
         a = output1["Terminal voltage [V]"]
