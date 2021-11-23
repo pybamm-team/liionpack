@@ -274,9 +274,7 @@ def solve(
 
     """
 
-    if (netlist is None or
-        parameter_values is None or
-        experiment is None):
+    if netlist is None or parameter_values is None or experiment is None:
         raise Exception("Please supply a netlist, paramater_values, and experiment")
 
     if manager == "casadi":

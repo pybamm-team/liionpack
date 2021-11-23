@@ -85,7 +85,6 @@ class solver_utilsTest(unittest.TestCase):
         plt.close("all")
 
     def test_sim_func(self):
-
         def bespoke_sim(parameter_values):
             model = pybamm.lithium_ion.SPM(
                 options={
@@ -98,7 +97,7 @@ class solver_utilsTest(unittest.TestCase):
                     "Total heat transfer coefficient [W.m-2.K-1]": "[input]",
                 },
             )
-        
+
             # Set up solver and simulation
             solver = pybamm.CasadiSolver(mode="safe")
             sim = pybamm.Simulation(
@@ -120,6 +119,7 @@ class solver_utilsTest(unittest.TestCase):
         )
         self.assertEqual(output["Terminal voltage [V]"].shape, (30, 32))
         plt.close("all")
+
 
 if __name__ == "__main__":
     unittest.main()
