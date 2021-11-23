@@ -11,5 +11,5 @@ Ipython
 scikit-spatial
 networkx
 textwrapper
-dask"[complete]"
+dask[complete]
 ray
