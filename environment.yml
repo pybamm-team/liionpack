@@ -27,7 +27,7 @@ dependencies:
   - click
   - autograd
   - absl-py
-  - dask[complete]
+  - dask
   - hiredis
   - pip:
     - pybamm
