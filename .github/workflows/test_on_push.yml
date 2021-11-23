@@ -61,6 +61,9 @@ jobs:
     - name: Install dependencies in conda environment
       run: |
         $CONDA/bin/conda env update --file environment.yml --name base
+    - name: Install liionpack in conda environment for ray
+      run: |
+        $CONDA/bin/python setup.py install
     - name: Run tests in the conda environment 
       run: |
         $CONDA/bin/python -m unittest -v
