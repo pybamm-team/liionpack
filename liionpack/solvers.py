@@ -285,9 +285,8 @@ class ray_manager(generic_manager):
         for actor in self.actors:
             futures.append(actor.output.remote())
         for i, f in enumerate(futures):
-            slc = slice(i * self.spm_per_worker[0], (i + 1) * self.spm_per_worker[0])
             out = ray.get(f)
-            self.output[:, step, slc] = out
+            self.output[:, step, self.split_index[i]] = out
         t2 = ticker.time()
         lp.logger.info(
             "Ray actor output retrieved in " + str(np.around(t2 - t1, 3)) + "s"
@@ -416,8 +415,7 @@ class dask_manager(generic_manager):
             future_gets.append(a.output())
         for i, fg in enumerate(future_gets):
             out = fg.result()
-            slc = slice(i * self.spm_per_worker[0], (i + 1) * self.spm_per_worker[0])
-            self.output[:, step, slc] = out
+            self.output[:, step, self.split_index[i]] = out
         toc = ticker.time()
         lp.logger.info(
             "Dask,actors output got in time " + str(np.around(toc - tic, 3)) + "s"
