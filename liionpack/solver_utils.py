@@ -229,6 +229,7 @@ def _create_casadi_objects(I_init, htc, sim, dt, Nspm, nproc, variable_names, ma
 
 def solve(
     netlist=None,
+    sim_func=None,
     parameter_values=None,
     experiment=None,
     I_init=1.0,
@@ -245,6 +246,9 @@ def solve(
         netlist (pandas.DataFrame):
             A netlist of circuit elements with format. desc, node1, node2, value.
             Produced by liionpack.read_netlist or liionpack.setup_circuit
+        sim_func (function)
+            A function containing model and solver definitions that accepts
+            parameter_values and returns a simulation.
         parameter_values (pybamm.ParameterValues):
             A dictionary of all the model parameters
         experiment (pybamm.Experiment):
@@ -270,7 +274,9 @@ def solve(
 
     """
 
-    if netlist is None or parameter_values is None or experiment is None:
+    if (netlist is None or
+        parameter_values is None or
+        experiment is None):
         raise Exception("Please supply a netlist, paramater_values, and experiment")
 
     if manager == "casadi":
@@ -285,6 +291,7 @@ def solve(
 
     output = rm.solve(
         netlist=netlist,
+        sim_func=sim_func,
         parameter_values=parameter_values,
         experiment=experiment,
         output_variables=output_variables,

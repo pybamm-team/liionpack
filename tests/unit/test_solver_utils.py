@@ -84,6 +84,42 @@ class solver_utilsTest(unittest.TestCase):
         self.assertEqual(output["X-averaged total heating [W.m-3]"].shape, (30, 32))
         plt.close("all")
 
+    def test_sim_func(self):
+
+        def bespoke_sim(parameter_values):
+            model = pybamm.lithium_ion.SPM(
+                options={
+                    "thermal": "lumped",
+                }
+            )
+            parameter_values.update(
+                {
+                    "Current function [A]": "[input]",
+                    "Total heat transfer coefficient [W.m-2.K-1]": "[input]",
+                },
+            )
+        
+            # Set up solver and simulation
+            solver = pybamm.CasadiSolver(mode="safe")
+            sim = pybamm.Simulation(
+                model=model,
+                experiment=None,
+                parameter_values=parameter_values,
+                solver=solver,
+            )
+            return sim
+
+        output = lp.solve(
+            netlist=self.netlist,
+            sim_func=bespoke_sim,
+            parameter_values=self.parameter_values,
+            experiment=self.experiment,
+            output_variables=None,
+            htc=self.htc,
+            initial_soc=0.5,
+        )
+        self.assertEqual(output["Terminal voltage [V]"].shape, (30, 32))
+        plt.close("all")
 
 if __name__ == "__main__":
     unittest.main()

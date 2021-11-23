@@ -19,6 +19,7 @@ class generic_actor:
     def setup(
         self,
         Nspm,
+        sim_func,
         parameter_values,
         dt,
         I_init,
@@ -36,7 +37,10 @@ class generic_actor:
         self.step_solutions = [None] * Nspm
         # Set up simulation
         self.parameter_values = parameter_values
-        self.simulation = lp.create_simulation(self.parameter_values, make_inputs=True)
+        if sim_func is None:
+            self.simulation = lp.create_simulation(self.parameter_values, make_inputs=True)
+        else:
+            self.simulation = sim_func(parameter_values)
         lp.update_init_conc(self.simulation, SoC=initial_soc)
         # Set up integrator
         self.integrator, self.variables_fn, self.t_eval = cco(
@@ -78,14 +82,16 @@ class generic_manager:
     def solve(
         self,
         netlist,
-        nproc,
+        sim_func,
         parameter_values,
         experiment,
         htc,
         output_variables,
         initial_soc,
+        nproc,
     ):
         self.netlist = netlist
+        self.sim_func = sim_func
         self.parameter_values = parameter_values
         # Get netlist indices for resistors, voltage sources, current sources
         Ri_map = netlist["desc"].str.find("Ri") > -1
@@ -254,6 +260,7 @@ class ray_manager(generic_manager):
             setup_futures.append(
                 a.setup.remote(
                     Nspm=self.spm_per_worker[i],
+                    sim_func=self.sim_func,
                     parameter_values=self.parameter_values,
                     dt=self.dt,
                     I_init=I_init,
@@ -321,6 +328,7 @@ class casadi_manager(generic_manager):
         for a in self.actors:
             a.setup(
                 Nspm=self.spm_per_worker,
+                sim_func=self.sim_func,
                 parameter_values=self.parameter_values,
                 dt=self.dt,
                 I_init=I_init,
@@ -379,11 +387,12 @@ class dask_manager(generic_manager):
         for i, a in enumerate(self.actors):
             futures.append(
                 a.setup(
+                    Nspm=self.spm_per_worker[i],
+                    sim_func=self.sim_func,
                     parameter_values=self.parameter_values,
                     I_init=I_init,
                     htc_init=htc_init,
                     dt=self.dt,
-                    Nspm=self.spm_per_worker[i],
                     variable_names=self.variable_names,
                     initial_soc=initial_soc,
                     nproc=1,
