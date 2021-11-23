@@ -63,8 +63,11 @@ def _serial_step(model, solutions, inputs_dict, integrator, variables, t_eval, e
             y_sol = casadi.vertcat(xf, zf)
         xend = y_sol[:, -1]
         sol.append(pybamm.Solution(t_eval, y_sol, model, inputs_dict[k]))
-        var_eval.append(variables(0, xend[:len_rhs], xend[len_rhs:], inputs[0:ninputs]))
-        events_eval.append(events(0, xend[:len_rhs], xend[len_rhs:], inputs[0:ninputs]))
+        var_eval.append(variables(0, xend[:len_rhs],
+                                  xend[len_rhs:], inputs[0:ninputs]))
+        if events is not None:
+            events_eval.append(events(0, xend[:len_rhs],
+                                      xend[len_rhs:], inputs[0:ninputs]))
         integration_time = timer.time()
         sol[-1].integration_time = integration_time
 
@@ -145,8 +148,13 @@ def _mapped_step(model, solutions, inputs_dict, integrator, variables, t_eval, e
     toc = timer.time()
     lp.logger.debug(f"Mapped step completed in {toc - tic}")
     xend = casadi.horzcat(*xend)
-    var_eval = variables(0, xend[:len_rhs, :], xend[len_rhs:, :], inputs[0:ninputs, :])
-    events_eval = events(0, xend[:len_rhs, :], xend[len_rhs:, :], inputs[0:ninputs, :])
+    var_eval = variables(0, xend[:len_rhs, :],
+                         xend[len_rhs:, :], inputs[0:ninputs, :])
+    if events is not None:
+        events_eval = events(0, xend[:len_rhs, :],
+                             xend[len_rhs:, :], inputs[0:ninputs, :])
+    else:
+        events_eval = []
     return sol, var_eval, events_eval
 
 
