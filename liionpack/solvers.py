@@ -312,7 +312,7 @@ class ray_manager(generic_manager):
             future_steps.append(pa.step.remote(inputs[i]))
         events = [ray.get(fs) for fs in future_steps]
         if np.any(events):
-            lp.logger.warning("Events were triggered")
+            self.log_event()
         t2 = ticker.time()
         lp.logger.info("Ray actors stepped in " + str(np.around(t2 - t1, 3)) + "s")
 
@@ -328,6 +328,24 @@ class ray_manager(generic_manager):
         lp.logger.info(
             "Ray actor output retrieved in " + str(np.around(t2 - t1, 3)) + "s"
         )
+
+    def log_event(self):
+        futures = []
+        for actor in self.actors:
+            futures.append(actor.get_event_change.remote())
+        all_event_changes = []
+        for i, f in enumerate(futures):
+            all_event_changes.append(np.asarray(ray.get(f)))
+        event_change = np.hstack(all_event_changes)
+        Nr, Nc = event_change.shape
+        event_names = ray.get(self.actors[0].get_event_names.remote())
+        for r in range(Nr):
+            if np.any(event_change[r, :]):
+                lp.logger.warning(
+                    event_names[r]
+                    + ", Batteries: "
+                    + str(np.where(event_change[r, :])[0].tolist())
+                )
 
     def cleanup(self):
         for actor in self.actors:
@@ -376,17 +394,7 @@ class casadi_manager(generic_manager):
         tic = ticker.time()
         events = self.actors[0].step(self.build_inputs()[0])
         if events:
-            lp.logger.warning("Events were triggered")
-            event_change = self.actors[0].get_event_change()
-            Nr, Nc = event_change.shape
-            event_names = self.actors[0].get_event_names()
-            for r in range(Nr):
-                if np.any(event_change[r, :]):
-                    lp.logger.warning(
-                        event_names[r]
-                        + ", Batteries: "
-                        + str(np.where(event_change[r, :])[1].tolist())
-                    )
+            self.log_event()
         toc = ticker.time()
         lp.logger.info(
             "Casadi actor stepped in time " + str(np.around(toc - tic, 3)) + "s"
@@ -399,6 +407,18 @@ class casadi_manager(generic_manager):
         lp.logger.info(
             "Casadi actor output got in time " + str(np.around(toc - tic, 3)) + "s"
         )
+
+    def log_event(self):
+        event_change = np.asarray(self.actors[0].get_event_change())
+        Nr, Nc = event_change.shape
+        event_names = self.actors[0].get_event_names()
+        for r in range(Nr):
+            if np.any(event_change[r, :]):
+                lp.logger.warning(
+                    event_names[r]
+                    + ", Batteries: "
+                    + str(np.where(event_change[r, :])[0].tolist())
+                )
 
     def cleanup(self):
         pass
@@ -455,7 +475,7 @@ class dask_manager(generic_manager):
             future_steps.append(a.step(inputs=inputs[i]))
         events = [af.result() for af in future_steps]
         if np.any(events):
-            lp.logger.warning("Events were triggered")
+            self.log_event()
         toc = ticker.time()
         lp.logger.info(
             "Dask actors stepped in time " + str(np.around(toc - tic, 3)) + "s"
@@ -473,6 +493,24 @@ class dask_manager(generic_manager):
         lp.logger.info(
             "Dask,actors output got in time " + str(np.around(toc - tic, 3)) + "s"
         )
+
+    def log_event(self):
+        futures = []
+        for actor in self.actors:
+            futures.append(actor.get_event_change())
+        all_event_changes = []
+        for i, f in enumerate(futures):
+            all_event_changes.append(np.asarray(f.result()))
+        event_change = np.hstack(all_event_changes)
+        Nr, Nc = event_change.shape
+        event_names = self.actors[0].get_event_names().result()
+        for r in range(Nr):
+            if np.any(event_change[r, :]):
+                lp.logger.warning(
+                    event_names[r]
+                    + ", Batteries: "
+                    + str(np.where(event_change[r, :])[0].tolist())
+                )
 
     def cleanup(self):
         lp.logger.notice("Shutting down Dask client")
