@@ -37,9 +37,7 @@ class generic_actor:
         # Set up simulation
         self.parameter_values = parameter_values
         if sim_func is None:
-            self.simulation = lp.basic_simulation(
-                self.parameter_values
-            )
+            self.simulation = lp.basic_simulation(self.parameter_values)
         else:
             self.simulation = sim_func(parameter_values)
         lp.update_init_conc(self.simulation, SoC=initial_soc)
@@ -170,8 +168,7 @@ class generic_manager:
 
         # Handle the inputs
         self.inputs = inputs
-        self.inputs_dict = lp.build_inputs_dict(self.shm_i_app[0, :],
-                                                self.inputs)
+        self.inputs_dict = lp.build_inputs_dict(self.shm_i_app[0, :], self.inputs)
         # Solver specific setup
         self.setup_actors(nproc, self.inputs_dict[0], initial_soc)
 
@@ -205,8 +202,7 @@ class generic_manager:
             if time < end_time:
                 I_app = I_batt[:] * -1
                 self.shm_i_app[step + 1, :] = I_app
-                self.inputs_dict = lp.build_inputs_dict(I_app,
-                                                        self.inputs)
+                self.inputs_dict = lp.build_inputs_dict(I_app, self.inputs)
             # Stop if voltage limits are reached
             if np.any(temp_v < v_cut_lower):
                 print("Low voltage limit reached")
@@ -279,9 +275,9 @@ class ray_manager(generic_manager):
         self.spm_per_worker = [len(s) for s in self.split_index]
         self.slices = []
         for i in range(nproc):
-            self.slices.append(slice(self.split_index[i][0],
-                                     self.split_index[i][-1]+1))
-            
+            self.slices.append(
+                slice(self.split_index[i][0], self.split_index[i][-1] + 1)
+            )
 
     def setup_actors(self, nproc, inputs, initial_soc):
         tic = ticker.time()
@@ -370,8 +366,7 @@ class casadi_manager(generic_manager):
         # used in the same generic way
         self.spm_per_worker = Nspm
         self.split_index = np.array_split(np.arange(Nspm), 1)
-        self.slices = [slice(self.split_index[0][0],
-                             self.split_index[0][-1]+1)]
+        self.slices = [slice(self.split_index[0][0], self.split_index[0][-1] + 1)]
 
     def setup_actors(self, nproc, inputs, initial_soc):
         # For casadi we do not use multiple actors but instead the integrator
@@ -440,8 +435,9 @@ class dask_manager(generic_manager):
         self.spm_per_worker = [len(s) for s in self.split_index]
         self.slices = []
         for i in range(nproc):
-            self.slices.append(slice(self.split_index[i][0],
-                                     self.split_index[i][-1]+1))
+            self.slices.append(
+                slice(self.split_index[i][0], self.split_index[i][-1] + 1)
+            )
 
     def setup_actors(self, nproc, inputs, initial_soc):
         # Set up a casadi actor on each process

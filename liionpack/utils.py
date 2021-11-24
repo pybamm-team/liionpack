@@ -207,6 +207,7 @@ def _convert_dict_to_list_of_dict(inputs_dict):
         dicts.append(dict(zip(keys, values)))
     return dicts
 
+
 def build_inputs_dict(I_batt, inputs):
     """
     Function to convert inputs and external_variable arrays to list of dicts
