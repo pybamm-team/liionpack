@@ -14,8 +14,6 @@ class TestSolvers(unittest.TestCase):
         netlist = lp.setup_circuit(
             Np=1, Ns=1, Rb=Rsmall, Rc=Rsmall, Ri=5e-2, V=4.0, I=1.0
         )
-        # Heat transfer coefficients
-        htc = np.ones(1) * 10
         # PyBaMM parameters
         chemistry = pybamm.parameter_sets.Chen2020
         parameter_values = pybamm.ParameterValues(chemistry=chemistry)

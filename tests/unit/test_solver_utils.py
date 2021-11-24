@@ -103,10 +103,11 @@ class solver_utilsTest(unittest.TestCase):
                 solver=solver,
             )
             return sim
+
         # Heat transfer coefficients
         inputs = {
             "Total heat transfer coefficient [W.m-2.K-1]": np.ones(self.Nspm) * 10
-            }
+        }
         output = lp.solve(
             netlist=self.netlist,
             sim_func=bespoke_sim,
