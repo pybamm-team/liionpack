@@ -40,7 +40,6 @@ def thermal_sim(parameter_values=None):
         chemistry = pybamm.parameter_sets.Chen2020
         parameter_values = pybamm.ParameterValues(chemistry=chemistry)
 
-
     parameter_values.update(
         {
             "Current function [A]": "[input]",
@@ -82,7 +81,7 @@ output_variables = [
 
 # Heat transfer coefficients
 htc = np.ones(Nspm) * 10
-inputs = {"Total heat transfer coefficient [W.m-2.K-1]" : htc}
+inputs = {"Total heat transfer coefficient [W.m-2.K-1]": htc}
 
 # Cycling experiment
 experiment = pybamm.Experiment(
@@ -107,7 +106,7 @@ output = lp.solve(
     experiment=experiment,
     output_variables=output_variables,
     inputs=inputs,
-    nproc=os.cpu_count()
+    nproc=os.cpu_count(),
 )
 X_pos = [
     0.080052414,

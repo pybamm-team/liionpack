@@ -25,7 +25,6 @@ if __name__ == "__main__":
         "X-averaged positive particle surface concentration [mol.m-3]",
     ]
 
-
     # Cycling experiment
     experiment = pybamm.Experiment(
         [
