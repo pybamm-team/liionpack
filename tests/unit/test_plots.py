@@ -1,6 +1,5 @@
 import liionpack as lp
 import matplotlib.pyplot as plt
-import numpy as np
 import pybamm
 import unittest
 
@@ -18,10 +17,7 @@ class plotsTest(unittest.TestCase):
         netlist = lp.read_netlist(
             "AMMBa", Ri=R_int, Rc=R_series, Rb=R_bus, Rl=R_bus, I=I_app, V=ref_voltage
         )
-        Nspm = np.sum(netlist["desc"].str.find("V") > -1)
 
-        # Heat transfer coefficients
-        htc = np.ones(Nspm) * 10
         # Cycling experiment
         experiment = pybamm.Experiment(
             [
