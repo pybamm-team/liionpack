@@ -13,8 +13,6 @@ class Test1p1s(unittest.TestCase):
         netlist = lp.setup_circuit(
             Np=1, Ns=1, Rb=Rsmall, Rc=Rsmall, Ri=5e-2, V=4.0, I=1.0
         )
-        # Heat transfer coefficients
-        htc = np.ones(2) * 10
         # PyBaMM parameters
         chemistry = pybamm.parameter_sets.Chen2020
         parameter_values = pybamm.ParameterValues(chemistry=chemistry)
@@ -28,12 +26,12 @@ class Test1p1s(unittest.TestCase):
             netlist=netlist,
             parameter_values=parameter_values,
             experiment=experiment,
-            htc=htc,
         )
 
         parameter_values = pybamm.ParameterValues(chemistry=chemistry)
-        parameter_values.update({"Total heat transfer coefficient [W.m-2.K-1]": 10.0})
-        sim = lp.create_simulation(parameter_values, experiment, make_inputs=False)
+        sim = pybamm.Simulation(model=pybamm.lithium_ion.SPM(),
+                                parameter_values=parameter_values,
+                                experiment=experiment)
 
         sol = sim.solve(initial_soc=SoC)
         a = output["Terminal voltage [V]"].flatten()
@@ -46,8 +44,6 @@ class Test1p1s(unittest.TestCase):
         netlist = lp.setup_circuit(
             Np=1, Ns=1, Rb=Rsmall, Rc=Rsmall, Ri=5e-2, V=4.0, I=1.0
         )
-        # Heat transfer coefficients
-        htc = np.ones(2) * 10
         # PyBaMM parameters
         chemistry = pybamm.parameter_sets.Chen2020
         parameter_values = pybamm.ParameterValues(chemistry=chemistry)
@@ -68,12 +64,12 @@ class Test1p1s(unittest.TestCase):
             netlist=netlist,
             parameter_values=parameter_values,
             experiment=experiment,
-            htc=htc,
         )
 
         parameter_values = pybamm.ParameterValues(chemistry=chemistry)
-        parameter_values.update({"Total heat transfer coefficient [W.m-2.K-1]": 10.0})
-        sim = lp.create_simulation(parameter_values, experiment, make_inputs=False)
+        sim = pybamm.Simulation(model=pybamm.lithium_ion.SPM(),
+                                parameter_values=parameter_values,
+                                experiment=experiment)
 
         sol = sim.solve(initial_soc=SoC)
         a = output["Terminal voltage [V]"].flatten()

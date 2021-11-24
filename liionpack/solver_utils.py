@@ -157,16 +157,14 @@ def _mapped_step(model, solutions, inputs_dict, integrator, variables, t_eval, e
     return sol, var_eval, events_eval
 
 
-def _create_casadi_objects(I_init, htc, sim, dt, Nspm, nproc, variable_names, mapped):
+def _create_casadi_objects(inputs, sim, dt, Nspm, nproc, variable_names, mapped):
     """
     Internal function to produce the casadi objects in their mapped form for
     parallel evaluation
 
     Args:
-        I_init (float):
-            initial guess for current of a battery (not used for simulation).
-        htc (float):
-            initial guess for htc of a battery (not used for simulation).
+        inputs (dict):
+            initial guess for inputs (not used for simulation).
         sim (pybamm.Simulation):
             A PyBaMM simulation object that contains the model, parameter values,
             solver, solution etc.
@@ -193,12 +191,14 @@ def _create_casadi_objects(I_init, htc, sim, dt, Nspm, nproc, variable_names, ma
         t_eval (np.ndarray):
             Float array of times to evaluate.
             times to evaluate in a single step, starting at zero for each step
+        events_fn (mapped events evaluator):
+            evaluates the event variables. see casadi function
 
     """
-    inputs = {
-        "Current function [A]": I_init,
-        "Total heat transfer coefficient [W.m-2.K-1]": htc,
-    }
+    # inputs = {
+    #     "Current function [A]": I_init,
+    # }
+    # inputs.update(inputs_init)
     solver = sim.solver
 
     # Initial solution - this builds the model behind the scenes
@@ -272,8 +272,7 @@ def solve(
     sim_func=None,
     parameter_values=None,
     experiment=None,
-    I_init=1.0,
-    htc=None,
+    inputs=None,
     initial_soc=0.5,
     nproc=1,
     output_variables=None,
@@ -294,10 +293,8 @@ def solve(
         experiment (pybamm.Experiment):
             The experiment to be simulated. experiment.period is used to
             determine the length of each timestep.
-        I_init (float):
-            Initial guess for single battery current [A]. The default is 1.0.
-        htc (np.ndarray):
-            Heat transfer coefficient array of length Nspm. The default is None.
+        inputs (dict):
+            Dictionary for every model input with value for each battery
         initial_soc (float):
             The initial state of charge for every battery. The default is 0.5
         nproc (int):
@@ -333,7 +330,7 @@ def solve(
         parameter_values=parameter_values,
         experiment=experiment,
         output_variables=output_variables,
-        htc=htc,
+        inputs=inputs,
         nproc=nproc,
         initial_soc=initial_soc,
     )

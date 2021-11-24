@@ -22,8 +22,7 @@ class generic_actor:
         sim_func,
         parameter_values,
         dt,
-        I_init,
-        htc_init,
+        inputs,
         variable_names,
         initial_soc,
         nproc,
@@ -38,15 +37,15 @@ class generic_actor:
         # Set up simulation
         self.parameter_values = parameter_values
         if sim_func is None:
-            self.simulation = lp.create_simulation(
-                self.parameter_values, make_inputs=True
+            self.simulation = lp.basic_simulation(
+                self.parameter_values
             )
         else:
             self.simulation = sim_func(parameter_values)
         lp.update_init_conc(self.simulation, SoC=initial_soc)
         # Set up integrator
         casadi_objs = cco(
-            I_init, htc_init, self.simulation, dt, Nspm, nproc, variable_names, mapped
+            inputs, self.simulation, dt, Nspm, nproc, variable_names, mapped
         )
         self.integrator = casadi_objs["integrator"]
         self.variables_fn = casadi_objs["variables_fn"]
@@ -113,7 +112,7 @@ class generic_manager:
         sim_func,
         parameter_values,
         experiment,
-        htc,
+        inputs,
         output_variables,
         initial_soc,
         nproc,
@@ -128,7 +127,7 @@ class generic_manager:
         Terminal_Node = np.array(netlist[I_map].node1)
         Nspm = np.sum(V_map)
 
-        self.split_models(Nspm, nproc, htc)
+        self.split_models(Nspm, nproc)
 
         # Generate the protocol from the supplied experiment
         protocol = lp.generate_protocol_from_experiment(experiment)
@@ -169,8 +168,12 @@ class generic_manager:
         v_cut_lower = parameter_values["Lower voltage cut-off [V]"]
         v_cut_higher = parameter_values["Upper voltage cut-off [V]"]
 
+        # Handle the inputs
+        self.inputs = inputs
+        self.inputs_dict = lp.build_inputs_dict(self.shm_i_app[0, :],
+                                                self.inputs)
         # Solver specific setup
-        self.setup_actors(nproc, self.shm_i_app[0, 0], htc[0], initial_soc)
+        self.setup_actors(nproc, self.inputs_dict[0], initial_soc)
 
         sim_start_time = ticker.time()
         lp.logger.notice("Starting step solve")
@@ -200,8 +203,10 @@ class generic_manager:
                 V_node, I_batt = lp.solve_circuit_vectorized(netlist)
                 V_terminal.append(V_node[Terminal_Node][0])
             if time < end_time:
-                self.shm_i_app[step + 1, :] = I_batt[:] * -1
-
+                I_app = I_batt[:] * -1
+                self.shm_i_app[step + 1, :] = I_app
+                self.inputs_dict = lp.build_inputs_dict(I_app,
+                                                        self.inputs)
             # Stop if voltage limits are reached
             if np.any(temp_v < v_cut_lower):
                 print("Low voltage limit reached")
@@ -242,15 +247,13 @@ class generic_manager:
     def build_inputs(self):
         inputs = []
         for i in range(len(self.actors)):
-            I_app = self.actor_i_app(i)
-            htc = self.actor_htc(i)
-            inputs.append(lp.build_inputs_dict(I_app, htc))
+            inputs.append(self.inputs_dict[self.slices[i]])
         return inputs
 
-    def split_models(self, Nspm, nproc, htc):
+    def split_models(self, Nspm, nproc):
         pass
 
-    def setup_actors(self, nproc, I_init, htc_init, initial_soc):
+    def setup_actors(self, nproc, inputs, initial_soc):
         pass
 
     def step_actors(self):
@@ -270,13 +273,17 @@ class ray_manager(generic_manager):
         ray.init()
         lp.logger.notice("Ray initialization complete")
 
-    def split_models(self, Nspm, nproc, htc):
+    def split_models(self, Nspm, nproc):
         # Manage the number of SPM models per worker
-        self.htc = np.array_split(htc, nproc)
         self.split_index = np.array_split(np.arange(Nspm), nproc)
         self.spm_per_worker = [len(s) for s in self.split_index]
+        self.slices = []
+        for i in range(nproc):
+            self.slices.append(slice(self.split_index[i][0],
+                                     self.split_index[i][-1]+1))
+            
 
-    def setup_actors(self, nproc, I_init, htc_init, initial_soc):
+    def setup_actors(self, nproc, inputs, initial_soc):
         tic = ticker.time()
         # Ray setup an actor for each worker
         self.actors = []
@@ -291,8 +298,7 @@ class ray_manager(generic_manager):
                     sim_func=self.sim_func,
                     parameter_values=self.parameter_values,
                     dt=self.dt,
-                    I_init=I_init,
-                    htc_init=htc_init,
+                    inputs=inputs,
                     variable_names=self.variable_names,
                     initial_soc=initial_soc,
                     nproc=1,
@@ -358,15 +364,16 @@ class casadi_manager(generic_manager):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-    def split_models(self, Nspm, nproc, htc):
+    def split_models(self, Nspm, nproc):
         # For casadi there is no need to split the models as we pass them all
         # to the integrator however we still want the global variables to be
         # used in the same generic way
         self.spm_per_worker = Nspm
         self.split_index = np.array_split(np.arange(Nspm), 1)
-        self.htc = np.array_split(htc, 1)
+        self.slices = [slice(self.split_index[0][0],
+                             self.split_index[0][-1]+1)]
 
-    def setup_actors(self, nproc, I_init, htc_init, initial_soc):
+    def setup_actors(self, nproc, inputs, initial_soc):
         # For casadi we do not use multiple actors but instead the integrator
         # function that is generated by casadi handles multithreading behind
         # the scenes
@@ -379,8 +386,7 @@ class casadi_manager(generic_manager):
                 sim_func=self.sim_func,
                 parameter_values=self.parameter_values,
                 dt=self.dt,
-                I_init=I_init,
-                htc_init=htc_init,
+                inputs=inputs,
                 variable_names=self.variable_names,
                 initial_soc=initial_soc,
                 nproc=nproc,
@@ -430,11 +436,14 @@ class dask_manager(generic_manager):
 
     def split_models(self, Nspm, nproc, htc):
         # Manage the number of SPM models per worker
-        self.htc = np.array_split(htc, nproc)
         self.split_index = np.array_split(np.arange(Nspm), nproc)
         self.spm_per_worker = [len(s) for s in self.split_index]
+        self.slices = []
+        for i in range(nproc):
+            self.slices.append(slice(self.split_index[i][0],
+                                     self.split_index[i][-1]+1))
 
-    def setup_actors(self, nproc, I_init, htc_init, initial_soc):
+    def setup_actors(self, nproc, inputs, initial_soc):
         # Set up a casadi actor on each process
         lp.logger.notice("Dask initialization started")
         self.client = Client(n_workers=nproc)
@@ -452,8 +461,7 @@ class dask_manager(generic_manager):
                     Nspm=self.spm_per_worker[i],
                     sim_func=self.sim_func,
                     parameter_values=self.parameter_values,
-                    I_init=I_init,
-                    htc_init=htc_init,
+                    inputs=inputs,
                     dt=self.dt,
                     variable_names=self.variable_names,
                     initial_soc=initial_soc,
