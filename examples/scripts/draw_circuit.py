@@ -3,7 +3,6 @@
 #
 
 import liionpack as lp
-import numpy as np
 import pybamm
 import matplotlib.pyplot as plt
 
@@ -14,14 +13,9 @@ lp.logger.setLevel("NOTICE")
 netlist = lp.setup_circuit(Np=4, Ns=1, Rb=1.5e-3, Rc=1e-2, Ri=5e-2, V=4.0, I=5.0)
 lp.draw_circuit(netlist, scale_factor=0.5, cpt_size=1.0, dpi=300, node_spacing=2.5)
 output_variables = [
-    "X-averaged total heating [W.m-3]",
-    "Volume-averaged cell temperature [K]",
     "X-averaged negative particle surface concentration [mol.m-3]",
     "X-averaged positive particle surface concentration [mol.m-3]",
 ]
-
-# Heat transfer coefficients
-htc = np.ones(4) * 10
 
 # Cycling experiment
 experiment = pybamm.Experiment(
@@ -44,7 +38,6 @@ output = lp.solve(
     parameter_values=parameter_values,
     experiment=experiment,
     output_variables=output_variables,
-    htc=htc,
 )
 
 lp.plot_output(output)
