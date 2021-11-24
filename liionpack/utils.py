@@ -189,7 +189,29 @@ def get_interpolated_htc(funcs, T, Q):
     return htc
 
 
-def build_inputs_dict(I_batt, htc):
+def _convert_dict_to_list_of_dict(inputs_dict):
+    """
+    Convert a dictionary with multiple keys (used as model inputs) into a list
+    of individual dictionaries containing one element for each key
+
+    Args:
+        inputs_dict (dict)
+            a dictionary with multiple keys (used as model inputs), values are
+            arrays of input values for each battery.
+
+    Returns:
+        list:
+            individual dictionaries containing one element for each key
+
+    """
+    keys = inputs_dict.keys()
+    dicts = []
+    for values in zip(*list(inputs_dict.values())):
+        dicts.append(dict(zip(keys, values)))
+    return dicts
+
+
+def build_inputs_dict(I_batt, inputs):
     """
     Function to convert inputs and external_variable arrays to list of dicts
     As expected by the casadi solver. These are then converted back for mapped
@@ -199,8 +221,9 @@ def build_inputs_dict(I_batt, htc):
     Args:
         I_batt (np.ndarray):
             The input current for each battery.
-        htc (np.ndarray):
-            the heat transfer coefficient for each battery.
+        inputs (dict):
+            A dictionary with key of each input and value an array of input
+            values for each battery.
 
     Returns:
         list:
@@ -209,13 +232,24 @@ def build_inputs_dict(I_batt, htc):
 
 
     """
-    inputs_dict = []
-    for i in range(len(I_batt)):
-        inputs_dict.append(
-            {
-                # 'Volume-averaged cell temperature': T_batt[i],
-                "Current function [A]": I_batt[i],
-                "Total heat transfer coefficient [W.m-2.K-1]": htc[i],
-            }
-        )
+    inputs_dict = {"Current function [A]": I_batt}
+    if inputs is not None:
+        inputs_dict.update(inputs)
+    inputs_dict = _convert_dict_to_list_of_dict(inputs_dict)
     return inputs_dict
+
+
+def add_events_to_model(model):
+    """
+    Convert model events into variables to be evaluated in the solver step.
+
+    Args:
+        model (pybamm.lithium_ion.BaseModel)
+
+    Returns:
+        model (pybamm.lithium_ion.BaseModel)
+
+    """
+    for event in model.events:
+        model.variables.update({"Event: " + event.name: event.expression})
+    return model

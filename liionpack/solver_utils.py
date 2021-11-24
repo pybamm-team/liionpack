@@ -8,7 +8,7 @@ import numpy as np
 import liionpack as lp
 
 
-def _serial_step(model, solutions, inputs_dict, integrator, variables, t_eval):
+def _serial_step(model, solutions, inputs_dict, integrator, variables, t_eval, events):
     """
     Internal function to process the model for one timestep in a serial way.
 
@@ -41,6 +41,7 @@ def _serial_step(model, solutions, inputs_dict, integrator, variables, t_eval):
     timer = pybamm.Timer()
     sol = []
     var_eval = []
+    events_eval = []
     for k in range(N):
         if solutions[k] is None:
             # First pass
@@ -62,14 +63,18 @@ def _serial_step(model, solutions, inputs_dict, integrator, variables, t_eval):
             y_sol = casadi.vertcat(xf, zf)
         xend = y_sol[:, -1]
         sol.append(pybamm.Solution(t_eval, y_sol, model, inputs_dict[k]))
-        var_eval.append(variables(0, xend[:len_rhs], xend[len_rhs:], inputs[0:ninputs]))
+        var_eval.append(variables(0, xend[:len_rhs],
+                                  xend[len_rhs:], inputs[0:ninputs]))
+        if events is not None:
+            events_eval.append(events(0, xend[:len_rhs],
+                                      xend[len_rhs:], inputs[0:ninputs]))
         integration_time = timer.time()
         sol[-1].integration_time = integration_time
 
-    return sol, casadi.horzcat(*var_eval)
+    return sol, casadi.horzcat(*var_eval), casadi.horzcat(*events_eval)
 
 
-def _mapped_step(model, solutions, inputs_dict, integrator, variables, t_eval):
+def _mapped_step(model, solutions, inputs_dict, integrator, variables, t_eval, events):
     """
     Internal function to process the model for one timestep in a mapped way.
     Mapped versions of the integrator and variables functions should already
@@ -90,6 +95,8 @@ def _mapped_step(model, solutions, inputs_dict, integrator, variables, t_eval):
         t_eval (np.ndarray):
             A float array of times to evaluate.
             Produced by _create_casadi_objects when mapped = False
+        events (mapped events evaluator):
+            Produced by `_create_casadi_objects`
 
     Returns:
         sol (list):
@@ -126,6 +133,7 @@ def _mapped_step(model, solutions, inputs_dict, integrator, variables, t_eval):
     zf = casadi_sol["zf"]
     sol = []
     xend = []
+    events_eval = []
     for i in range(N):
         start = i * nt
         y_diff = xf[:, start : start + nt]
@@ -141,20 +149,22 @@ def _mapped_step(model, solutions, inputs_dict, integrator, variables, t_eval):
     toc = timer.time()
     lp.logger.debug(f"Mapped step completed in {toc - tic}")
     xend = casadi.horzcat(*xend)
-    var_eval = variables(0, xend[:len_rhs, :], xend[len_rhs:, :], inputs[0:ninputs, :])
-    return sol, var_eval
+    var_eval = variables(0, xend[:len_rhs, :],
+                         xend[len_rhs:, :], inputs[0:ninputs, :])
+    if events is not None:
+        events_eval = events(0, xend[:len_rhs, :],
+                             xend[len_rhs:, :], inputs[0:ninputs, :])
+    return sol, var_eval, events_eval
 
 
-def _create_casadi_objects(I_init, htc, sim, dt, Nspm, nproc, variable_names, mapped):
+def _create_casadi_objects(inputs, sim, dt, Nspm, nproc, variable_names, mapped):
     """
     Internal function to produce the casadi objects in their mapped form for
     parallel evaluation
 
     Args:
-        I_init (float):
-            initial guess for current of a battery (not used for simulation).
-        htc (float):
-            initial guess for htc of a battery (not used for simulation).
+        inputs (dict):
+            initial guess for inputs (not used for simulation).
         sim (pybamm.Simulation):
             A PyBaMM simulation object that contains the model, parameter values,
             solver, solution etc.
@@ -181,12 +191,14 @@ def _create_casadi_objects(I_init, htc, sim, dt, Nspm, nproc, variable_names, ma
         t_eval (np.ndarray):
             Float array of times to evaluate.
             times to evaluate in a single step, starting at zero for each step
+        events_fn (mapped events evaluator):
+            evaluates the event variables. see casadi function
 
     """
-    inputs = {
-        "Current function [A]": I_init,
-        "Total heat transfer coefficient [W.m-2.K-1]": htc,
-    }
+    # inputs = {
+    #     "Current function [A]": I_init,
+    # }
+    # inputs.update(inputs_init)
     solver = sim.solver
 
     # Initial solution - this builds the model behind the scenes
@@ -224,15 +236,43 @@ def _create_casadi_objects(I_init, htc, sim, dt, Nspm, nproc, variable_names, ma
     variables_fn = casadi.Function("variables", [t, x, z, p], [variables_stacked])
     if mapped:
         variables_fn = variables_fn.map(Nspm, "thread", nproc)
-    return integrator, variables_fn, t_eval
+
+    # Look for events in model variables and create a function to evaluate them
+    all_vars = sorted(sim.model.variables.keys())
+    event_vars = [v for v in all_vars if "Event" in v]
+    if len(event_vars) > 0:
+        # Variables function for parallel evaluation
+        casadi_objs = sim.built_model.export_casadi_objects(variable_names=event_vars)
+        events = casadi_objs["variables"]
+        t, x, z, p = (
+            casadi_objs["t"],
+            casadi_objs["x"],
+            casadi_objs["z"],
+            casadi_objs["inputs"],
+        )
+        events_stacked = casadi.vertcat(*events.values())
+        events_fn = casadi.Function("variables", [t, x, z, p], [events_stacked])
+        if mapped:
+            events_fn = events_fn.map(Nspm, "thread", nproc)
+    else:
+        events_fn = None
+
+    output = {
+        "integrator": integrator,
+        "variables_fn": variables_fn,
+        "t_eval": t_eval,
+        "event_names": event_vars,
+        "events_fn": events_fn,
+    }
+    return output
 
 
 def solve(
     netlist=None,
+    sim_func=None,
     parameter_values=None,
     experiment=None,
-    I_init=1.0,
-    htc=None,
+    inputs=None,
     initial_soc=0.5,
     nproc=1,
     output_variables=None,
@@ -245,15 +285,16 @@ def solve(
         netlist (pandas.DataFrame):
             A netlist of circuit elements with format. desc, node1, node2, value.
             Produced by liionpack.read_netlist or liionpack.setup_circuit
+        sim_func (function)
+            A function containing model and solver definitions that accepts
+            parameter_values and returns a simulation.
         parameter_values (pybamm.ParameterValues):
             A dictionary of all the model parameters
         experiment (pybamm.Experiment):
             The experiment to be simulated. experiment.period is used to
             determine the length of each timestep.
-        I_init (float):
-            Initial guess for single battery current [A]. The default is 1.0.
-        htc (np.ndarray):
-            Heat transfer coefficient array of length Nspm. The default is None.
+        inputs (dict):
+            Dictionary for every model input with value for each battery
         initial_soc (float):
             The initial state of charge for every battery. The default is 0.5
         nproc (int):
@@ -285,10 +326,11 @@ def solve(
 
     output = rm.solve(
         netlist=netlist,
+        sim_func=sim_func,
         parameter_values=parameter_values,
         experiment=experiment,
         output_variables=output_variables,
-        htc=htc,
+        inputs=inputs,
         nproc=nproc,
         initial_soc=initial_soc,
     )

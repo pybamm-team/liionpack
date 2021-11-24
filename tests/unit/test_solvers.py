@@ -1,7 +1,6 @@
 import liionpack as lp
 import pybamm
 import numpy as np
-import matplotlib.pyplot as plt
 import unittest
 
 
@@ -33,90 +32,61 @@ class solversTest(unittest.TestCase):
         # PyBaMM parameters
         chemistry = pybamm.parameter_sets.Chen2020
         self.parameter_values = pybamm.ParameterValues(chemistry=chemistry)
+        self.managers = ["casadi", "ray", "dask"]
 
-    def test_CasadiManager(self):
-        output1 = lp.solve(
-            netlist=self.netlist.copy(),
-            parameter_values=self.parameter_values,
-            experiment=self.experiment,
-            output_variables=None,
-            htc=self.htc,
-            initial_soc=0.5,
-            nproc=1,
-            manager="casadi",
-        )
-        output2 = lp.solve(
-            netlist=self.netlist.copy(),
-            parameter_values=self.parameter_values,
-            experiment=self.experiment,
-            output_variables=None,
-            htc=self.htc,
-            initial_soc=0.5,
-            nproc=2,
-            manager="casadi",
-        )
-        a = output1["Terminal voltage [V]"]
-        b = output2["Terminal voltage [V]"]
-        self.assertEqual(a.shape, (30, 21))
-        self.assertTrue(np.allclose(a, b))
+    def test_multiprocessing(self):
+        for manager in self.managers:
+            output1 = lp.solve(
+                netlist=self.netlist.copy(),
+                parameter_values=self.parameter_values,
+                experiment=self.experiment,
+                output_variables=None,
+                inputs=None,
+                initial_soc=0.5,
+                nproc=1,
+                manager=manager,
+            )
+            output2 = lp.solve(
+                netlist=self.netlist.copy(),
+                parameter_values=self.parameter_values,
+                experiment=self.experiment,
+                output_variables=None,
+                inputs=None,
+                initial_soc=0.5,
+                nproc=2,
+                manager=manager,
+            )
+            a = output1["Terminal voltage [V]"]
+            b = output2["Terminal voltage [V]"]
+            self.assertEqual(a.shape, (30, 21))
+            self.assertTrue(np.allclose(a, b))
 
-        plt.close("all")
-
-    def test_RayManager(self):
-        output1 = lp.solve(
-            netlist=self.netlist.copy(),
-            parameter_values=self.parameter_values,
-            experiment=self.experiment,
-            output_variables=None,
-            htc=self.htc,
-            initial_soc=0.5,
-            nproc=1,
-            manager="ray",
-        )
-        output2 = lp.solve(
-            netlist=self.netlist.copy(),
-            parameter_values=self.parameter_values,
-            experiment=self.experiment,
-            output_variables=None,
-            htc=self.htc,
-            initial_soc=0.5,
-            nproc=2,
-            manager="ray",
-        )
-        a = output1["Terminal voltage [V]"]
-        b = output2["Terminal voltage [V]"]
-        self.assertEqual(a.shape, (30, 21))
-        self.assertTrue(np.allclose(a, b))
-
-        plt.close("all")
-
-    def test_DaskManager(self):
-        output1 = lp.solve(
-            netlist=self.netlist.copy(),
-            parameter_values=self.parameter_values,
-            experiment=self.experiment,
-            output_variables=None,
-            htc=self.htc,
-            initial_soc=0.5,
-            nproc=1,
-            manager="dask",
-        )
-        output2 = lp.solve(
-            netlist=self.netlist.copy(),
-            parameter_values=self.parameter_values,
-            experiment=self.experiment,
-            output_variables=None,
-            htc=self.htc,
-            initial_soc=0.5,
-            nproc=2,
-            manager="dask",
-        )
-        a = output1["Terminal voltage [V]"]
-        b = output2["Terminal voltage [V]"]
-        self.assertEqual(a.shape, (30, 21))
-        self.assertTrue(np.allclose(a, b))
-
-        plt.close("all")
+    def test_events(self):
+        for manager in self.managers:
+            output1 = lp.solve(
+                netlist=self.netlist.copy(),
+                parameter_values=self.parameter_values,
+                experiment=self.experiment,
+                output_variables=None,
+                inputs=None,
+                initial_soc=0.01,
+                nproc=1,
+                manager=manager,
+            )
+            output2 = lp.solve(
+                netlist=self.netlist.copy(),
+                parameter_values=self.parameter_values,
+                experiment=self.experiment,
+                output_variables=None,
+                inputs=None,
+                initial_soc=0.01,
+                nproc=2,
+                manager=manager,
+            )
+            a = output1["Terminal voltage [V]"]
+            b = output2["Terminal voltage [V]"]
+            self.assertEqual(a.shape, (7, 21))
+            self.assertTrue(np.allclose(a, b))
 
 
 if __name__ == "__main__":

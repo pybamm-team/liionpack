@@ -23,7 +23,7 @@ class sim_utilsTest(unittest.TestCase):
         plt.close("all")
 
     def test_update_init_conc(self):
-        sim = lp.create_simulation(self.param)
+        sim = lp.basic_simulation(self.param)
         a = self.param["Initial concentration in negative electrode [mol.m-3]"]
         lp.update_init_conc(sim, SoC=0.0)
         param = sim.parameter_values
@@ -41,7 +41,7 @@ class sim_utilsTest(unittest.TestCase):
         assert a_p > b_p
 
     def test_initial_conditions_method(self):
-        sim = lp.create_simulation(self.param)
+        sim = lp.basic_simulation(self.param)
 
         lp.update_init_conc(sim, SoC=1.0, method="calculation")
         param = sim.parameter_values
@@ -61,12 +61,12 @@ class sim_utilsTest(unittest.TestCase):
 
     def test_bad_method(self):
         with self.assertRaises(ValueError):
-            sim = lp.create_simulation(self.param)
+            sim = lp.basic_simulation(self.param)
             lp.update_init_conc(sim, SoC=1.0, method="bad method")
 
     def test_bad_soc(self):
         with self.assertRaises(ValueError):
-            sim = lp.create_simulation(self.param)
+            sim = lp.basic_simulation(self.param)
             lp.update_init_conc(sim, SoC=10.0)
 
 
