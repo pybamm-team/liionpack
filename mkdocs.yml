@@ -15,6 +15,8 @@ strict: false
 plugins:
 - search
 - mkdocstrings
+- mkdocs-jupyter:
+    theme: dark
 
 markdown_extensions:
    - pymdownx.arithmatex
@@ -28,6 +30,9 @@ docs_dir: docs
 nav:
     - Home: 'index.md'
     - About: 'about.md'
+    - Examples: 
+        - 'examples\01 Getting Started.ipynb'
+        - 'examples\02 Using inputs.ipynb'
     - Reference: 'reference.md'
     - Code of conduct: 'conduct.md'
     - Contributing: 'contributing.md'
