@@ -25,8 +25,12 @@ def generate_protocol_from_experiment(experiment):
         I, typ = op["electric"]
         if typ != "A":
             raise ValueError("Only constant current operations are supported")
-        if I.__class__ is np.ndarray:
+        if I.__class__ is str:
             # drive cycle
+            dc_data = op["dc_data"]
+            proto.extend(dc_data[:, 1].tolist())
+        elif I.__class__ is np.ndarray:
+            # drive cycle old
             proto.extend(I[:, 1].tolist())
         else:
             proto.extend([I] * int(t / dt))
