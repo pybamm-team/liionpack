@@ -195,7 +195,7 @@ def _convert_dict_to_list_of_dict(inputs_dict):
     of individual dictionaries containing one element for each key
 
     Args:
-        inputs_dict (dict)
+        inputs_dict (dict):
             a dictionary with multiple keys (used as model inputs), values are
             arrays of input values for each battery.
 
@@ -244,10 +244,12 @@ def add_events_to_model(model):
     Convert model events into variables to be evaluated in the solver step.
 
     Args:
-        model (pybamm.lithium_ion.BaseModel)
+        model (pybamm.lithium_ion.BaseModel):
+            The PyBaMM model to solve.
 
     Returns:
-        model (pybamm.lithium_ion.BaseModel)
+        model (pybamm.lithium_ion.BaseModel):
+            The PyBaMM model to solve with events added as variables.
 
     """
     for event in model.events:

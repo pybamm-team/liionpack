@@ -285,7 +285,7 @@ def solve(
         netlist (pandas.DataFrame):
             A netlist of circuit elements with format. desc, node1, node2, value.
             Produced by liionpack.read_netlist or liionpack.setup_circuit
-        sim_func (function)
+        sim_func (function):
             A function containing model and solver definitions that accepts
             parameter_values and returns a simulation.
         parameter_values (pybamm.ParameterValues):
