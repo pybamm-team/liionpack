@@ -10,6 +10,7 @@ import numpy as np
 import time as ticker
 from dask.distributed import Client
 from tqdm import tqdm
+import pybamm
 
 
 class generic_actor:
@@ -117,7 +118,9 @@ class generic_manager:
     ):
         self.netlist = netlist
         self.sim_func = sim_func
+        
         self.parameter_values = parameter_values
+        self.check_current_function()
         # Get netlist indices for resistors, voltage sources, current sources
         Ri_map = netlist["desc"].str.find("Ri") > -1
         V_map = netlist["desc"].str.find("V") > -1
@@ -232,6 +235,14 @@ class generic_manager:
             "Time per step " + str(np.around((toc - sim_start_time) / Nsteps, 3)) + "s"
         )
         return self.all_output
+
+    def check_current_function(self):
+        i_func = self.parameter_values["Current function [A]"]
+        if i_func.__class__ is not pybamm.InputParameter:
+            self.parameter_values.update({"Current function [A]" : "[input]"})
+            lp.logger.notice("Parameter: Current function [A] has been set to " +
+                             "input")
+            
 
     def actor_i_app(self, index):
         actor_indices = self.split_index[index]

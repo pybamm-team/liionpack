@@ -33,18 +33,11 @@ def basic_simulation(parameter_values=None):
     else:
         param = parameter_values.copy()
 
-    # Change the current function to be input controlled by the external circuit
-    param.update(
-        {
-            "Current function [A]": "[input]",
-        },
-    )
 
     # Set up solver and simulation
     solver = pybamm.CasadiSolver(mode="safe")
     sim = pybamm.Simulation(
         model=model,
-        experiment=None,
         parameter_values=param,
         solver=solver,
     )
@@ -52,19 +45,13 @@ def basic_simulation(parameter_values=None):
     return sim
 
 
-def create_simulation(parameter_values=None, experiment=None, make_inputs=False):
+def thermal_simulation(parameter_values=None):
     """
     Create a PyBaMM simulation set up for integration with liionpack
 
     Args:
         parameter_values (pybamm.ParameterValues):
             The default is None.
-        experiment (pybamm.Experiment):
-            The default is None.
-        make_inputs (bool):
-            Changes "Current function [A]" and "Total heat transfer coefficient
-            [W.m-2.K-1]" to be inputs that are controlled by liionpack.
-            The default is False.
 
     Returns:
         pybamm.Simulation:
@@ -89,19 +76,16 @@ def create_simulation(parameter_values=None, experiment=None, make_inputs=False)
 
     # Change the current function and heat transfer coefficient to be
     # inputs controlled by the external circuit
-    if make_inputs:
-        parameter_values.update(
-            {
-                "Current function [A]": "[input]",
-                "Total heat transfer coefficient [W.m-2.K-1]": "[input]",
-            },
-        )
+    parameter_values.update(
+        {
+            "Total heat transfer coefficient [W.m-2.K-1]": "[input]",
+        },
+    )
 
     # Set up solver and simulation
     solver = pybamm.CasadiSolver(mode="safe")
     sim = pybamm.Simulation(
         model=model,
-        experiment=experiment,
         parameter_values=parameter_values,
         solver=solver,
     )

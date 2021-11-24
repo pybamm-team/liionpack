@@ -5,6 +5,7 @@ connected in series for a total of 32 cells.
 
 import liionpack as lp
 import pybamm
+lp.set_logging_level("NOTICE")
 
 # Generate the netlist
 netlist = lp.setup_circuit(Np=16, Ns=2)
