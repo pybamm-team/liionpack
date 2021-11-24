@@ -33,7 +33,6 @@ def basic_simulation(parameter_values=None):
     else:
         param = parameter_values.copy()
 
-
     # Set up solver and simulation
     solver = pybamm.CasadiSolver(mode="safe")
     sim = pybamm.Simulation(

@@ -118,7 +118,7 @@ class generic_manager:
     ):
         self.netlist = netlist
         self.sim_func = sim_func
-        
+
         self.parameter_values = parameter_values
         self.check_current_function()
         # Get netlist indices for resistors, voltage sources, current sources
@@ -239,10 +239,10 @@ class generic_manager:
     def check_current_function(self):
         i_func = self.parameter_values["Current function [A]"]
         if i_func.__class__ is not pybamm.InputParameter:
-            self.parameter_values.update({"Current function [A]" : "[input]"})
-            lp.logger.notice("Parameter: Current function [A] has been set to " +
-                             "input")
-            
+            self.parameter_values.update({"Current function [A]": "[input]"})
+            lp.logger.notice(
+                "Parameter: Current function [A] has been set to " + "input"
+            )
 
     def actor_i_app(self, index):
         actor_indices = self.split_index[index]
