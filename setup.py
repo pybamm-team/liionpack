@@ -27,6 +27,7 @@ setup(
         "Topic :: Scientific/Engineering",
     ],
     packages=["liionpack"],
+    include_package_data=True,
     install_requires=[
         "numpy",
         "scipy",

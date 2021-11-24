@@ -1,0 +1,3 @@
+include liionpack/circuits/*
+include liionpack/data/*
+include liionpack/init_funcs/*
