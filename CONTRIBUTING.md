@@ -285,7 +285,7 @@ Documentation is built using https://readthedocs.org/ and published on http://li
 
 ### Google Colab
 
-To be completed
+Editable notebooks are made available using [Google Colab](https://colab.research.google.com/) [here](https://colab.research.google.com/github/pybamm-team/liionpack/blob/main/).
 
 ### GitHub
 
