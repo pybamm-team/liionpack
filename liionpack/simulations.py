@@ -29,10 +29,12 @@ def basic_simulation(parameter_values=None):
     # Set up parameter values
     if parameter_values is None:
         chemistry = pybamm.parameter_sets.Chen2020
-        parameter_values = pybamm.ParameterValues(chemistry=chemistry)
+        param = pybamm.ParameterValues(chemistry=chemistry)
+    else:
+        param = parameter_values.copy()
 
     # Change the current function to be input controlled by the external circuit
-    parameter_values.update(
+    param.update(
         {
             "Current function [A]": "[input]",
         },
@@ -43,7 +45,7 @@ def basic_simulation(parameter_values=None):
     sim = pybamm.Simulation(
         model=model,
         experiment=None,
-        parameter_values=parameter_values,
+        parameter_values=param,
         solver=solver,
     )
 

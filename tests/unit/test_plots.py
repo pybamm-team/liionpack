@@ -41,7 +41,7 @@ class plotsTest(unittest.TestCase):
             parameter_values=parameter_values,
             experiment=experiment,
             output_variables=None,
-            htc=htc,
+            inputs=None,
         )
         self.output = output
 

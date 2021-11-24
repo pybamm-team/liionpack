@@ -205,10 +205,10 @@ class generic_manager:
                 self.inputs_dict = lp.build_inputs_dict(I_app, self.inputs)
             # Stop if voltage limits are reached
             if np.any(temp_v < v_cut_lower):
-                print("Low voltage limit reached")
+                lp.logger.warning("Low voltage limit reached")
                 break
             if np.any(temp_v > v_cut_higher):
-                print("High voltage limit reached")
+                lp.logger.warning("High voltage limit reached")
                 break
 
             self.timestep += 1
@@ -429,7 +429,7 @@ class dask_manager(generic_manager):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-    def split_models(self, Nspm, nproc, htc):
+    def split_models(self, Nspm, nproc):
         # Manage the number of SPM models per worker
         self.split_index = np.array_split(np.arange(Nspm), nproc)
         self.spm_per_worker = [len(s) for s in self.split_index]

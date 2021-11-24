@@ -41,7 +41,7 @@ class solversTest(unittest.TestCase):
                 parameter_values=self.parameter_values,
                 experiment=self.experiment,
                 output_variables=None,
-                htc=self.htc,
+                inputs=None,
                 initial_soc=0.5,
                 nproc=1,
                 manager=manager,
@@ -51,7 +51,7 @@ class solversTest(unittest.TestCase):
                 parameter_values=self.parameter_values,
                 experiment=self.experiment,
                 output_variables=None,
-                htc=self.htc,
+                inputs=None,
                 initial_soc=0.5,
                 nproc=2,
                 manager=manager,
@@ -68,7 +68,7 @@ class solversTest(unittest.TestCase):
                 parameter_values=self.parameter_values,
                 experiment=self.experiment,
                 output_variables=None,
-                htc=self.htc,
+                inputs=None,
                 initial_soc=0.01,
                 nproc=1,
                 manager=manager,
@@ -78,14 +78,14 @@ class solversTest(unittest.TestCase):
                 parameter_values=self.parameter_values,
                 experiment=self.experiment,
                 output_variables=None,
-                htc=self.htc,
+                inputs=None,
                 initial_soc=0.01,
                 nproc=2,
                 manager=manager,
             )
             a = output1["Terminal voltage [V]"]
             b = output2["Terminal voltage [V]"]
-            self.assertEqual(a.shape, (6, 21))
+            self.assertEqual(a.shape, (7, 21))
             self.assertTrue(np.allclose(a, b))
 
 

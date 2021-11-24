@@ -28,7 +28,7 @@ class TestSolvers(unittest.TestCase):
             netlist=netlist,
             parameter_values=parameter_values,
             experiment=experiment,
-            htc=htc,
+            inputs=None,
             nproc=1,
             manager="casadi"
         )
@@ -37,7 +37,7 @@ class TestSolvers(unittest.TestCase):
             netlist=netlist,
             parameter_values=parameter_values,
             experiment=experiment,
-            htc=htc,
+            inputs=None,
             nproc=1,
             manager="dask"
         )
@@ -46,7 +46,7 @@ class TestSolvers(unittest.TestCase):
             netlist=netlist,
             parameter_values=parameter_values,
             experiment=experiment,
-            htc=htc,
+            inputs=None,
             nproc=1,
             manager="ray"
         )
