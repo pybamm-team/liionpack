@@ -38,7 +38,7 @@ def draw_circuit(netlist, **kwargs):
         string = ""
         direction = ""
         for ei, col in enumerate(row.iteritems()):
-            if ei < 3:
+            if ei < 4:
                 if col[0] == "desc":
                     if col[1][0] == "V":
                         direction = "up"
