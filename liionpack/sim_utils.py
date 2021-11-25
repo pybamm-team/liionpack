@@ -73,10 +73,9 @@ def initial_conditions_from_experiment(parameter_values, SoC=-1, OCV=-1):
             only used if method is "experiment".
 
     Returns:
-        c_s_n_init (float):
-            The initial concentration in the negative electrode.
-        c_s_p_init (float):
-            The initial concentration in the positive electrode.
+        (float, float):
+        - c_s_n_init: The initial concentration in the negative electrode.
+        - c_s_p_init: The initial concentration in the positive electrode.
     """
 
     # TODO: what if someone changes parameters? We should make this every time,

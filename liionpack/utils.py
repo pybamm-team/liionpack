@@ -57,7 +57,7 @@ def _z_from_plane(X, Y, plane):
             plane returned from read_cfd_data.
 
     Returns:
-        z (np.ndarray):
+        np.ndarray:
             z-coordinate.
 
     """
@@ -80,7 +80,7 @@ def _fit_plane(xv, yv, dbatt):
             cfd data for heat transfer coefficient.
 
     Returns:
-        plane (skspatial.object.Plane):
+        skspatial.object.Plane:
             htc varies linearly with temperature and flow rate so relationship
             describes a plane
 
@@ -248,7 +248,7 @@ def add_events_to_model(model):
             The PyBaMM model to solve.
 
     Returns:
-        model (pybamm.lithium_ion.BaseModel):
+        pybamm.lithium_ion.BaseModel:
             The PyBaMM model to solve with events added as variables.
 
     """

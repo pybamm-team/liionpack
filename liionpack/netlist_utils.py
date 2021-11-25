@@ -255,8 +255,9 @@ def solve_circuit(netlist):
             A netlist of circuit elements with format desc, node1, node2, value.
 
     Returns:
-        - np.ndarray: Voltages of the voltage elements.
-        - np.ndarray: Currents of the current elements.
+        (np.ndarray, np.ndarray):
+        - V_node: Voltages of the voltage elements
+        - I_batt: Currents of the current elements
 
     """
     timer = pybamm.Timer()
@@ -387,9 +388,9 @@ def solve_circuit_vectorized(netlist):
             A netlist of circuit elements with format desc, node1, node2, value.
 
     Returns:
-        np.ndarray: Voltages of the voltage elements
-        np.ndarray: Currents of the current elements
-
+        (np.ndarray, np.ndarray):
+        - V_node: Voltages of the voltage elements
+        - I_batt: Currents of the current elements
     """
     timer = pybamm.Timer()
 
