@@ -37,7 +37,6 @@ nav:
         - 'examples/04 Initial SoC.ipynb'
         - 'examples/05 Drive cycles.ipynb'
         - 'examples/06 Changing a model.ipynb'
-        - 'examples/07 Simulating a bespoke pack using an LTSpice netlist and custom heat transfer.ipynb'
     - Reference: 'reference.md'
     - Code of conduct: 'conduct.md'
     - Contributing: 'contributing.md'

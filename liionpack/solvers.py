@@ -134,7 +134,7 @@ class generic_manager:
         protocol = lp.generate_protocol_from_experiment(experiment)
         self.dt = experiment.period
         Nsteps = len(protocol)
-
+        netlist.loc[I_map, ("value")] = protocol[0]
         # Solve the circuit to initialise the electrochemical models
         V_node, I_batt = lp.solve_circuit_vectorized(netlist)
 
