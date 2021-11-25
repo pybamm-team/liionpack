@@ -33,6 +33,7 @@ class generic_actor:
             mapped = True
         else:
             mapped = False
+        self.Nspm = Nspm
         # Solver set up
         self.step_solutions = [None] * Nspm
         # Set up simulation
@@ -41,11 +42,13 @@ class generic_actor:
             self.simulation = lp.basic_simulation(self.parameter_values)
         else:
             self.simulation = sim_func(parameter_values)
+
         lp.update_init_conc(self.simulation, SoC=initial_soc)
         # Set up integrator
         casadi_objs = cco(
             inputs, self.simulation, dt, Nspm, nproc, variable_names, mapped
         )
+        self.model = self.simulation.built_model
         self.integrator = casadi_objs["integrator"]
         self.variables_fn = casadi_objs["variables_fn"]
         self.t_eval = casadi_objs["t_eval"]
@@ -91,6 +94,19 @@ class generic_actor:
 
     def output(self):
         return self.var_eval
+
+    def recalculate_states(self, inputs):
+        model = self.model
+        for i in range(self.Nspm):
+            # self.model.init_eval(inputs[i])
+            old_solution = self.step_solutions[i]
+            ext_and_inputs = inputs[i]
+            y0 = (
+                model.set_initial_conditions_from(old_solution)
+                .concatenated_initial_conditions.evaluate(0, inputs=ext_and_inputs)
+                .flatten()
+            )
+            self.step_solutions[i].y[:, -1] = y0
 
 
 @ray.remote(num_cpus=1)
@@ -191,7 +207,7 @@ class generic_manager:
             # been changing definition
             temp_Ri = (temp_ocv - temp_v) / self.shm_i_app[step, :]
             # Make Ri more stable
-            current_cutoff = np.abs(self.shm_i_app[step, :]) < 1e-6
+            current_cutoff = np.abs(self.shm_i_app[step, :]) < 1e-3
             temp_Ri[current_cutoff] = 1e-12
 
             netlist.loc[V_map, ("value")] = temp_ocv
@@ -206,6 +222,11 @@ class generic_manager:
                 I_app = I_batt[:] * -1
                 self.shm_i_app[step + 1, :] = I_app
                 self.inputs_dict = lp.build_inputs_dict(I_app, self.inputs)
+                if (protocol[step] == 0.0 and
+                    # protocol[step - 1] != 0.0 and
+                    step > 0):
+                    # self.recalculate_states()
+                    pass
             # Stop if voltage limits are reached
             if np.any(temp_v < v_cut_lower):
                 lp.logger.warning("Low voltage limit reached")
@@ -257,6 +278,9 @@ class generic_manager:
             inputs.append(self.inputs_dict[self.slices[i]])
         return inputs
 
+    def recalculate_states(self):
+        pass
+        
     def split_models(self, Nspm, nproc):
         pass
 
@@ -411,6 +435,10 @@ class casadi_manager(generic_manager):
         lp.logger.info(
             "Casadi actor stepped in time " + str(np.around(toc - tic, 3)) + "s"
         )
+
+    def recalculate_states(self):
+        lp.logger.warning("Re-calculate states")
+        self.actors[0].recalculate_states(self.build_inputs()[0])
 
     def get_actor_output(self, step):
         tic = ticker.time()
