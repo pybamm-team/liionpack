@@ -6,7 +6,7 @@ from sympy import init_printing
 import textwrap
 
 
-plt.style.use('dark_background')
+# plt.style.use('dark_background')
 init_printing(pretty_print=False)
 
 
@@ -213,7 +213,7 @@ def plot_cells(output):
 
     # Get number of cells and setup colormap
     n = output[cell_vars[0]].shape[-1]
-    colors = plt.cm.plasma(np.linspace(0, 1, n))
+    colors = plt.cm.viridis(np.linspace(0, 1, n))
 
     # Create plot figures for cell variables
     for var in cell_vars:

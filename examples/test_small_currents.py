@@ -18,14 +18,17 @@ I_app = Np * 2.0
 # Generate the netlist
 netlist = lp.setup_circuit(Np=Np, Ns=Ns, Rb=1e-4)
 
-
+output_variables = [
+    'Local ECM resistance [Ohm]'
+    ]
 
 # Define a cycling experiment using PyBaMM
 experiment = pybamm.Experiment([
     f"Charge at {I_app} A for 1 minutes",
-    "Rest for 5 minutes",
+    "Rest for 1 minutes",
     f"Discharge at {I_app} A for 1 minutes",
-    "Rest for 5 minutes"],
+    "Rest for 1 minutes"
+    ],
     period="1 seconds")
 
 # Define the PyBaMM parameters
@@ -39,7 +42,7 @@ output = lp.solve(netlist=netlist,
                   sim_func=lp.thermal_simulation,
                   parameter_values=parameter_values,
                   experiment=experiment,
-                  output_variables=None,
+                  output_variables=output_variables,
                   initial_soc=0.5,
                   inputs=inputs,
                   nproc=12)

@@ -170,6 +170,7 @@ class generic_manager:
 
         # Storage variables for simulation data
         self.shm_i_app = np.zeros([Nsteps, Nspm], dtype=float)
+        self.shm_Ri = np.zeros([Nsteps, Nspm], dtype=float)
         self.output = np.zeros([Nvar, Nsteps, Nspm], dtype=float)
 
         # Initialize currents in battery models
@@ -193,6 +194,7 @@ class generic_manager:
 
         sim_start_time = ticker.time()
         lp.logger.notice("Starting step solve")
+        # old_Ri = None
         for step in tqdm(range(Nsteps), desc="Stepping simulation"):
             # Solver specific steps
             self.step_actors()
@@ -205,10 +207,27 @@ class generic_manager:
             temp_ocv = self.output[1, step, :]
             # This could be used instead of Equivalent ECM resistance which has
             # been changing definition
-            temp_Ri = (temp_ocv - temp_v) / self.shm_i_app[step, :]
+            temp_I = self.shm_i_app[step, :]
+            temp_Ri = (temp_ocv - temp_v) / temp_I
+            # if old_Ri is None and protocol[step] == 0.0:
+            #     previous_v = self.output[0, step -1, :]
+            #     previous_ocv = self.output[1, step -1, :]
+            #     previous_I = self.shm_i_app[step -1, :]
+            #     old_Ri = (previous_ocv - previous_v) / previous_I
+            
+            
+            # if protocol[step] == 0.0:
+            #     temp_Ri = np.abs(old_Ri) * -np.sign(temp_Ri)
+                
+            # if old_Ri is not None and protocol[step] != 0.0:
+            #     old_Ri = None
             # Make Ri more stable
-            current_cutoff = np.abs(self.shm_i_app[step, :]) < 1e-3
-            temp_Ri[current_cutoff] = 1e-12
+            Rfix = np.abs(self.shm_i_app[step, :]) < 1e-6
+            if np.any(Rfix) and protocol[step] == 0.0:
+                lp.logger.notice('Resistance fixing due to small currents')
+                temp_Ri[Rfix] = 1e3 * np.sign(temp_Ri[Rfix])
+            self.shm_Ri[step, :] = temp_Ri
+
 
             netlist.loc[V_map, ("value")] = temp_ocv
             netlist.loc[Ri_map, ("value")] = temp_Ri
@@ -244,6 +263,7 @@ class generic_manager:
         self.all_output["Pack current [A]"] = np.asarray(protocol[: step + 1])
         self.all_output["Pack terminal voltage [V]"] = np.asarray(V_terminal)
         self.all_output["Cell current [A]"] = self.shm_i_app[: step + 1, :]
+        self.all_output['Cell internal resistance [Ohm]'] = self.shm_Ri[: step + 1, :]
         for j in range(Nvar):
             self.all_output[self.variable_names[j]] = self.output[j, : step + 1, :]
 
