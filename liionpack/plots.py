@@ -66,11 +66,10 @@ def _text_color(vals, vmin, vmax, cmap):
     plotted color is closer to white or black
 
     Args:
-    ----------
-    vals (TYPE): DESCRIPTION.
-    vmin (TYPE): DESCRIPTION.
-    vmax (TYPE): DESCRIPTION.
-    cmap (TYPE): DESCRIPTION.
+        vals (TYPE): DESCRIPTION.
+        vmin (TYPE): DESCRIPTION.
+        vmax (TYPE): DESCRIPTION.
+        cmap (TYPE): DESCRIPTION.
 
     Returns:
         list: DESCRIPTION.
