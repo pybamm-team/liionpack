@@ -10,7 +10,7 @@ class solver_utilsTest(unittest.TestCase):
     def setUpClass(self):
         Np = 16
         Ns = 2
-        Nspm = Np * Ns
+        self.Nspm = Np * Ns
         R_bus = 1e-4
         R_series = 1e-2
         R_int = 5e-2
@@ -21,8 +21,6 @@ class solver_utilsTest(unittest.TestCase):
             Np, Ns, Rb=R_bus, Rc=R_series, Ri=R_int, V=ref_voltage, I=I_app
         )
 
-        # Heat transfer coefficients
-        self.htc = np.ones(Nspm) * 10
         # Cycling experiment
         self.experiment = pybamm.Experiment(
             [
@@ -46,7 +44,7 @@ class solver_utilsTest(unittest.TestCase):
             parameter_values=self.parameter_values,
             experiment=self.experiment,
             output_variables=None,
-            htc=self.htc,
+            inputs=None,
             initial_soc=0.5,
             nproc=1,
         )
@@ -55,7 +53,7 @@ class solver_utilsTest(unittest.TestCase):
             parameter_values=self.parameter_values,
             experiment=self.experiment,
             output_variables=None,
-            htc=self.htc,
+            inputs=None,
             initial_soc=0.5,
             nproc=2,
         )
@@ -67,21 +65,59 @@ class solver_utilsTest(unittest.TestCase):
         plt.close("all")
 
     def test_solve_output_variables(self):
+        var = "X-averaged negative particle surface concentration [mol.m-3]"
         output_variables = [
-            "X-averaged total heating [W.m-3]",
-            "Volume-averaged cell temperature [K]",
-            "X-averaged negative particle surface concentration [mol.m-3]",
-            "X-averaged positive particle surface concentration [mol.m-3]",
+            var,
         ]
         output = lp.solve(
             netlist=self.netlist,
             parameter_values=self.parameter_values,
             experiment=self.experiment,
             output_variables=output_variables,
-            htc=self.htc,
+            inputs=None,
             initial_soc=0.5,
         )
-        self.assertEqual(output["X-averaged total heating [W.m-3]"].shape, (30, 32))
+        self.assertEqual(output[var].shape, (30, 32))
+        plt.close("all")
+
+    def test_sim_func(self):
+        def bespoke_sim(parameter_values):
+            model = pybamm.lithium_ion.SPM(
+                options={
+                    "thermal": "lumped",
+                }
+            )
+            parameter_values.update(
+                {
+                    "Current function [A]": "[input]",
+                    "Total heat transfer coefficient [W.m-2.K-1]": "[input]",
+                },
+            )
+
+            # Set up solver and simulation
+            solver = pybamm.CasadiSolver(mode="safe")
+            sim = pybamm.Simulation(
+                model=model,
+                experiment=None,
+                parameter_values=parameter_values,
+                solver=solver,
+            )
+            return sim
+
+        # Heat transfer coefficients
+        inputs = {
+            "Total heat transfer coefficient [W.m-2.K-1]": np.ones(self.Nspm) * 10
+        }
+        output = lp.solve(
+            netlist=self.netlist,
+            sim_func=bespoke_sim,
+            parameter_values=self.parameter_values,
+            experiment=self.experiment,
+            output_variables=None,
+            inputs=inputs,
+            initial_soc=0.5,
+        )
+        self.assertEqual(output["Terminal voltage [V]"].shape, (30, 32))
         plt.close("all")
 
 

@@ -1,2 +1,3 @@
 mkdocstrings
 mkdocs-material
+mkdocs-jupyter

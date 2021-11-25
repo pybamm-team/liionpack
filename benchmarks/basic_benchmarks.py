@@ -6,7 +6,7 @@ import liionpack as lp
 
 class BasicBenchmark:
     def setup(self):
-        self.sim = lp.create_simulation()
+        self.sim = lp.basic_simulation()
 
     def time_solve_model(self):
         BasicBenchmark.sim.solve([0, 1800])

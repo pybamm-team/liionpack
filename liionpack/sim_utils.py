@@ -135,7 +135,9 @@ def create_init_funcs(parameter_values):
     )
 
     # Set up and solve simulation
-    sim = lp.create_simulation(parameter_values=parameter_values, experiment=experiment)
+    sim = pybamm.Simulation(model=pybamm.lithium_ion.SPM(),
+                            parameter_values=parameter_values,
+                            experiment=experiment)
     sim.solve()
 
     # Save concentrations for initial conditions

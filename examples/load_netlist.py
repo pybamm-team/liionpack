@@ -6,8 +6,58 @@ import liionpack as lp
 import matplotlib.pyplot as plt
 import numpy as np
 import pybamm
+import os
 
 plt.close("all")
+
+
+def thermal_sim(parameter_values=None):
+    """
+    Create a PyBaMM simulation set up for integration with liionpack
+
+    Args:
+        parameter_values (pybamm.ParameterValues):
+            The default is None.
+
+    Returns:
+        pybamm.Simulation:
+            A simulation that can be solved individually or passed into the
+            liionpack solve method
+
+    """
+    # Create the pybamm model
+    model = pybamm.lithium_ion.SPMe(
+        options={
+            "thermal": "lumped",
+        }
+    )
+
+    # Add events to the model
+    model = lp.add_events_to_model(model)
+
+    # Set up parameter values
+    if parameter_values is None:
+        chemistry = pybamm.parameter_sets.Chen2020
+        parameter_values = pybamm.ParameterValues(chemistry=chemistry)
+
+    parameter_values.update(
+        {
+            "Current function [A]": "[input]",
+            "Total heat transfer coefficient [W.m-2.K-1]": "[input]",
+        },
+    )
+
+    # Set up solver and simulation
+    solver = pybamm.CasadiSolver(mode="safe")
+    sim = pybamm.Simulation(
+        model=model,
+        experiment=None,
+        parameter_values=parameter_values,
+        solver=solver,
+    )
+
+    return sim
+
 
 # Circuit parameters
 R_bus = 1e-4
@@ -31,6 +81,7 @@ output_variables = [
 
 # Heat transfer coefficients
 htc = np.ones(Nspm) * 10
+inputs = {"Total heat transfer coefficient [W.m-2.K-1]": htc}
 
 # Cycling experiment
 experiment = pybamm.Experiment(
@@ -50,10 +101,12 @@ parameter_values = pybamm.ParameterValues(chemistry=chemistry)
 # Solve pack
 output = lp.solve(
     netlist=netlist,
+    sim_func=thermal_sim,
     parameter_values=parameter_values,
     experiment=experiment,
     output_variables=output_variables,
-    htc=htc,
+    inputs=inputs,
+    nproc=os.cpu_count(),
 )
 X_pos = [
     0.080052414,

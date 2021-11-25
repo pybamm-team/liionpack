@@ -232,7 +232,7 @@ can be defined as a method of the relevant class. For example:
 ```python3
 class BasicBenchmark:
     def setup(self):
-        self.sim = lp.create_simulation()
+        self.sim = lp.basic_simulation()
 
     def time_solve_model(self):
         BasicBenchmark.sim.solve([0, 1800])
@@ -285,7 +285,7 @@ Documentation is built using https://readthedocs.org/ and published on http://li
 
 ### Google Colab
 
-To be completed
+Editable notebooks are made available using [Google Colab](https://colab.research.google.com/) [here](https://colab.research.google.com/github/pybamm-team/liionpack/blob/main/).
 
 ### GitHub
 

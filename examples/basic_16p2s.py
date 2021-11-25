@@ -4,21 +4,16 @@ connected in series for a total of 32 cells.
 """
 
 import liionpack as lp
-import numpy as np
 import pybamm
+lp.set_logging_level("NOTICE")
 
 # Generate the netlist
 netlist = lp.setup_circuit(Np=16, Ns=2)
 
 # Define additional output variables
 output_variables = [
-    'X-averaged total heating [W.m-3]',
-    'Volume-averaged cell temperature [K]',
     'X-averaged negative particle surface concentration [mol.m-3]',
     'X-averaged positive particle surface concentration [mol.m-3]']
-
-# Heat transfer coefficient for each cell
-htc = np.ones(32) * 10
 
 # Define a cycling experiment using PyBaMM
 experiment = pybamm.Experiment([
@@ -36,8 +31,7 @@ parameter_values = pybamm.ParameterValues(chemistry=chemistry)
 output = lp.solve(netlist=netlist,
                   parameter_values=parameter_values,
                   experiment=experiment,
-                  output_variables=output_variables,
-                  htc=htc)
+                  output_variables=output_variables)
 
 # Plot the pack and individual cell results
 lp.plot_pack(output)

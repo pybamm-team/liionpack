@@ -10,6 +10,7 @@ import numpy as np
 import time as ticker
 from dask.distributed import Client
 from tqdm import tqdm
+import pybamm
 
 
 class generic_actor:
@@ -19,10 +20,10 @@ class generic_actor:
     def setup(
         self,
         Nspm,
+        sim_func,
         parameter_values,
         dt,
-        I_init,
-        htc_init,
+        inputs,
         variable_names,
         initial_soc,
         nproc,
@@ -36,12 +37,22 @@ class generic_actor:
         self.step_solutions = [None] * Nspm
         # Set up simulation
         self.parameter_values = parameter_values
-        self.simulation = lp.create_simulation(self.parameter_values, make_inputs=True)
+        if sim_func is None:
+            self.simulation = lp.basic_simulation(self.parameter_values)
+        else:
+            self.simulation = sim_func(parameter_values)
         lp.update_init_conc(self.simulation, SoC=initial_soc)
         # Set up integrator
-        self.integrator, self.variables_fn, self.t_eval = cco(
-            I_init, htc_init, self.simulation, dt, Nspm, nproc, variable_names, mapped
+        casadi_objs = cco(
+            inputs, self.simulation, dt, Nspm, nproc, variable_names, mapped
         )
+        self.integrator = casadi_objs["integrator"]
+        self.variables_fn = casadi_objs["variables_fn"]
+        self.t_eval = casadi_objs["t_eval"]
+        self.event_names = casadi_objs["event_names"]
+        self.events_fn = casadi_objs["events_fn"]
+        self.last_events = None
+        self.event_change = None
         if mapped:
             self.step_fn = ms
         else:
@@ -49,15 +60,34 @@ class generic_actor:
 
     def step(self, inputs):
         # Solver Step
-        self.step_solutions, self.var_eval = self.step_fn(
+        self.step_solutions, self.var_eval, self.events_eval = self.step_fn(
             self.simulation.built_model,
             self.step_solutions,
             inputs,
             self.integrator,
             self.variables_fn,
             self.t_eval,
+            self.events_fn,
         )
-        return True
+        return self.check_events()
+
+    def check_events(self):
+        if self.last_events is not None:
+            # Compare changes
+            new_sign = np.sign(self.events_eval)
+            old_sign = np.sign(self.last_events)
+            self.event_change = (old_sign * new_sign) < 0
+            self.last_events = self.events_eval
+            return np.any(self.event_change)
+        else:
+            self.last_events = self.events_eval
+            return False
+
+    def get_event_change(self):
+        return self.event_change
+
+    def get_event_names(self):
+        return self.event_names
 
     def output(self):
         return self.var_eval
@@ -78,15 +108,19 @@ class generic_manager:
     def solve(
         self,
         netlist,
-        nproc,
+        sim_func,
         parameter_values,
         experiment,
-        htc,
+        inputs,
         output_variables,
         initial_soc,
+        nproc,
     ):
         self.netlist = netlist
+        self.sim_func = sim_func
+
         self.parameter_values = parameter_values
+        self.check_current_function()
         # Get netlist indices for resistors, voltage sources, current sources
         Ri_map = netlist["desc"].str.find("Ri") > -1
         V_map = netlist["desc"].str.find("V") > -1
@@ -94,7 +128,7 @@ class generic_manager:
         Terminal_Node = np.array(netlist[I_map].node1)
         Nspm = np.sum(V_map)
 
-        self.split_models(Nspm, nproc, htc)
+        self.split_models(Nspm, nproc)
 
         # Generate the protocol from the supplied experiment
         protocol = lp.generate_protocol_from_experiment(experiment)
@@ -135,8 +169,11 @@ class generic_manager:
         v_cut_lower = parameter_values["Lower voltage cut-off [V]"]
         v_cut_higher = parameter_values["Upper voltage cut-off [V]"]
 
+        # Handle the inputs
+        self.inputs = inputs
+        self.inputs_dict = lp.build_inputs_dict(self.shm_i_app[0, :], self.inputs)
         # Solver specific setup
-        self.setup_actors(nproc, self.shm_i_app[0, 0], htc[0], initial_soc)
+        self.setup_actors(nproc, self.inputs_dict[0], initial_soc)
 
         sim_start_time = ticker.time()
         lp.logger.notice("Starting step solve")
@@ -166,14 +203,15 @@ class generic_manager:
                 V_node, I_batt = lp.solve_circuit_vectorized(netlist)
                 V_terminal.append(V_node[Terminal_Node][0])
             if time < end_time:
-                self.shm_i_app[step + 1, :] = I_batt[:] * -1
-
+                I_app = I_batt[:] * -1
+                self.shm_i_app[step + 1, :] = I_app
+                self.inputs_dict = lp.build_inputs_dict(I_app, self.inputs)
             # Stop if voltage limits are reached
             if np.any(temp_v < v_cut_lower):
-                print("Low voltage limit reached")
+                lp.logger.warning("Low voltage limit reached")
                 break
             if np.any(temp_v > v_cut_higher):
-                print("High voltage limit reached")
+                lp.logger.warning("High voltage limit reached")
                 break
 
             self.timestep += 1
@@ -198,6 +236,14 @@ class generic_manager:
         )
         return self.all_output
 
+    def check_current_function(self):
+        i_func = self.parameter_values["Current function [A]"]
+        if i_func.__class__ is not pybamm.InputParameter:
+            self.parameter_values.update({"Current function [A]": "[input]"})
+            lp.logger.notice(
+                "Parameter: Current function [A] has been set to " + "input"
+            )
+
     def actor_i_app(self, index):
         actor_indices = self.split_index[index]
         return self.shm_i_app[self.timestep, actor_indices]
@@ -208,15 +254,13 @@ class generic_manager:
     def build_inputs(self):
         inputs = []
         for i in range(len(self.actors)):
-            I_app = self.actor_i_app(i)
-            htc = self.actor_htc(i)
-            inputs.append(lp.build_inputs_dict(I_app, htc))
+            inputs.append(self.inputs_dict[self.slices[i]])
         return inputs
 
-    def split_models(self, Nspm, nproc, htc):
+    def split_models(self, Nspm, nproc):
         pass
 
-    def setup_actors(self, nproc, I_init, htc_init, initial_soc):
+    def setup_actors(self, nproc, inputs, initial_soc):
         pass
 
     def step_actors(self):
@@ -236,13 +280,17 @@ class ray_manager(generic_manager):
         ray.init()
         lp.logger.notice("Ray initialization complete")
 
-    def split_models(self, Nspm, nproc, htc):
+    def split_models(self, Nspm, nproc):
         # Manage the number of SPM models per worker
-        self.htc = np.array_split(htc, nproc)
         self.split_index = np.array_split(np.arange(Nspm), nproc)
         self.spm_per_worker = [len(s) for s in self.split_index]
+        self.slices = []
+        for i in range(nproc):
+            self.slices.append(
+                slice(self.split_index[i][0], self.split_index[i][-1] + 1)
+            )
 
-    def setup_actors(self, nproc, I_init, htc_init, initial_soc):
+    def setup_actors(self, nproc, inputs, initial_soc):
         tic = ticker.time()
         # Ray setup an actor for each worker
         self.actors = []
@@ -254,10 +302,10 @@ class ray_manager(generic_manager):
             setup_futures.append(
                 a.setup.remote(
                     Nspm=self.spm_per_worker[i],
+                    sim_func=self.sim_func,
                     parameter_values=self.parameter_values,
                     dt=self.dt,
-                    I_init=I_init,
-                    htc_init=htc_init,
+                    inputs=inputs,
                     variable_names=self.variable_names,
                     initial_soc=initial_soc,
                     nproc=1,
@@ -275,7 +323,9 @@ class ray_manager(generic_manager):
         inputs = self.build_inputs()
         for i, pa in enumerate(self.actors):
             future_steps.append(pa.step.remote(inputs[i]))
-        _ = [ray.get(fs) for fs in future_steps]
+        events = [ray.get(fs) for fs in future_steps]
+        if np.any(events):
+            self.log_event()
         t2 = ticker.time()
         lp.logger.info("Ray actors stepped in " + str(np.around(t2 - t1, 3)) + "s")
 
@@ -292,6 +342,24 @@ class ray_manager(generic_manager):
             "Ray actor output retrieved in " + str(np.around(t2 - t1, 3)) + "s"
         )
 
+    def log_event(self):
+        futures = []
+        for actor in self.actors:
+            futures.append(actor.get_event_change.remote())
+        all_event_changes = []
+        for i, f in enumerate(futures):
+            all_event_changes.append(np.asarray(ray.get(f)))
+        event_change = np.hstack(all_event_changes)
+        Nr, Nc = event_change.shape
+        event_names = ray.get(self.actors[0].get_event_names.remote())
+        for r in range(Nr):
+            if np.any(event_change[r, :]):
+                lp.logger.warning(
+                    event_names[r]
+                    + ", Batteries: "
+                    + str(np.where(event_change[r, :])[0].tolist())
+                )
+
     def cleanup(self):
         for actor in self.actors:
             ray.kill(actor)
@@ -303,15 +371,15 @@ class casadi_manager(generic_manager):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-    def split_models(self, Nspm, nproc, htc):
+    def split_models(self, Nspm, nproc):
         # For casadi there is no need to split the models as we pass them all
         # to the integrator however we still want the global variables to be
         # used in the same generic way
         self.spm_per_worker = Nspm
         self.split_index = np.array_split(np.arange(Nspm), 1)
-        self.htc = np.array_split(htc, 1)
+        self.slices = [slice(self.split_index[0][0], self.split_index[0][-1] + 1)]
 
-    def setup_actors(self, nproc, I_init, htc_init, initial_soc):
+    def setup_actors(self, nproc, inputs, initial_soc):
         # For casadi we do not use multiple actors but instead the integrator
         # function that is generated by casadi handles multithreading behind
         # the scenes
@@ -321,10 +389,10 @@ class casadi_manager(generic_manager):
         for a in self.actors:
             a.setup(
                 Nspm=self.spm_per_worker,
+                sim_func=self.sim_func,
                 parameter_values=self.parameter_values,
                 dt=self.dt,
-                I_init=I_init,
-                htc_init=htc_init,
+                inputs=inputs,
                 variable_names=self.variable_names,
                 initial_soc=initial_soc,
                 nproc=nproc,
@@ -336,7 +404,9 @@ class casadi_manager(generic_manager):
 
     def step_actors(self):
         tic = ticker.time()
-        self.actors[0].step(self.build_inputs()[0])
+        events = self.actors[0].step(self.build_inputs()[0])
+        if events:
+            self.log_event()
         toc = ticker.time()
         lp.logger.info(
             "Casadi actor stepped in time " + str(np.around(toc - tic, 3)) + "s"
@@ -350,6 +420,18 @@ class casadi_manager(generic_manager):
             "Casadi actor output got in time " + str(np.around(toc - tic, 3)) + "s"
         )
 
+    def log_event(self):
+        event_change = np.asarray(self.actors[0].get_event_change())
+        Nr, Nc = event_change.shape
+        event_names = self.actors[0].get_event_names()
+        for r in range(Nr):
+            if np.any(event_change[r, :]):
+                lp.logger.warning(
+                    event_names[r]
+                    + ", Batteries: "
+                    + str(np.where(event_change[r, :])[0].tolist())
+                )
+
     def cleanup(self):
         pass
 
@@ -358,13 +440,17 @@ class dask_manager(generic_manager):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-    def split_models(self, Nspm, nproc, htc):
+    def split_models(self, Nspm, nproc):
         # Manage the number of SPM models per worker
-        self.htc = np.array_split(htc, nproc)
         self.split_index = np.array_split(np.arange(Nspm), nproc)
         self.spm_per_worker = [len(s) for s in self.split_index]
+        self.slices = []
+        for i in range(nproc):
+            self.slices.append(
+                slice(self.split_index[i][0], self.split_index[i][-1] + 1)
+            )
 
-    def setup_actors(self, nproc, I_init, htc_init, initial_soc):
+    def setup_actors(self, nproc, inputs, initial_soc):
         # Set up a casadi actor on each process
         lp.logger.notice("Dask initialization started")
         self.client = Client(n_workers=nproc)
@@ -379,11 +465,11 @@ class dask_manager(generic_manager):
         for i, a in enumerate(self.actors):
             futures.append(
                 a.setup(
-                    parameter_values=self.parameter_values,
-                    I_init=I_init,
-                    htc_init=htc_init,
-                    dt=self.dt,
                     Nspm=self.spm_per_worker[i],
+                    sim_func=self.sim_func,
+                    parameter_values=self.parameter_values,
+                    inputs=inputs,
+                    dt=self.dt,
                     variable_names=self.variable_names,
                     initial_soc=initial_soc,
                     nproc=1,
@@ -402,7 +488,9 @@ class dask_manager(generic_manager):
         future_steps = []
         for i, a in enumerate(self.actors):
             future_steps.append(a.step(inputs=inputs[i]))
-        _ = [af.result() for af in future_steps]
+        events = [af.result() for af in future_steps]
+        if np.any(events):
+            self.log_event()
         toc = ticker.time()
         lp.logger.info(
             "Dask actors stepped in time " + str(np.around(toc - tic, 3)) + "s"
@@ -420,6 +508,24 @@ class dask_manager(generic_manager):
         lp.logger.info(
             "Dask,actors output got in time " + str(np.around(toc - tic, 3)) + "s"
         )
+
+    def log_event(self):
+        futures = []
+        for actor in self.actors:
+            futures.append(actor.get_event_change())
+        all_event_changes = []
+        for i, f in enumerate(futures):
+            all_event_changes.append(np.asarray(f.result()))
+        event_change = np.hstack(all_event_changes)
+        Nr, Nc = event_change.shape
+        event_names = self.actors[0].get_event_names().result()
+        for r in range(Nr):
+            if np.any(event_change[r, :]):
+                lp.logger.warning(
+                    event_names[r]
+                    + ", Batteries: "
+                    + str(np.where(event_change[r, :])[0].tolist())
+                )
 
     def cleanup(self):
         lp.logger.notice("Shutting down Dask client")
