@@ -17,7 +17,6 @@ plugins:
 - mkdocstrings
 - mkdocs-jupyter:
     theme: dark
-    execute: True
 
 markdown_extensions:
    - pymdownx.arithmatex
