@@ -194,67 +194,56 @@ class generic_manager:
 
         sim_start_time = ticker.time()
         lp.logger.notice("Starting step solve")
-        # old_Ri = None
-        for step in tqdm(range(Nsteps), desc="Stepping simulation"):
-            # Solver specific steps
-            self.step_actors()
-            self.get_actor_output(step)
+        fixed_Ri = np.ones(Nspm) * np.nan
+        with tqdm(total=Nsteps, desc="Stepping simulation") as pbar:
+            step = 0
+            while step < Nsteps:
+                # Solver specific steps
+                self.step_actors()
+                self.get_actor_output(step)
 
-            time += self.dt
+                time += self.dt
 
-            # Calculate internal resistance and update netlist
-            temp_v = self.output[0, step, :]
-            temp_ocv = self.output[1, step, :]
-            # This could be used instead of Equivalent ECM resistance which has
-            # been changing definition
-            temp_I = self.shm_i_app[step, :]
-            temp_Ri = (temp_ocv - temp_v) / temp_I
-            # if old_Ri is None and protocol[step] == 0.0:
-            #     previous_v = self.output[0, step -1, :]
-            #     previous_ocv = self.output[1, step -1, :]
-            #     previous_I = self.shm_i_app[step -1, :]
-            #     old_Ri = (previous_ocv - previous_v) / previous_I
-            
-            
-            # if protocol[step] == 0.0:
-            #     temp_Ri = np.abs(old_Ri) * -np.sign(temp_Ri)
-                
-            # if old_Ri is not None and protocol[step] != 0.0:
-            #     old_Ri = None
-            # Make Ri more stable
-            Rfix = np.abs(self.shm_i_app[step, :]) < 1e-6
-            if np.any(Rfix) and protocol[step] == 0.0:
-                lp.logger.notice('Resistance fixing due to small currents')
-                temp_Ri[Rfix] = 1e3 * np.sign(temp_Ri[Rfix])
-            self.shm_Ri[step, :] = temp_Ri
+                # Calculate internal resistance and update netlist
+                temp_v = self.output[0, step, :]
+                temp_ocv = self.output[1, step, :]
+                temp_I = self.shm_i_app[step, :]
+                temp_Ri = (temp_ocv - temp_v) / temp_I
 
+                resting = protocol[step] == 0.0
+                if resting and np.any(np.isnan(fixed_Ri)) and step > 0:
+                    previous_v = self.output[0, step - 1, :]
+                    previous_ocv = self.output[1, step - 1, :]
+                    previous_I = self.shm_i_app[step - 1, :]
+                    fixed_Ri = np.abs((previous_ocv - previous_v) / previous_I)
 
-            netlist.loc[V_map, ("value")] = temp_ocv
-            netlist.loc[Ri_map, ("value")] = temp_Ri
-            netlist.loc[I_map, ("value")] = protocol[step]
+                if resting:
+                    temp_Ri = fixed_Ri * -np.sign(temp_Ri)
 
-            if time <= end_time:
-                record_times.append(time)
-                V_node, I_batt = lp.solve_circuit_vectorized(netlist)
-                V_terminal.append(V_node[Terminal_Node][0])
-            if time < end_time:
-                I_app = I_batt[:] * -1
-                self.shm_i_app[step + 1, :] = I_app
-                self.inputs_dict = lp.build_inputs_dict(I_app, self.inputs)
-                if (protocol[step] == 0.0 and
-                    # protocol[step - 1] != 0.0 and
-                    step > 0):
-                    # self.recalculate_states()
-                    pass
-            # Stop if voltage limits are reached
-            if np.any(temp_v < v_cut_lower):
-                lp.logger.warning("Low voltage limit reached")
-                break
-            if np.any(temp_v > v_cut_higher):
-                lp.logger.warning("High voltage limit reached")
-                break
+                self.shm_Ri[step, :] = temp_Ri
+                netlist.loc[V_map, ("value")] = temp_ocv
+                netlist.loc[Ri_map, ("value")] = temp_Ri
+                netlist.loc[I_map, ("value")] = protocol[step]
 
-            self.timestep += 1
+                if time <= end_time:
+                    record_times.append(time)
+                    V_node, I_batt = lp.solve_circuit_vectorized(netlist)
+                    V_terminal.append(V_node[Terminal_Node][0])
+                if time < end_time:
+                    I_app = I_batt[:] * -1
+                    self.shm_i_app[step + 1, :] = I_app
+                    self.inputs_dict = lp.build_inputs_dict(I_app, self.inputs)
+
+                # Stop if voltage limits are reached
+                if np.any(temp_v < v_cut_lower):
+                    lp.logger.warning("Low voltage limit reached")
+                    break
+                if np.any(temp_v > v_cut_higher):
+                    lp.logger.warning("High voltage limit reached")
+                    break
+                step += 1
+                self.timestep = step
+                pbar.update(1)
         lp.logger.notice("Step solve finished")
         self.cleanup()
         # Collect outputs
@@ -263,7 +252,7 @@ class generic_manager:
         self.all_output["Pack current [A]"] = np.asarray(protocol[: step + 1])
         self.all_output["Pack terminal voltage [V]"] = np.asarray(V_terminal)
         self.all_output["Cell current [A]"] = self.shm_i_app[: step + 1, :]
-        self.all_output['Cell internal resistance [Ohm]'] = self.shm_Ri[: step + 1, :]
+        self.all_output["Cell internal resistance [Ohm]"] = self.shm_Ri[: step + 1, :]
         for j in range(Nvar):
             self.all_output[self.variable_names[j]] = self.output[j, : step + 1, :]
 
@@ -300,7 +289,7 @@ class generic_manager:
 
     def recalculate_states(self):
         pass
-        
+
     def split_models(self, Nspm, nproc):
         pass
 

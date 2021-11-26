@@ -8,44 +8,46 @@ import pybamm
 import matplotlib.pyplot as plt
 import numpy as np
 
-plt.close('all')
+plt.close("all")
 
 lp.set_logging_level("NOTICE")
 
-Np=16
-Ns=2
+Np = 16
+Ns = 2
 I_app = Np * 2.0
 # Generate the netlist
 netlist = lp.setup_circuit(Np=Np, Ns=Ns, Rb=1e-4)
 
-output_variables = [
-    'Local ECM resistance [Ohm]'
-    ]
+output_variables = ["Local ECM resistance [Ohm]"]
 
 # Define a cycling experiment using PyBaMM
-experiment = pybamm.Experiment([
-    f"Charge at {I_app} A for 1 minutes",
-    "Rest for 1 minutes",
-    f"Discharge at {I_app} A for 1 minutes",
-    "Rest for 1 minutes"
+experiment = pybamm.Experiment(
+    [
+        # f"Charge at {I_app} A for 1 minutes",
+        # "Rest for 1 minutes",
+        f"Discharge at {I_app} A for 1 minutes",
+        "Rest for 1 minutes",
     ],
-    period="1 seconds")
+    period="1 seconds",
+)
 
 # Define the PyBaMM parameters
 chemistry = pybamm.parameter_sets.Chen2020
 parameter_values = pybamm.ParameterValues(chemistry=chemistry)
 
-inputs = {"Total heat transfer coefficient [W.m-2.K-1]" : np.ones(Np*Ns) * 10}
+inputs = {"Total heat transfer coefficient [W.m-2.K-1]": np.ones(Np * Ns) * 10}
 
 # Solve the pack
-output = lp.solve(netlist=netlist,
-                  sim_func=lp.thermal_simulation,
-                  parameter_values=parameter_values,
-                  experiment=experiment,
-                  output_variables=output_variables,
-                  initial_soc=0.5,
-                  inputs=inputs,
-                  nproc=12)
+output = lp.solve(
+    netlist=netlist,
+    sim_func=lp.thermal_simulation,
+    parameter_values=parameter_values,
+    experiment=experiment,
+    output_variables=output_variables,
+    initial_soc=0.5,
+    inputs=inputs,
+    nproc=12,
+)
 
 # Plot the pack and individual cell results
 lp.plot_pack(output)
