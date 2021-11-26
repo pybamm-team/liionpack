@@ -4,7 +4,7 @@
 import numpy as np
 
 
-def generate_protocol_from_experiment(experiment):
+def generate_protocol_from_experiment(experiment, flatten=True):
     """
 
     Args:
@@ -16,8 +16,9 @@ def generate_protocol_from_experiment(experiment):
             a sequence of terminal currents to apply at each timestep
 
     """
-    proto = []
+    protocol = []
     for op in experiment.operating_conditions:
+        proto = []
         t = op["time"]
         dt = op["period"]
         if t % dt != 0:
@@ -34,4 +35,8 @@ def generate_protocol_from_experiment(experiment):
             proto.extend(I[:, 1].tolist())
         else:
             proto.extend([I] * int(t / dt))
-    return proto
+        if flatten:
+            protocol.extend(proto)
+        else:
+            protocol.append(proto)
+    return protocol

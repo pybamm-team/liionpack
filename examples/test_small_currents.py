@@ -25,6 +25,7 @@ experiment = pybamm.Experiment(
     [
         # f"Charge at {I_app} A for 1 minutes",
         # "Rest for 1 minutes",
+        # "Rest for 1 minutes",
         f"Discharge at {I_app} A for 1 minutes",
         "Rest for 1 minutes",
     ],
@@ -51,5 +52,5 @@ output = lp.solve(
 
 # Plot the pack and individual cell results
 lp.plot_pack(output)
-lp.plot_cells(output)
-lp.show_plots()
+# lp.plot_cells(output)
+# lp.show_plots()
