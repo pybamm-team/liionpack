@@ -11,7 +11,6 @@ import time as ticker
 from dask.distributed import Client
 from tqdm import tqdm
 import pybamm
-import matplotlib.pyplot as plt
 
 
 class generic_actor:
@@ -154,7 +153,7 @@ class generic_manager:
         # Generate the protocol from the supplied experiment
         nested_p = lp.generate_protocol_from_experiment(experiment, flatten=False)
         protocol = [item for sublist in nested_p for item in sublist]
-        transitions = np.cumsum([len(p) for p in nested_p])[:-1]
+        transitions = np.cumsum([0] + [len(p) for p in nested_p])[:-1]
         self.dt = experiment.period
         Nsteps = len(protocol)
         netlist.loc[I_map, ("value")] = protocol[0]
@@ -201,19 +200,23 @@ class generic_manager:
         lp.logger.notice("Starting step solve")
         self.fixed_Ri = np.ones(Nspm) * np.nan
         re_calc = 0
-        num_re = 10
+        num_re = 0
         with tqdm(total=Nsteps, desc="Stepping simulation") as pbar:
             step = 0
             while step < Nsteps:
                 # Solver specific steps
                 self.resting = protocol[step] == 0.0
+                self.restarting = (
+                    step > 0 and protocol[step] != 0.0 and protocol[step - 1] == 0.0
+                )
                 self.step_actors()
                 self.get_actor_output(step)
 
                 # # Calculate internal resistance and update netlist
                 temp_v = self.output[0, step, :]
                 temp_ocv = self.output[1, step, :]
-                temp_Ri = self.calculate_internal_resistance(step)
+                if not self.resting and not self.restarting:
+                    temp_Ri = self.calculate_internal_resistance(step)
 
                 self.shm_Ri[step, :] = temp_Ri
                 netlist.loc[V_map, ("value")] = temp_ocv
@@ -233,7 +236,7 @@ class generic_manager:
                         )
                         # print(step, re_calc, V_node[Terminal_Node][0])
                         re_V.append(V_node[Terminal_Node][0])
-                        V_terminal[-1] = np.mean(re_V)
+                        V_terminal[-1] = re_V[-1]
                 if step < Nsteps - 1:
                     # igore last step save the new currents and build inputs
                     # for the next step
@@ -250,11 +253,12 @@ class generic_manager:
                     break
 
                 if (
-                    (step in transitions and re_calc < num_re)
-                    or (step - 1 in transitions and re_calc < num_re)
-                    or (step - 2 in transitions and re_calc < num_re)
-                    or (step - 3 in transitions and re_calc < num_re)
-                    or (step - 4 in transitions and re_calc < num_re)
+                    step in transitions
+                    and re_calc < num_re
+                    # or (step - 1 in transitions and re_calc < num_re)
+                    # or (step - 2 in transitions and re_calc < num_re)
+                    # or (step - 3 in transitions and re_calc < num_re)
+                    # or (step - 4 in transitions and re_calc < num_re)
                 ):
                     # re_calculate the step around transitions
                     re_calc += 1
@@ -313,10 +317,9 @@ class generic_manager:
         temp_v = self.output[0, step, :]
         temp_ocv = self.output[1, step, :]
         temp_I = self.shm_i_app[step, :]
-        temp_Ri = (temp_ocv - temp_v) / temp_I
+        temp_Ri = np.abs((temp_ocv - temp_v) / temp_I)
         if np.any(np.isnan(temp_Ri)):
             temp_Ri[np.isnan(temp_Ri)] = 1e-9
-        # resting = protocol[step] == 0.0
         small_currents = ~np.any(np.abs(temp_I) > 1e-3)
         if (
             self.resting

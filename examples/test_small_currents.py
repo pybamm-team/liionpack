@@ -16,18 +16,20 @@ Np = 16
 Ns = 2
 I_app = Np * 2.0
 # Generate the netlist
-netlist = lp.setup_circuit(Np=Np, Ns=Ns, Rb=1e-4)
+netlist = lp.setup_circuit(Np=Np, Ns=Ns, Rb=1e-4, Ri=0.03)
 
-output_variables = ["Local ECM resistance [Ohm]"]
+output_variables = [
+    "Local ECM resistance [Ohm]",
+    "Volume-averaged cell temperature [K]",
+]
 
 # Define a cycling experiment using PyBaMM
 experiment = pybamm.Experiment(
     [
-        # f"Charge at {I_app} A for 1 minutes",
-        # "Rest for 1 minutes",
-        # "Rest for 1 minutes",
         f"Discharge at {I_app} A for 1 minutes",
         "Rest for 1 minutes",
+        f"Charge at {I_app} A for 1 minutes",
+        # "Rest for 1 minutes",
     ],
     period="1 seconds",
 )
@@ -52,5 +54,5 @@ output = lp.solve(
 
 # Plot the pack and individual cell results
 lp.plot_pack(output)
-# lp.plot_cells(output)
+lp.plot_cells(output)
 # lp.show_plots()
