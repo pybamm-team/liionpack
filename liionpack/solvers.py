@@ -113,6 +113,7 @@ class generic_actor:
     def backstep(self):
         self.step_solutions = self.old_solutions
 
+
 @ray.remote(num_cpus=1)
 class ray_actor(generic_actor):
     def __init__(self, **kwargs):
@@ -222,13 +223,14 @@ class generic_manager:
                 if step <= Nsteps:
                     V_node, I_batt = lp.solve_circuit_vectorized(netlist)
                     if re_calc == 0:
-                        record_times.append(step*self.dt)
+                        record_times.append(step * self.dt)
                         V_terminal.append(V_node[Terminal_Node][0])
                         re_V = []
                     else:
                         self.backstep()
-                        lp.logger.notice('re-calculating step: ' + str(step) +
-                                        ' ' + str(re_calc))
+                        lp.logger.notice(
+                            "re-calculating step: " + str(step) + " " + str(re_calc)
+                        )
                         # print(step, re_calc, V_node[Terminal_Node][0])
                         re_V.append(V_node[Terminal_Node][0])
                         V_terminal[-1] = np.mean(re_V)
@@ -246,13 +248,14 @@ class generic_manager:
                 if np.any(temp_v > v_cut_higher):
                     lp.logger.warning("High voltage limit reached")
                     break
-                
-                
-                if ((step in transitions and re_calc < num_re) or
-                    (step - 1 in transitions and re_calc < num_re) or
-                    (step - 2 in transitions and re_calc < num_re) or
-                    (step - 3 in transitions and re_calc < num_re) or
-                    (step - 4 in transitions and re_calc < num_re)):
+
+                if (
+                    (step in transitions and re_calc < num_re)
+                    or (step - 1 in transitions and re_calc < num_re)
+                    or (step - 2 in transitions and re_calc < num_re)
+                    or (step - 3 in transitions and re_calc < num_re)
+                    or (step - 4 in transitions and re_calc < num_re)
+                ):
                     # re_calculate the step around transitions
                     re_calc += 1
                 else:
@@ -315,7 +318,12 @@ class generic_manager:
             temp_Ri[np.isnan(temp_Ri)] = 1e-9
         # resting = protocol[step] == 0.0
         small_currents = ~np.any(np.abs(temp_I) > 1e-3)
-        if self.resting and np.any(np.isnan(self.fixed_Ri)) and step > 0 and small_currents:
+        if (
+            self.resting
+            and np.any(np.isnan(self.fixed_Ri))
+            and step > 0
+            and small_currents
+        ):
             previous_v = self.output[0, step - 1, :]
             previous_ocv = self.output[1, step - 1, :]
             previous_I = self.shm_i_app[step - 1, :]
