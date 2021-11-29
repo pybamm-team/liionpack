@@ -339,3 +339,51 @@ def compare_solution_output(a, b):
         axr2.plot(time_b, i_b, color=colors[3], label="simulation")
         axr2.set_ylabel("Current [A]", color=colors[3])
         axr2.set_title(title_b)
+
+
+def plot_cell_data_image(netlist, data, tick_labels=True, figsize=(8, 6)):
+    r"""
+    Plot the cell data for all cells at a particular point in time in an image
+    format using the node coordinates in the netlist to arrange the cells.
+
+    Args:
+        netlist (pandas.DataFrame):
+            A netlist of circuit elements with format desc, node1, node2, value.
+        data (numpy.array)
+            The data to be plotted for each cell
+
+    """
+    V_map = netlist["desc"].str.find("V") > -1
+    vlist = netlist[V_map]
+    n1x = np.unique(vlist["node1_x"])
+    n1y = np.unique(vlist["node1_y"])
+    Nx = len(n1x)
+    Ny = len(n1y)
+    for ix in range(Nx):
+        vlist.loc[vlist["node1_x"] == n1x[ix], ("node1_x")] = ix
+    for iy in range(Ny):
+        vlist.loc[vlist["node1_y"] == n1y[iy], ("node1_y")] = iy
+
+    im = np.ones([Nx, Ny])
+    im[np.array(vlist["node1_x"]), np.array(vlist["node1_y"])] = data
+
+    with plt.rc_context(lp_context):
+        fig, ax = plt.subplots(figsize=figsize)
+        mappable = ax.imshow(im.T, cmap=cmap)
+        # Major ticks
+        ax.set_xticks(np.arange(0, Nx, 1))
+        ax.set_yticks(np.arange(0, Ny, 1))
+        if tick_labels:
+            # Labels for major ticks
+            ax.set_xticklabels(np.arange(0, Nx, 1))
+            ax.set_yticklabels(np.arange(0, Ny, 1))
+        else:
+            ax.set_xticklabels([])
+            ax.set_yticklabels([])
+        # Minor ticks
+        ax.set_xticks(np.arange(-0.5, Nx, 1), minor=True)
+        ax.set_yticks(np.arange(-0.5, Ny, 1), minor=True)
+        # Gridlines based on minor ticks
+        ax.grid(which="minor", color="w", linestyle="-", linewidth=1)
+        plt.colorbar(mappable)
+        plt.tight_layout()
