@@ -351,7 +351,7 @@ def plot_cell_data_image(netlist, data, tick_labels=True, figsize=(8, 6)):
     Args:
         netlist (pandas.DataFrame):
             A netlist of circuit elements with format desc, node1, node2, value.
-        data (numpy.array)
+        data (numpy.array):
             The data to be plotted for each cell.
         tick_labels boolean:
             Show the Np and Ns cell indices.
