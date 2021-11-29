@@ -273,7 +273,7 @@ def solve(
     parameter_values=None,
     experiment=None,
     inputs=None,
-    initial_soc=0.5,
+    initial_soc=None,
     nproc=1,
     output_variables=None,
     manager="casadi",
@@ -296,7 +296,8 @@ def solve(
         inputs (dict):
             Dictionary for every model input with value for each battery
         initial_soc (float):
-            The initial state of charge for every battery. The default is 0.5
+            The initial state of charge for every battery. The default is None
+            in which case concentrations set in the parameter_values are used.
         nproc (int):
             Number of processes to start in parallel for mapping. The default is 1.
         output_variables (list):

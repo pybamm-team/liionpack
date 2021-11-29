@@ -41,7 +41,8 @@ class generic_actor:
             self.simulation = lp.basic_simulation(self.parameter_values)
         else:
             self.simulation = sim_func(parameter_values)
-        lp.update_init_conc(self.simulation, SoC=initial_soc)
+        if initial_soc is not None:
+            lp.update_init_conc(self.simulation, SoC=initial_soc)
         # Set up integrator
         casadi_objs = cco(
             inputs, self.simulation, dt, Nspm, nproc, variable_names, mapped
