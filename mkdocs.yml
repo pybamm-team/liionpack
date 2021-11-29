@@ -37,6 +37,7 @@ nav:
         - 'examples/04 Initial SoC.ipynb'
         - 'examples/05 Drive cycles.ipynb'
         - 'examples/06 Changing a model.ipynb'
+        - 'examples/07 Visualizing larger packs.ipynb'
     - Reference: 'reference.md'
     - Code of conduct: 'conduct.md'
     - Contributing: 'contributing.md'
