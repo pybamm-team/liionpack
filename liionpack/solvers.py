@@ -96,22 +96,6 @@ class generic_actor:
     def output(self):
         return self.var_eval
 
-    def recalculate_states(self, inputs):
-        model = self.model
-        for i in range(self.Nspm):
-            # self.model.init_eval(inputs[i])
-            old_solution = self.step_solutions[i]
-            ext_and_inputs = inputs[i]
-            y0 = (
-                model.set_initial_conditions_from(old_solution)
-                .concatenated_initial_conditions.evaluate(0, inputs=ext_and_inputs)
-                .flatten()
-            )
-            self.step_solutions[i].y[:, -1] = y0
-
-    def backstep(self):
-        self.step_solutions = self.old_solutions
-
 
 @ray.remote(num_cpus=1)
 class ray_actor(generic_actor):
@@ -151,9 +135,7 @@ class generic_manager:
         self.split_models(Nspm, nproc)
 
         # Generate the protocol from the supplied experiment
-        nested_p = lp.generate_protocol_from_experiment(experiment, flatten=False)
-        protocol = [item for sublist in nested_p for item in sublist]
-        transitions = np.cumsum([0] + [len(p) for p in nested_p])[:-1]
+        protocol = lp.generate_protocol_from_experiment(experiment, flatten=True)
         self.dt = experiment.period
         Nsteps = len(protocol)
         netlist.loc[I_map, ("value")] = protocol[0]
@@ -199,13 +181,14 @@ class generic_manager:
         sim_start_time = ticker.time()
         lp.logger.notice("Starting step solve")
         self.fixed_Ri = np.ones(Nspm) * np.nan
-        re_calc = 0
-        num_re = 0
         with tqdm(total=Nsteps, desc="Stepping simulation") as pbar:
             step = 0
             while step < Nsteps:
                 # Solver specific steps
-                self.resting = protocol[step] == 0.0
+                # self.resting = protocol[step] == 0.0
+                self.resting = (
+                    step > 0 and protocol[step] == 0.0 and protocol[step - 1] == 0.0
+                )
                 self.restarting = (
                     step > 0 and protocol[step] != 0.0 and protocol[step - 1] == 0.0
                 )
@@ -225,18 +208,8 @@ class generic_manager:
                 # Solve the circuit with updated netlist
                 if step <= Nsteps:
                     V_node, I_batt = lp.solve_circuit_vectorized(netlist)
-                    if re_calc == 0:
-                        record_times.append(step * self.dt)
-                        V_terminal.append(V_node[Terminal_Node][0])
-                        re_V = []
-                    else:
-                        self.backstep()
-                        lp.logger.notice(
-                            "re-calculating step: " + str(step) + " " + str(re_calc)
-                        )
-                        # print(step, re_calc, V_node[Terminal_Node][0])
-                        re_V.append(V_node[Terminal_Node][0])
-                        V_terminal[-1] = re_V[-1]
+                    record_times.append(step * self.dt)
+                    V_terminal.append(V_node[Terminal_Node][0])
                 if step < Nsteps - 1:
                     # igore last step save the new currents and build inputs
                     # for the next step
@@ -252,22 +225,11 @@ class generic_manager:
                     lp.logger.warning("High voltage limit reached")
                     break
 
-                if (
-                    step in transitions
-                    and re_calc < num_re
-                    # or (step - 1 in transitions and re_calc < num_re)
-                    # or (step - 2 in transitions and re_calc < num_re)
-                    # or (step - 3 in transitions and re_calc < num_re)
-                    # or (step - 4 in transitions and re_calc < num_re)
-                ):
-                    # re_calculate the step around transitions
-                    re_calc += 1
-                else:
-                    # increment the step and update progress bar
-                    re_calc = 0
-                    step += 1
-                    self.timestep = step
-                    pbar.update(1)
+                # increment the step and update progress bar
+                step += 1
+                self.timestep = step
+                pbar.update(1)
+
         lp.logger.notice("Step solve finished")
         self.cleanup()
         self.shm_Ri = np.abs(self.shm_Ri)
@@ -318,29 +280,7 @@ class generic_manager:
         temp_ocv = self.output[1, step, :]
         temp_I = self.shm_i_app[step, :]
         temp_Ri = np.abs((temp_ocv - temp_v) / temp_I)
-        if np.any(np.isnan(temp_Ri)):
-            temp_Ri[np.isnan(temp_Ri)] = 1e-9
-        small_currents = ~np.any(np.abs(temp_I) > 1e-3)
-        if (
-            self.resting
-            and np.any(np.isnan(self.fixed_Ri))
-            and step > 0
-            and small_currents
-        ):
-            previous_v = self.output[0, step - 1, :]
-            previous_ocv = self.output[1, step - 1, :]
-            previous_I = self.shm_i_app[step - 1, :]
-            self.fixed_Ri = np.abs((previous_ocv - previous_v) / previous_I)
-
-        if self.resting and small_currents:
-            temp_Ri = self.fixed_Ri * np.sign(temp_Ri)
         return temp_Ri
-
-    def backstep(self):
-        pass
-
-    def recalculate_states(self):
-        pass
 
     def split_models(self, Nspm, nproc):
         pass
@@ -496,13 +436,6 @@ class casadi_manager(generic_manager):
         lp.logger.info(
             "Casadi actor stepped in time " + str(np.around(toc - tic, 3)) + "s"
         )
-
-    def recalculate_states(self):
-        lp.logger.warning("Re-calculate states")
-        self.actors[0].recalculate_states(self.build_inputs()[0])
-
-    def backstep(self):
-        self.actors[0].backstep()
 
     def get_actor_output(self, step):
         tic = ticker.time()
