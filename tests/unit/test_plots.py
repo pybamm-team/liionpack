@@ -40,6 +40,11 @@ class plotsTest(unittest.TestCase):
             inputs=None,
         )
         self.output = output
+        self.sim = pybamm.Simulation(
+            model=pybamm.lithium_ion.SPM(),
+            parameter_values=parameter_values,
+            experiment=experiment,
+        )
 
     def test_draw_circuit(self):
         net = lp.setup_circuit(Np=3, Ns=1, Rb=1e-4, Rc=1e-2, Ri=5e-2, V=3.2, I=80.0)
@@ -132,6 +137,12 @@ class plotsTest(unittest.TestCase):
 
     def test_plot_output(self):
         lp.plot_output(self.output)
+        plt.close("all")
+
+    def test_compare_plots(self):
+        solution = self.sim.solve()
+        lp.compare_solution_output(solution, self.output)
+        lp.compare_solution_output(self.output, solution)
         plt.close("all")
 
 
