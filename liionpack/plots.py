@@ -294,8 +294,10 @@ def compare_solution_output(a, b):
     be PyBaMM.Solution or dict output from Liionpack solve.
 
     Args:
-        a (dict / PyBaMM.Solution): output from solve
-        b (dict / PyBaMM.Solution): output from solve
+        a (dict / PyBaMM.Solution):
+            Output from solve.
+        b (dict / PyBaMM.Solution):
+            Output from solve.
 
     """
     # Get pack level results
@@ -350,7 +352,11 @@ def plot_cell_data_image(netlist, data, tick_labels=True, figsize=(8, 6)):
         netlist (pandas.DataFrame):
             A netlist of circuit elements with format desc, node1, node2, value.
         data (numpy.array)
-            The data to be plotted for each cell
+            The data to be plotted for each cell.
+        tick_labels boolean:
+            Show the Np and Ns cell indices.
+        figsize (tuple):
+            The figzise in inches.
 
     """
     V_map = netlist["desc"].str.find("V") > -1
