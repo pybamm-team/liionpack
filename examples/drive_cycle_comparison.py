@@ -58,29 +58,35 @@ sim = pybamm.Simulation(
 sol = sim.solve(initial_soc=init_SoC)
 
 t_pybamm = sol["Time [s]"].entries
-t_liionpack = output["Time [s]"]
+t_liionpack = output["Time [s]"][:-1]
 v_pybamm = sol["Terminal voltage [V]"].entries
-v_liionpack = output["Terminal voltage [V]"]
+v_liionpack = output["Terminal voltage [V]"][1:]
 i_pybamm = sol["Current [A]"].entries
-i_liionpack = output["Cell current [A]"]
+i_liionpack = output["Cell current [A]"][1:]
 r_pybamm = np.abs(sol["Local ECM resistance [Ohm]"].entries)
-r_liionpack = output["Cell internal resistance [Ohm]"]
+r_liionpack = output["Cell internal resistance [Ohm]"][1:]
 nconc_pybamm = sol[
     "X-averaged negative particle surface concentration [mol.m-3]"
 ].entries
-nconc_liionpack = output["X-averaged negative particle surface concentration [mol.m-3]"]
+nconc_liionpack = output[
+    "X-averaged negative particle surface concentration [mol.m-3]"
+][1:]
 pconc_pybamm = sol[
     "X-averaged positive particle surface concentration [mol.m-3]"
 ].entries
-pconc_liionpack = output["X-averaged positive particle surface concentration [mol.m-3]"]
+pconc_liionpack = output[
+    "X-averaged positive particle surface concentration [mol.m-3]"
+][1:]
 
-sol_diff = ((v_liionpack.flatten() - v_pybamm) / v_pybamm) * 100
+sol_diff = ((v_liionpack.flatten()[1:] - v_pybamm[:-1]) / v_pybamm[:-1]) * 100
+
+t_liionpack -= timestep
 
 with plt.rc_context(lp.lp_context):
     fig, ((ax0, ax1), (ax2, ax3), (ax4, ax5)) = plt.subplots(
         3, 2, figsize=(12, 10), sharex=True
     )
-    ax0.plot(t_pybamm, sol_diff)
+    ax0.plot(t_pybamm[:-1], sol_diff)
     ax0.set_ylabel("Voltage difference [%]")
     ax1.plot(t_pybamm, v_pybamm, label="PyBaMM")
     ax1.plot(t_liionpack, v_liionpack, "--", label="Liionpack")

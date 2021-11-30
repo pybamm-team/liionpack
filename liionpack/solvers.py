@@ -5,6 +5,7 @@ import liionpack as lp
 from liionpack.solver_utils import _create_casadi_objects as cco
 from liionpack.solver_utils import _serial_step as ss
 from liionpack.solver_utils import _mapped_step as ms
+from liionpack.solver_utils import _serial_eval as se
 import ray
 import numpy as np
 import time as ticker
@@ -58,8 +59,10 @@ class generic_actor:
         self.event_change = None
         if mapped:
             self.step_fn = ms
+            self.eval_fn = None
         else:
             self.step_fn = ss
+            self.eval_fn = se
 
     def step(self, inputs):
         # Solver Step
@@ -74,6 +77,15 @@ class generic_actor:
             self.events_fn,
         )
         return self.check_events()
+
+    def evaluate(self, inputs):
+        self.var_eval = self.eval_fn(
+            self.simulation.built_model,
+            self.step_solutions,
+            inputs,
+            self.variables_fn,
+            self.t_eval,
+        )
 
     def check_events(self):
         if self.last_events is not None:
@@ -139,7 +151,8 @@ class generic_manager:
 
         # Generate the protocol from the supplied experiment
         protocol = lp.generate_protocol_from_experiment(experiment, flatten=True)
-        protocol = protocol + [protocol[-1]]
+        # Include initial state
+        protocol = [protocol[0]] + protocol
         self.dt = experiment.period
         Nsteps = len(protocol)
         netlist.loc[I_map, ("value")] = protocol[0]
@@ -181,38 +194,38 @@ class generic_manager:
         self.inputs_dict = lp.build_inputs_dict(self.shm_i_app[0, :], self.inputs)
         # Solver specific setup
         self.setup_actors(nproc, self.inputs_dict[0], initial_soc)
-
+        # Get the initial state of the system
+        self.evaluate_actors()
+        # Reset the system
+        # self.backstep()
         sim_start_time = ticker.time()
         lp.logger.notice("Starting step solve")
-        self.fixed_Ri = np.ones(Nspm) * np.nan
         with tqdm(total=Nsteps, desc="Stepping simulation") as pbar:
             step = 0
             while step < Nsteps:
-                # Solver specific steps
-                # self.resting = protocol[step] == 0.0
+                # 01 Calculate whether resting or restarting
                 self.resting = (
                     step > 0 and protocol[step] == 0.0 and protocol[step - 1] == 0.0
                 )
                 self.restarting = (
                     step > 0 and protocol[step] != 0.0 and protocol[step - 1] == 0.0
                 )
-                self.step_actors()
+                # 02 Get the actor output - Battery state info
                 self.get_actor_output(step)
-
-                # # Calculate internal resistance and update netlist
+                # 03 Get the ocv and internal resistance
                 temp_v = self.output[0, step, :]
                 temp_ocv = self.output[1, step, :]
                 if not self.resting and not self.restarting:
                     temp_Ri = self.calculate_internal_resistance(step)
-
                 self.shm_Ri[step, :] = temp_Ri
+                # 04 Update netlist
                 netlist.loc[V_map, ("value")] = temp_ocv
                 netlist.loc[Ri_map, ("value")] = temp_Ri
                 netlist.loc[I_map, ("value")] = protocol[step]
-                # Solve the circuit with updated netlist
+                # 05 Solve the circuit with updated netlist
                 if step <= Nsteps:
                     V_node, I_batt = lp.solve_circuit_vectorized(netlist)
-                    record_times.append((step - 1) * self.dt)
+                    record_times.append((step) * self.dt)
                     V_terminal.append(V_node[Terminal_Node][0])
                 if step < Nsteps - 1:
                     # igore last step save the new currents and build inputs
@@ -220,16 +233,16 @@ class generic_manager:
                     I_app = I_batt[:] * -1
                     self.shm_i_app[step + 1, :] = I_app
                     self.inputs_dict = lp.build_inputs_dict(I_app, self.inputs)
-
-                # Check if voltage limits are reached and terminate
+                # 06 Check if voltage limits are reached and terminate
                 if np.any(temp_v < v_cut_lower):
                     lp.logger.warning("Low voltage limit reached")
                     break
                 if np.any(temp_v > v_cut_higher):
                     lp.logger.warning("High voltage limit reached")
                     break
-
-                # increment the step and update progress bar
+                # 07 Step the electrochemical system
+                self.step_actors()
+                # 08 increment the step and update progress bar
                 step += 1
                 self.timestep = step
                 pbar.update(1)
@@ -239,13 +252,13 @@ class generic_manager:
         self.shm_Ri = np.abs(self.shm_Ri)
         # Collect outputs
         self.all_output = {}
-        self.all_output["Time [s]"] = np.asarray(record_times)[1:]
-        self.all_output["Pack current [A]"] = np.asarray(protocol[1 : step + 1])
+        self.all_output["Time [s]"] = np.asarray(record_times)
+        self.all_output["Pack current [A]"] = np.asarray(protocol[: step + 1])
         self.all_output["Pack terminal voltage [V]"] = np.asarray(V_terminal)[1:]
-        self.all_output["Cell current [A]"] = self.shm_i_app[1 : step + 1, :]
-        self.all_output["Cell internal resistance [Ohm]"] = self.shm_Ri[1 : step + 1, :]
+        self.all_output["Cell current [A]"] = self.shm_i_app[: step + 1, :]
+        self.all_output["Cell internal resistance [Ohm]"] = self.shm_Ri[: step + 1, :]
         for j in range(Nvar):
-            self.all_output[self.variable_names[j]] = self.output[j, 1 : step + 1, :]
+            self.all_output[self.variable_names[j]] = self.output[j, : step + 1, :]
 
         toc = ticker.time()
 
@@ -296,6 +309,9 @@ class generic_manager:
         pass
 
     def step_actors(self):
+        pass
+
+    def evaluate_actors(self):
         pass
 
     def get_actor_output(self, step):
@@ -442,6 +458,14 @@ class casadi_manager(generic_manager):
         toc = ticker.time()
         lp.logger.info(
             "Casadi actor stepped in time " + str(np.around(toc - tic, 3)) + "s"
+        )
+
+    def evaluate_actors(self):
+        tic = ticker.time()
+        self.actors[0].evaluate(self.build_inputs()[0])
+        toc = ticker.time()
+        lp.logger.info(
+            "Casadi actor evaluated in time " + str(np.around(toc - tic, 3)) + "s"
         )
 
     def backstep(self):

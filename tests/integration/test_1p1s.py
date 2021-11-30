@@ -35,7 +35,7 @@ class Test1p1s(unittest.TestCase):
 
         sol = sim.solve(initial_soc=SoC)
         a = output["Terminal voltage [V]"].flatten()
-        b = sol["Terminal voltage [V]"].entries[1:]
+        b = sol["Terminal voltage [V]"].entries
 
         assert np.allclose(a, b)
 
@@ -73,7 +73,7 @@ class Test1p1s(unittest.TestCase):
 
         sol = sim.solve(initial_soc=SoC)
         a = output["Terminal voltage [V]"].flatten()
-        b = sol["Terminal voltage [V]"].entries[1:]
+        b = sol["Terminal voltage [V]"].entries
         diff = np.abs(a - b)
         assert np.all(diff < 0.05)
 
