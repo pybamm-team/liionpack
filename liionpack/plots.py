@@ -9,6 +9,7 @@ import textwrap
 cmap = plt.cm.cool
 init_printing(pretty_print=False)
 lp_context = {
+    "text.color": "white",
     "axes.edgecolor": "white",
     "axes.titlecolor": "white",
     "axes.labelcolor": "white",
