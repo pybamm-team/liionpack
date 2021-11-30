@@ -19,31 +19,43 @@ drive_cycle = pd.read_csv(
     "pybamm/input/drive_cycles/US06.csv", comment="#", header=None
 ).to_numpy()
 
+timestep = 1
+drive_cycle[:, 0] *= timestep
+
 experiment = pybamm.Experiment(
     operating_conditions=["Run US06 (A)"],
-    period="1 second",
+    period=f"{timestep} seconds",
     drive_cycles={"US06": drive_cycle},
 )
+
+output_variables = [
+    "X-averaged negative particle surface concentration [mol.m-3]",
+    "X-averaged positive particle surface concentration [mol.m-3]",
+]
 
 # PyBaMM parameters
 chemistry = pybamm.parameter_sets.Chen2020
 parameter_values = pybamm.ParameterValues(chemistry=chemistry)
+
+init_SoC = 0.9
 
 # Solve pack
 output = lp.solve(
     netlist=netlist,
     parameter_values=parameter_values,
     experiment=experiment,
-    output_variables=None,
-    initial_soc=0.5,
+    output_variables=output_variables,
+    initial_soc=init_SoC,
 )
+
+parameter_values = pybamm.ParameterValues(chemistry=chemistry)
 
 sim = pybamm.Simulation(
     model=pybamm.lithium_ion.SPM(),
     experiment=experiment,
     parameter_values=parameter_values,
 )
-sol = sim.solve(initial_soc=0.5)
+sol = sim.solve(initial_soc=init_SoC)
 
 t_pybamm = sol["Time [s]"].entries
 t_liionpack = output["Time [s]"]
@@ -53,16 +65,22 @@ i_pybamm = sol["Current [A]"].entries
 i_liionpack = output["Cell current [A]"]
 r_pybamm = np.abs(sol["Local ECM resistance [Ohm]"].entries)
 r_liionpack = output["Cell internal resistance [Ohm]"]
+nconc_pybamm = sol[
+    "X-averaged negative particle surface concentration [mol.m-3]"
+].entries
+nconc_liionpack = output["X-averaged negative particle surface concentration [mol.m-3]"]
+pconc_pybamm = sol[
+    "X-averaged positive particle surface concentration [mol.m-3]"
+].entries
+pconc_liionpack = output["X-averaged positive particle surface concentration [mol.m-3]"]
 
-# Liionpack lags 1 step behind
-t_liionpack -= 1
-
-
-sol_diff = ((v_liionpack[1:].flatten() - v_pybamm[:-1]) / v_pybamm[:-1]) * 100
+sol_diff = ((v_liionpack.flatten() - v_pybamm) / v_pybamm) * 100
 
 with plt.rc_context(lp.lp_context):
-    fig, (ax0, ax1, ax2, ax3) = plt.subplots(4, 1, figsize=(15, 10), sharex=True)
-    ax0.plot(t_pybamm[:-1], sol_diff)
+    fig, ((ax0, ax1), (ax2, ax3), (ax4, ax5)) = plt.subplots(
+        3, 2, figsize=(12, 10), sharex=True
+    )
+    ax0.plot(t_pybamm, sol_diff)
     ax0.set_ylabel("Voltage difference [%]")
     ax1.plot(t_pybamm, v_pybamm, label="PyBaMM")
     ax1.plot(t_liionpack, v_liionpack, "--", label="Liionpack")
@@ -72,6 +90,14 @@ with plt.rc_context(lp.lp_context):
     ax2.set_ylabel("Current [A]")
     ax3.plot(t_pybamm, r_pybamm, label="PyBaMM")
     ax3.plot(t_liionpack, r_liionpack, "--", label="Liionpack")
-    ax3.set_xlabel("Time [s]")
     ax3.set_ylabel("Internal resistance [Ohm]")
-    plt.legend()
+    ax4.plot(t_pybamm, nconc_pybamm, label="PyBaMM")
+    ax4.plot(t_liionpack, nconc_liionpack, "--", label="Liionpack")
+    ax4.set_xlabel("Time [s]")
+    ax4.set_ylabel("Neg particle conc. [mol.m-3]")
+    ax5.plot(t_pybamm, pconc_pybamm, label="PyBaMM")
+    ax5.plot(t_liionpack, pconc_liionpack, "--", label="Liionpack")
+    ax5.set_xlabel("Time [s]")
+    ax5.set_ylabel("Pos particle conc. [mol.m-3]")
+    handles, labels = ax5.get_legend_handles_labels()
+    fig.legend(handles, labels, loc="upper right")

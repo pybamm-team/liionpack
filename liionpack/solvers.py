@@ -96,6 +96,9 @@ class generic_actor:
     def output(self):
         return self.var_eval
 
+    def backstep(self):
+        self.step_solutions = self.old_solutions
+
 
 @ray.remote(num_cpus=1)
 class ray_actor(generic_actor):
@@ -136,6 +139,7 @@ class generic_manager:
 
         # Generate the protocol from the supplied experiment
         protocol = lp.generate_protocol_from_experiment(experiment, flatten=True)
+        protocol = protocol + [protocol[-1]]
         self.dt = experiment.period
         Nsteps = len(protocol)
         netlist.loc[I_map, ("value")] = protocol[0]
@@ -208,7 +212,7 @@ class generic_manager:
                 # Solve the circuit with updated netlist
                 if step <= Nsteps:
                     V_node, I_batt = lp.solve_circuit_vectorized(netlist)
-                    record_times.append(step * self.dt)
+                    record_times.append((step - 1) * self.dt)
                     V_terminal.append(V_node[Terminal_Node][0])
                 if step < Nsteps - 1:
                     # igore last step save the new currents and build inputs
@@ -235,13 +239,13 @@ class generic_manager:
         self.shm_Ri = np.abs(self.shm_Ri)
         # Collect outputs
         self.all_output = {}
-        self.all_output["Time [s]"] = np.asarray(record_times)
-        self.all_output["Pack current [A]"] = np.asarray(protocol[: step + 1])
-        self.all_output["Pack terminal voltage [V]"] = np.asarray(V_terminal)
-        self.all_output["Cell current [A]"] = self.shm_i_app[: step + 1, :]
-        self.all_output["Cell internal resistance [Ohm]"] = self.shm_Ri[: step + 1, :]
+        self.all_output["Time [s]"] = np.asarray(record_times)[1:]
+        self.all_output["Pack current [A]"] = np.asarray(protocol[1 : step + 1])
+        self.all_output["Pack terminal voltage [V]"] = np.asarray(V_terminal)[1:]
+        self.all_output["Cell current [A]"] = self.shm_i_app[1 : step + 1, :]
+        self.all_output["Cell internal resistance [Ohm]"] = self.shm_Ri[1 : step + 1, :]
         for j in range(Nvar):
-            self.all_output[self.variable_names[j]] = self.output[j, : step + 1, :]
+            self.all_output[self.variable_names[j]] = self.output[j, 1 : step + 1, :]
 
         toc = ticker.time()
 
@@ -281,6 +285,9 @@ class generic_manager:
         temp_I = self.shm_i_app[step, :]
         temp_Ri = np.abs((temp_ocv - temp_v) / temp_I)
         return temp_Ri
+
+    def backstep(self):
+        pass
 
     def split_models(self, Nspm, nproc):
         pass
@@ -436,6 +443,9 @@ class casadi_manager(generic_manager):
         lp.logger.info(
             "Casadi actor stepped in time " + str(np.around(toc - tic, 3)) + "s"
         )
+
+    def backstep(self):
+        self.actors[0].backstep()
 
     def get_actor_output(self, step):
         tic = ticker.time()
