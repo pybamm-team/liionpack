@@ -253,7 +253,7 @@ class generic_manager:
         self.all_output = {}
         self.all_output["Time [s]"] = np.asarray(record_times)
         self.all_output["Pack current [A]"] = np.asarray(protocol[: step + 1])
-        self.all_output["Pack terminal voltage [V]"] = np.asarray(V_terminal)[1:]
+        self.all_output["Pack terminal voltage [V]"] = np.asarray(V_terminal)
         self.all_output["Cell current [A]"] = self.shm_i_app[: step + 1, :]
         self.all_output["Cell internal resistance [Ohm]"] = self.shm_Ri[: step + 1, :]
         for j in range(Nvar):

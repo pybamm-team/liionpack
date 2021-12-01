@@ -58,7 +58,7 @@ class solversTest(unittest.TestCase):
             )
             a = output1["Terminal voltage [V]"]
             b = output2["Terminal voltage [V]"]
-            self.assertEqual(a.shape, (30, 21))
+            self.assertEqual(a.shape, (31, 21))
             self.assertTrue(np.allclose(a, b))
 
     def test_events(self):
@@ -85,7 +85,7 @@ class solversTest(unittest.TestCase):
             )
             a = output1["Terminal voltage [V]"]
             b = output2["Terminal voltage [V]"]
-            self.assertEqual(a.shape, (7, 21))
+            self.assertEqual(a.shape, (8, 21))
             self.assertTrue(np.allclose(a, b))
 
     def test_voltage_limits(self):
