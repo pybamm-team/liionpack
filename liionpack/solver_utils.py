@@ -8,6 +8,50 @@ import numpy as np
 import liionpack as lp
 
 
+def _serial_eval(model, solutions, inputs_dict, variables, t_eval):
+    """
+    Internal function to evaluate the model variables in a serial way.
+
+    Args:
+        model (pybamm.Model):
+            The built model
+        solutions (iter of pybamm.Solution):
+            Used to get the last state of the system and use as x0 and z0 for the
+            casadi integrator. Provide solution objects for each battery.
+        inputs_dict (iter of input_dicts):
+            Provide inputs_dict objects for each battery.
+        variables (variables evaluator):
+            Produced by _create_casadi_objects when mapped = False
+        t_eval (np.ndarray):
+            A float array of times to evaluate.
+            Produced by _create_casadi_objects when mapped = False
+
+    Returns:
+        sol (list):
+            solutions that have been stepped forward by one timestep
+        var_eval (list):
+            evaluated variables for final state of system
+
+    """
+    len_rhs = model.concatenated_rhs.size
+    N = len(solutions)
+    t_min = 0.0
+    var_eval = []
+    for k in range(N):
+        if solutions[k] is None:
+            # First pass
+            xend = model.y0[:len_rhs]
+        else:
+            xend = solutions[k].y[:, -1]
+
+        temp = inputs_dict[k]
+        inputs = casadi.vertcat(*[x for x in temp.values()] + [t_min])
+        ninputs = len(temp.values())
+        var_eval.append(variables(0, xend[:len_rhs], xend[len_rhs:], inputs[0:ninputs]))
+
+    return casadi.horzcat(*var_eval)
+
+
 def _serial_step(model, solutions, inputs_dict, integrator, variables, t_eval, events):
     """
     Internal function to process the model for one timestep in a serial way.
@@ -27,6 +71,8 @@ def _serial_step(model, solutions, inputs_dict, integrator, variables, t_eval, e
         t_eval (np.ndarray):
             A float array of times to evaluate.
             Produced by _create_casadi_objects when mapped = False
+        events (mapped events evaluator):
+            Produced by `_create_casadi_objects`
 
     Returns:
         sol (list):
@@ -63,15 +109,56 @@ def _serial_step(model, solutions, inputs_dict, integrator, variables, t_eval, e
             y_sol = casadi.vertcat(xf, zf)
         xend = y_sol[:, -1]
         sol.append(pybamm.Solution(t_eval, y_sol, model, inputs_dict[k]))
-        var_eval.append(variables(0, xend[:len_rhs],
-                                  xend[len_rhs:], inputs[0:ninputs]))
+        var_eval.append(variables(0, xend[:len_rhs], xend[len_rhs:], inputs[0:ninputs]))
         if events is not None:
-            events_eval.append(events(0, xend[:len_rhs],
-                                      xend[len_rhs:], inputs[0:ninputs]))
+            events_eval.append(
+                events(0, xend[:len_rhs], xend[len_rhs:], inputs[0:ninputs])
+            )
         integration_time = timer.time()
         sol[-1].integration_time = integration_time
 
     return sol, casadi.horzcat(*var_eval), casadi.horzcat(*events_eval)
+
+
+def _mapped_eval(model, solutions, inputs_dict, variables, t_eval):
+    """
+    Internal function to evaluate the model variables in a mapped way.
+
+    Arg:
+        model (pybamm.lithium_ion.BaseModel):
+            The built battery model
+        solutions (iter of pybamm.Solution):
+            Used to get the last state of the system and use as x0 and z0 for the
+            casadi integrator. Provide solution objects for each battery.
+        inputs_dict (iter of input_dicts):
+            Provide inputs_dict objects for each battery.
+        variables (mapped variables evaluator):
+            Produced by `_create_casadi_objects`
+        t_eval (np.ndarray):
+            A float array of times to evaluate.
+            Produced by _create_casadi_objects when mapped = False
+
+    Returns:
+        var_eval (list):
+            Evaluated variables for final state of system
+
+    """
+    len_rhs = model.concatenated_rhs.size
+    N = len(solutions)
+    if solutions[0] is None:
+        # First pass
+        xend = casadi.horzcat(*[model.y0[:len_rhs] for i in range(N)])
+    else:
+        xend = casadi.horzcat(*[sol.y[:len_rhs, -1] for sol in solutions])
+    t_min = 0.0
+    inputs = []
+    for temp in inputs_dict:
+        inputs.append(casadi.vertcat(*[x for x in temp.values()] + [t_min]))
+    ninputs = len(temp.values())
+    inputs = casadi.horzcat(*inputs)
+    var_eval = variables(0, xend[:len_rhs, :], xend[len_rhs:, :], inputs[0:ninputs, :])
+
+    return var_eval
 
 
 def _mapped_step(model, solutions, inputs_dict, integrator, variables, t_eval, events):
@@ -149,11 +236,11 @@ def _mapped_step(model, solutions, inputs_dict, integrator, variables, t_eval, e
     toc = timer.time()
     lp.logger.debug(f"Mapped step completed in {toc - tic}")
     xend = casadi.horzcat(*xend)
-    var_eval = variables(0, xend[:len_rhs, :],
-                         xend[len_rhs:, :], inputs[0:ninputs, :])
+    var_eval = variables(0, xend[:len_rhs, :], xend[len_rhs:, :], inputs[0:ninputs, :])
     if events is not None:
-        events_eval = events(0, xend[:len_rhs, :],
-                             xend[len_rhs:, :], inputs[0:ninputs, :])
+        events_eval = events(
+            0, xend[:len_rhs, :], xend[len_rhs:, :], inputs[0:ninputs, :]
+        )
     return sol, var_eval, events_eval
 
 

@@ -58,7 +58,7 @@ class solversTest(unittest.TestCase):
             )
             a = output1["Terminal voltage [V]"]
             b = output2["Terminal voltage [V]"]
-            self.assertEqual(a.shape, (30, 21))
+            self.assertEqual(a.shape, (31, 21))
             self.assertTrue(np.allclose(a, b))
 
     def test_events(self):
@@ -85,8 +85,50 @@ class solversTest(unittest.TestCase):
             )
             a = output1["Terminal voltage [V]"]
             b = output2["Terminal voltage [V]"]
-            self.assertEqual(a.shape, (7, 21))
+            self.assertEqual(a.shape, (8, 21))
             self.assertTrue(np.allclose(a, b))
+
+    def test_voltage_limits(self):
+        I_app = 5.0
+        netlist = lp.setup_circuit(
+            Np=1, Ns=1, Rb=1e-4, Rc=1e-2, Ri=3e-2, V=3.6, I=I_app
+        )
+        chemistry = pybamm.parameter_sets.Chen2020
+        parameter_values = pybamm.ParameterValues(chemistry=chemistry)
+        # Cycling experiment
+        charge_exp = pybamm.Experiment(
+            [
+                f"Charge at {I_app} A for 10000 seconds",
+            ],
+            period="100 seconds",
+        )
+        discharge_exp = pybamm.Experiment(
+            [
+                f"Discharge at {I_app} A for 10000 seconds",
+            ],
+            period="100 seconds",
+        )
+        _ = lp.solve(
+            netlist=netlist.copy(),
+            parameter_values=parameter_values,
+            experiment=charge_exp,
+            output_variables=None,
+            inputs=None,
+            initial_soc=0.5,
+            nproc=1,
+            manager="casadi",
+        )
+        _ = lp.solve(
+            netlist=netlist.copy(),
+            parameter_values=parameter_values,
+            experiment=discharge_exp,
+            output_variables=None,
+            inputs=None,
+            initial_soc=0.5,
+            nproc=1,
+            manager="casadi",
+        )
+        assert True
 
 
 if __name__ == "__main__":

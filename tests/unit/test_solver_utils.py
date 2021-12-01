@@ -59,7 +59,7 @@ class solver_utilsTest(unittest.TestCase):
         )
         a = output1["Terminal voltage [V]"]
         b = output2["Terminal voltage [V]"]
-        self.assertEqual(a.shape, (30, 32))
+        self.assertEqual(a.shape, (31, 32))
         self.assertTrue(np.allclose(a, b))
 
         plt.close("all")
@@ -77,7 +77,7 @@ class solver_utilsTest(unittest.TestCase):
             inputs=None,
             initial_soc=0.5,
         )
-        self.assertEqual(output[var].shape, (30, 32))
+        self.assertEqual(output[var].shape, (31, 32))
         plt.close("all")
 
     def test_sim_func(self):
@@ -117,7 +117,7 @@ class solver_utilsTest(unittest.TestCase):
             inputs=inputs,
             initial_soc=0.5,
         )
-        self.assertEqual(output["Terminal voltage [V]"].shape, (30, 32))
+        self.assertEqual(output["Terminal voltage [V]"].shape, (31, 32))
         plt.close("all")
 
 
