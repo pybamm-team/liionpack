@@ -8,38 +8,38 @@ import numpy as np
 if __name__ == "__main__":
     lp.set_logging_level("NOTICE")
     plt.close("all")
-    
+
     os.chdir(pybamm.__path__[0] + "/..")
     netlist = lp.setup_circuit(Np=1, Ns=1, Rb=1.0e-6, Rc=1e-6, Ri=3e-2, V=3.75, I=1.0)
-    
+
     chemistry = pybamm.parameter_sets.Chen2020
     parameter_values = pybamm.ParameterValues(chemistry=chemistry)
-    
+
     # import drive cycle from file
     drive_cycle = pd.read_csv(
         "pybamm/input/drive_cycles/US06.csv", comment="#", header=None
     ).to_numpy()
-    
+
     timestep = 1
     drive_cycle[:, 0] *= timestep
-    
+
     experiment = pybamm.Experiment(
         operating_conditions=["Run US06 (A)"],
         period=f"{timestep} seconds",
         drive_cycles={"US06": drive_cycle},
     )
-    
+
     output_variables = [
         "X-averaged negative particle surface concentration [mol.m-3]",
         "X-averaged positive particle surface concentration [mol.m-3]",
     ]
-    
+
     # PyBaMM parameters
     chemistry = pybamm.parameter_sets.Chen2020
     parameter_values = pybamm.ParameterValues(chemistry=chemistry)
-    
+
     init_SoC = 0.9
-    
+
     # Solve pack
     output = lp.solve(
         netlist=netlist,
@@ -47,19 +47,19 @@ if __name__ == "__main__":
         experiment=experiment,
         output_variables=output_variables,
         initial_soc=init_SoC,
-        manager='casadi',
-        nproc=2
+        manager="casadi",
+        nproc=2,
     )
-    
+
     parameter_values = pybamm.ParameterValues(chemistry=chemistry)
-    
+
     sim = pybamm.Simulation(
         model=pybamm.lithium_ion.SPM(),
         experiment=experiment,
         parameter_values=parameter_values,
     )
     sol = sim.solve(initial_soc=init_SoC)
-    
+
     t_pybamm = sol["Time [s]"].entries
     t_liionpack = output["Time [s]"][:-1]
     v_pybamm = sol["Terminal voltage [V]"].entries
@@ -80,11 +80,11 @@ if __name__ == "__main__":
     pconc_liionpack = output[
         "X-averaged positive particle surface concentration [mol.m-3]"
     ][1:]
-    
+
     sol_diff = ((v_liionpack.flatten()[1:] - v_pybamm[:-1]) / v_pybamm[:-1]) * 100
-    
+
     t_liionpack -= timestep
-    
+
     with plt.rc_context(lp.lp_context):
         fig, ((ax0, ax1), (ax2, ax3), (ax4, ax5)) = plt.subplots(
             3, 2, figsize=(12, 10), sharex=True
