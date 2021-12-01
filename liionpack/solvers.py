@@ -208,6 +208,10 @@ class generic_manager:
                 # 03 Get the ocv and internal resistance
                 temp_v = self.output[0, step, :]
                 temp_ocv = self.output[1, step, :]
+                # When resting and rebalancing currents are small the internal
+                # resistance calculation can diverge as it's R = V / I
+                # At rest the internal resistance should not change greatly
+                # so for now just don't recalculate it.
                 if not self.resting and not self.restarting:
                     temp_Ri = self.calculate_internal_resistance(step)
                 self.shm_Ri[step, :] = temp_Ri
