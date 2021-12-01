@@ -67,7 +67,6 @@ class generic_actor:
 
     def step(self, inputs):
         # Solver Step
-        self.old_solutions = self.step_solutions
         self.step_solutions, self.var_eval, self.events_eval = self.step_fn(
             self.simulation.built_model,
             self.step_solutions,
@@ -109,9 +108,6 @@ class generic_actor:
     def output(self):
         return self.var_eval
 
-    def backstep(self):
-        self.step_solutions = self.old_solutions
-
 
 @ray.remote(num_cpus=1)
 class ray_actor(generic_actor):
@@ -152,8 +148,6 @@ class generic_manager:
 
         # Generate the protocol from the supplied experiment
         protocol = lp.generate_protocol_from_experiment(experiment, flatten=True)
-        # Include initial state
-        protocol = [protocol[0]] + protocol
         self.dt = experiment.period
         Nsteps = len(protocol)
         netlist.loc[I_map, ("value")] = protocol[0]
@@ -297,9 +291,6 @@ class generic_manager:
         temp_I = self.shm_i_app[step, :]
         temp_Ri = np.abs((temp_ocv - temp_v) / temp_I)
         return temp_Ri
-
-    def backstep(self):
-        pass
 
     def split_models(self, Nspm, nproc):
         pass
@@ -476,9 +467,6 @@ class casadi_manager(generic_manager):
         lp.logger.info(
             "Casadi actor evaluated in time " + str(np.around(toc - tic, 3)) + "s"
         )
-
-    def backstep(self):
-        self.actors[0].backstep()
 
     def get_actor_output(self, step):
         tic = ticker.time()

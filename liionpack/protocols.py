@@ -10,6 +10,9 @@ def generate_protocol_from_experiment(experiment, flatten=True):
     Args:
         experiment (pybamm.Experiment):
             The experiment to generate the protocol from.
+        flatten (bool):
+            Default is True: return all steps in one list otherwise return a
+            list of lists for each operating command.
 
     Returns:
         list:
@@ -17,7 +20,7 @@ def generate_protocol_from_experiment(experiment, flatten=True):
 
     """
     protocol = []
-    for op in experiment.operating_conditions:
+    for i, op in enumerate(experiment.operating_conditions):
         proto = []
         t = op["time"]
         dt = op["period"]
@@ -35,8 +38,12 @@ def generate_protocol_from_experiment(experiment, flatten=True):
             proto.extend(I[:, 1].tolist())
         else:
             proto.extend([I] * int(t / dt))
+            if i == 0:
+                # Include initial state when not a drive cycle for first op
+                proto = [proto[0]] + proto
         if flatten:
             protocol.extend(proto)
         else:
             protocol.append(proto)
+
     return protocol

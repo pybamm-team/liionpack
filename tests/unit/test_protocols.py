@@ -18,7 +18,7 @@ class protocolsTest(unittest.TestCase):
             period="10 seconds",
         )
         p = lp.generate_protocol_from_experiment(experiment)
-        self.assertEqual(len(p), 540)
+        self.assertEqual(len(p), 541)
         self.assertEqual(np.sign(p[0]), -1)
 
         experiment = pybamm.Experiment(
@@ -31,7 +31,7 @@ class protocolsTest(unittest.TestCase):
             period="10 seconds",
         )
         p = lp.generate_protocol_from_experiment(experiment)
-        self.assertEqual(len(p), 540)
+        self.assertEqual(len(p), 541)
         self.assertEqual(np.sign(p[0]), 1)
 
     def test_generate_protocol_from_drive_cycle(self):
@@ -85,7 +85,7 @@ class protocolsTest(unittest.TestCase):
         )
         p = lp.generate_protocol_from_experiment(experiment, flatten=False)
         self.assertEqual(len(p), 2)
-        self.assertEqual(len(p[0]), 180)
+        self.assertEqual(len(p[0]), 181)
         self.assertEqual(len(p[1]), 90)
 
 

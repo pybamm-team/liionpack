@@ -1,3 +1,6 @@
+#
+# Compare a drive-cycle simulation between PyBaMM and Liionpack
+#
 import pybamm
 import os
 import pandas as pd
@@ -61,29 +64,31 @@ if __name__ == "__main__":
     sol = sim.solve(initial_soc=init_SoC)
 
     t_pybamm = sol["Time [s]"].entries
-    t_liionpack = output["Time [s]"][:-1]
+    t_liionpack = output["Time [s]"]
     v_pybamm = sol["Terminal voltage [V]"].entries
-    v_liionpack = output["Terminal voltage [V]"][1:]
+    v_liionpack = output["Terminal voltage [V]"]
     i_pybamm = sol["Current [A]"].entries
-    i_liionpack = output["Cell current [A]"][1:]
+    i_liionpack = output["Cell current [A]"]
     r_pybamm = np.abs(sol["Local ECM resistance [Ohm]"].entries)
-    r_liionpack = output["Cell internal resistance [Ohm]"][1:]
+    r_liionpack = output["Cell internal resistance [Ohm]"]
     nconc_pybamm = sol[
         "X-averaged negative particle surface concentration [mol.m-3]"
     ].entries
     nconc_liionpack = output[
         "X-averaged negative particle surface concentration [mol.m-3]"
-    ][1:]
+    ]
     pconc_pybamm = sol[
         "X-averaged positive particle surface concentration [mol.m-3]"
     ].entries
     pconc_liionpack = output[
         "X-averaged positive particle surface concentration [mol.m-3]"
-    ][1:]
+    ]
 
-    sol_diff = ((v_liionpack.flatten()[1:] - v_pybamm[:-1]) / v_pybamm[:-1]) * 100
-
+    # The internal resistance in Liionpack is based on the previous time-step
+    # so the solution lags behind. More advanced time stepping is required to
+    # address this problem.
     t_liionpack -= timestep
+    sol_diff = ((v_liionpack.flatten()[1:] - v_pybamm[:-1]) / v_pybamm[:-1]) * 100
 
     with plt.rc_context(lp.lp_context):
         fig, ((ax0, ax1), (ax2, ax3), (ax4, ax5)) = plt.subplots(
