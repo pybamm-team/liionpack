@@ -20,12 +20,11 @@ class Test1p1s(unittest.TestCase):
         experiment = pybamm.Experiment(
             [("Discharge at 1 A for 100 s or until 3.3 V",)] * 1, period="10 s"
         )
-        SoC = 0.5
         # Solve pack
         output = lp.solve(
             netlist=netlist,
             parameter_values=parameter_values,
-            experiment=experiment,
+            experiment=experiment
         )
 
         parameter_values = pybamm.ParameterValues(chemistry=chemistry)
@@ -33,7 +32,7 @@ class Test1p1s(unittest.TestCase):
                                 parameter_values=parameter_values,
                                 experiment=experiment)
 
-        sol = sim.solve(initial_soc=SoC)
+        sol = sim.solve()
         a = output["Terminal voltage [V]"].flatten()
         b = sol["Terminal voltage [V]"].entries
 
@@ -64,6 +63,7 @@ class Test1p1s(unittest.TestCase):
             netlist=netlist,
             parameter_values=parameter_values,
             experiment=experiment,
+            initial_soc=SoC
         )
 
         parameter_values = pybamm.ParameterValues(chemistry=chemistry)
