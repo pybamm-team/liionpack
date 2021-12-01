@@ -6,6 +6,7 @@ from liionpack.solver_utils import _create_casadi_objects as cco
 from liionpack.solver_utils import _serial_step as ss
 from liionpack.solver_utils import _mapped_step as ms
 from liionpack.solver_utils import _serial_eval as se
+from liionpack.solver_utils import _mapped_eval as me
 import ray
 import numpy as np
 import time as ticker
@@ -59,7 +60,7 @@ class generic_actor:
         self.event_change = None
         if mapped:
             self.step_fn = ms
-            self.eval_fn = None
+            self.eval_fn = me
         else:
             self.step_fn = ss
             self.eval_fn = se
@@ -196,8 +197,6 @@ class generic_manager:
         self.setup_actors(nproc, self.inputs_dict[0], initial_soc)
         # Get the initial state of the system
         self.evaluate_actors()
-        # Reset the system
-        # self.backstep()
         sim_start_time = ticker.time()
         lp.logger.notice("Starting step solve")
         with tqdm(total=Nsteps, desc="Stepping simulation") as pbar:
@@ -377,6 +376,16 @@ class ray_manager(generic_manager):
         t2 = ticker.time()
         lp.logger.info("Ray actors stepped in " + str(np.around(t2 - t1, 3)) + "s")
 
+    def evaluate_actors(self):
+        t1 = ticker.time()
+        future_evals = []
+        inputs = self.build_inputs()
+        for i, pa in enumerate(self.actors):
+            future_evals.append(pa.evaluate.remote(inputs[i]))
+        _ = [ray.get(fs) for fs in future_evals]
+        t2 = ticker.time()
+        lp.logger.info("Ray actors evaluated in " + str(np.around(t2 - t1, 3)) + "s")
+
     def get_actor_output(self, step):
         t1 = ticker.time()
         futures = []
@@ -553,6 +562,18 @@ class dask_manager(generic_manager):
         toc = ticker.time()
         lp.logger.info(
             "Dask actors stepped in time " + str(np.around(toc - tic, 3)) + "s"
+        )
+
+    def evaluate_actors(self):
+        tic = ticker.time()
+        inputs = self.build_inputs()
+        future_evals = []
+        for i, a in enumerate(self.actors):
+            future_evals.append(a.evaluate(inputs=inputs[i]))
+        _ = [af.result() for af in future_evals]
+        toc = ticker.time()
+        lp.logger.info(
+            "Dask actors evaluated in time " + str(np.around(toc - tic, 3)) + "s"
         )
 
     def get_actor_output(self, step):
