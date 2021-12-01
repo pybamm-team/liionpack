@@ -12,7 +12,61 @@ import os
 init_fname = os.path.join(lp.INIT_FUNCS, "init_funcs.pickle")
 
 
-def update_init_conc(sim, SoC=-1, OCV=-1, method="calculation"):
+def get_initial_stoichiometries(initial_soc, parameter_values):
+    """
+    Calculate initial stoichiometries to start off the simulation at a particular
+    state of charge, given voltage limits, open-circuit potentials, etc defined by
+    parameter_values
+
+    Parameters
+    ----------
+    initial_soc : float
+        Target initial SOC. Must be between 0 and 1.
+    parameter_values : :class:`pybamm.ParameterValues`
+        The parameter values class that will be used for the simulation. Required for
+        calculating appropriate initial stoichiometries.
+
+    Returns
+    -------
+    x, y
+        The initial stoichiometries that give the desired initial state of charge
+    """
+    if np.any(initial_soc) < 0 or np.any(initial_soc) > 1:
+        raise ValueError("Initial SOC should be between 0 and 1")
+
+    model = pybamm.lithium_ion.ElectrodeSOH()
+
+    param = pybamm.LithiumIonParameters()
+    sim = pybamm.Simulation(model, parameter_values=parameter_values)
+
+    V_min = parameter_values.evaluate(param.voltage_low_cut_dimensional)
+    V_max = parameter_values.evaluate(param.voltage_high_cut_dimensional)
+    C_n = parameter_values.evaluate(param.C_n_init)
+    C_p = parameter_values.evaluate(param.C_p_init)
+    n_Li = parameter_values.evaluate(param.n_Li_particles_init)
+
+    # Solve the model and check outputs
+    sol = sim.solve(
+        [0],
+        inputs={
+            "V_min": V_min,
+            "V_max": V_max,
+            "C_n": C_n,
+            "C_p": C_p,
+            "n_Li": n_Li,
+        },
+    )
+
+    x_0 = sol["x_0"].data[0]
+    y_0 = sol["y_0"].data[0]
+    C = sol["C"].data[0]
+    x = x_0 + np.asarray(initial_soc) * C / C_n
+    y = y_0 - np.asarray(initial_soc) * C / C_p
+
+    return x, y
+
+
+def update_init_conc(param, SoC=None, update=True):
     """
     Update initial concentration parameters
 
@@ -22,38 +76,19 @@ def update_init_conc(sim, SoC=-1, OCV=-1, method="calculation"):
         SoC (float):
             Target initial SoC. Must be between 0 and 1. Default is -1, in which
             case the initial concentrations are set using the target OCV.
-        OCV (float):
-            Target initial OCV. Must be between 0 and 1. Default is -1, in which
-            case the initial concentrations are set using the target SoC. This option is
-            only used if method is "experiment".
-        method (str):
-            The method used to compute the initial concentrations. Can be "calculation",
-            in which case `pybamm.get_initial_stoichiometries` is used to compute initial
-            stoichiometries that give the desired initial state of charge, or
-            "experiment", in which case a slow discharge between voltage limits is used
-            to compute the initial concentrations given a target SoC or OCV. Default is
-            "calculation".
     """
-    param = sim.parameter_values
-
-    if method == "calculation":
-        c_n_max = param["Maximum concentration in negative electrode [mol.m-3]"]
-        c_p_max = param["Maximum concentration in positive electrode [mol.m-3]"]
-        x, y = pybamm.lithium_ion.get_initial_stoichiometries(SoC, param)
-        c_s_n_init, c_s_p_init = x * c_n_max, y * c_p_max
-    elif method == "experiment":
-        c_s_n_init, c_s_p_init = initial_conditions_from_experiment(
-            param, SoC=SoC, OCV=OCV
+    c_n_max = param["Maximum concentration in negative electrode [mol.m-3]"]
+    c_p_max = param["Maximum concentration in positive electrode [mol.m-3]"]
+    x, y = lp.get_initial_stoichiometries(SoC, param)
+    c_s_n_init, c_s_p_init = x * c_n_max, y * c_p_max
+    if update:
+        param.update(
+            {
+                "Initial concentration in negative electrode [mol.m-3]": c_s_n_init,
+                "Initial concentration in positive electrode [mol.m-3]": c_s_p_init,
+            }
         )
-    else:
-        raise ValueError("'method' must be 'calculation' or 'experiment'.")
-
-    param.update(
-        {
-            "Initial concentration in negative electrode [mol.m-3]": c_s_n_init,
-            "Initial concentration in positive electrode [mol.m-3]": c_s_p_init,
-        }
-    )
+    return c_s_n_init, c_s_p_init
 
 
 def initial_conditions_from_experiment(parameter_values, SoC=-1, OCV=-1):
@@ -134,9 +169,11 @@ def create_init_funcs(parameter_values):
     )
 
     # Set up and solve simulation
-    sim = pybamm.Simulation(model=pybamm.lithium_ion.SPM(),
-                            parameter_values=parameter_values,
-                            experiment=experiment)
+    sim = pybamm.Simulation(
+        model=pybamm.lithium_ion.SPM(),
+        parameter_values=parameter_values,
+        experiment=experiment,
+    )
     sim.solve()
 
     # Save concentrations for initial conditions

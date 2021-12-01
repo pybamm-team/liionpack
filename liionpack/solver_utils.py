@@ -291,8 +291,16 @@ def _create_casadi_objects(inputs, sim, dt, Nspm, nproc, variable_names, mapped)
     # Initial solution - this builds the model behind the scenes
     # solve model for 1 second to initialise the circuit
     t_eval = np.linspace(0, 1, 2)
-    sim.solve(t_eval, inputs=inputs)
-
+    # sim.solve(t_eval, inputs=inputs)
+    sim.build()
+    initial_solutions = []
+    for inpt in inputs:
+        initial_solutions.append(
+            sim.step(
+                dt=1e-6, save=False, starting_solution=None, inputs=inpt
+            ).last_state
+        )
+        sim._solution = None
     # Step model forward dt seconds
     t_eval = np.linspace(0, dt, 11)
     t_eval_ndim = t_eval / sim.model.timescale.evaluate()
@@ -350,6 +358,7 @@ def _create_casadi_objects(inputs, sim, dt, Nspm, nproc, variable_names, mapped)
         "t_eval": t_eval,
         "event_names": event_vars,
         "events_fn": events_fn,
+        "initial_solutions": initial_solutions,
     }
     return output
 

@@ -36,17 +36,26 @@ class generic_actor:
         else:
             mapped = False
         self.Nspm = Nspm
-        # Solver set up
-        self.step_solutions = [None] * Nspm
         # Set up simulation
         self.parameter_values = parameter_values
+        if initial_soc is not None:
+            if (
+                (type(initial_soc) in [float, int])
+                or (type(initial_soc) is list and len(initial_soc) == 1)
+                or (type(initial_soc) is np.ndarray and len(initial_soc) == 1)
+            ):
+                _, _ = lp.update_init_conc(parameter_values, initial_soc, update=True)
+            else:
+                lp.logger.warning(
+                    "Using a list or an array of initial_soc "
+                    + "is not supported, please set the initial "
+                    + "concentrations via inputs"
+                )
         if sim_func is None:
             self.simulation = lp.basic_simulation(self.parameter_values)
         else:
             self.simulation = sim_func(parameter_values)
 
-        if initial_soc is not None:
-            lp.update_init_conc(self.simulation, SoC=initial_soc)
         # Set up integrator
         casadi_objs = cco(
             inputs, self.simulation, dt, Nspm, nproc, variable_names, mapped
@@ -57,6 +66,7 @@ class generic_actor:
         self.t_eval = casadi_objs["t_eval"]
         self.event_names = casadi_objs["event_names"]
         self.events_fn = casadi_objs["events_fn"]
+        self.step_solutions = casadi_objs["initial_solutions"]
         self.last_events = None
         self.event_change = None
         if mapped:
@@ -189,7 +199,7 @@ class generic_manager:
         self.inputs = inputs
         self.inputs_dict = lp.build_inputs_dict(self.shm_i_app[0, :], self.inputs)
         # Solver specific setup
-        self.setup_actors(nproc, self.inputs_dict[0], initial_soc)
+        self.setup_actors(nproc, self.inputs_dict, initial_soc)
         # Get the initial state of the system
         self.evaluate_actors()
         sim_start_time = ticker.time()
