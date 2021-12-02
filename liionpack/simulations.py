@@ -40,7 +40,6 @@ def basic_simulation(parameter_values=None):
         parameter_values=param,
         solver=solver,
     )
-
     return sim
 
 
@@ -88,5 +87,4 @@ def thermal_simulation(parameter_values=None):
         parameter_values=parameter_values,
         solver=solver,
     )
-
     return sim
