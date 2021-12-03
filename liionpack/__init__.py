@@ -15,4 +15,4 @@ from .plots import *
 from .logger import *
 from .solvers import *
 
-__version__ = "0.0.1"
+__version__ = "0.1.0"

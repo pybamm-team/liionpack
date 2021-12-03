@@ -21,7 +21,7 @@ setup(
     description="A battery pack simulator for PyBaMM",
     version=main_["__version__"],
     classifiers=[
-        "Development Status :: 2 - Pre-Alpha",
+        "Development Status :: 4 - Beta",
         "License :: OSI Approved :: MIT License",
         "Programming Language :: Python",
         "Topic :: Scientific/Engineering",
