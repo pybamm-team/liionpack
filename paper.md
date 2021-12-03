@@ -74,11 +74,52 @@ Electrification of transport and other energy intensive activities is of growing
 
 `Liionpack` is a PyBaMM-affiliated Python package for simulating large systems of batteries connected in series and parallel. Python enables wrapping low-level languages (e.g., C) for speed without losing flexibility or ease-of-use in the user-interface. The API for `Liionpack` was designed to provide a simple and efficient extension to the `PyBaMM` [@pybamm] framework allowing users to scale up simulations from single cells to many thousands with a few extra lines of code. `PyBaMM` provides a number of classic physics-based single battery models with configurable options to investigate thermal effects and degradation for example. The pack architecture introduced by `Liionpack` can be defined as a number of batteries connected in series and parallel to one another using busbars and interconnections with defined resistances. A netlist may also be used to construct the pack which is more flexible and allows for configurable network topology and can be constructed graphically with packages such as `LTSpice` [@ltspice] or simply created manually specifying nodal connections as either current sources, voltage sources or resistors. Statistical distributions can be easily incorporated into the pack architecture elements through the use of input parameters that allow a single model to be solved with varying inputs.
 
-`Liionpack` was designed to be used by physicists, engineers, students, academics and industrial researchers and system designers concerned with the dynamics of electric current and heat transport in large battery systems. The nature of the solving process facilitates parallel processing of the electrochemical problem formulated as a 1D DAE. Several distributed solvers are provided and can be selected through a common function with a simple function argument. These are `Casadi` [@casadi] which uses multi-threading and works well for single or multi-core machines and `ray` [@ray] and `dask` [@dask] which are designed for running on clusters and use multi-processing. Many of the functions and models that can be found in `PyBaMM` should work in exactly the same way in `Liionpack` and examples are provided showing how to set up and configure different battery models for running in the pack system. Several visualization tools are also provided for analysis of the results.
+`Liionpack` was designed to be used by physicists, engineers, students, academics and industrial researchers and system designers concerned with the dynamics of electric current and heat transport in large battery systems. The nature of the solving process facilitates parallel processing of the electrochemical problem formulated as a 1D DAE. Several distributed solvers are provided and can be selected through a common function with a simple function argument. These are `Casadi` [@casadi] which uses multi-threading and works well for single workstations and `ray` [@ray] and `dask` [@dask] which are designed for running on clusters and use multi-processing. Many of the functions and models that can be found in `PyBaMM` should work in exactly the same way in `Liionpack` and examples are provided showing how to set up and configure different battery models for running in the pack system. Several visualization tools are also provided for analysis of the results.
 
 # Mathematics
 
 At present, the circuits may only contain three different types of element, namely a current source, voltage source and resistor. Resistors are used to represent the busbars and interconnections in the pack as well as the internal resistance of the batteries. The open circuit voltage is used for the voltage sources in the circuit and modified nodal analysis (MNA) [@mna] is used to solve the circuit problem determining the distribution of current in the pack.
+
+# Example
+
+```
+import liionpack as lp
+import pybamm
+
+# Generate the netlist
+netlist = lp.setup_circuit(Np=4, Ns=1, Rb=1e-3, Rc=1e-2)
+
+# Draw the circuit
+lp.draw_circuit(netlist, cpt_size=1.0, dpi=150, node_spacing=2.5)
+
+# Define some additional variables to output
+output_variables = [
+    'X-averaged negative particle surface concentration [mol.m-3]',
+    'X-averaged positive particle surface concentration [mol.m-3]',
+]
+
+# Cycling experiment, using PyBaMM
+experiment = pybamm.Experiment([
+    "Charge at 5 A for 30 minutes",
+    "Rest for 15 minutes",
+    "Discharge at 5 A for 30 minutes",
+    "Rest for 30 minutes"],
+    period="10 seconds")
+
+# PyBaMM battery parameters
+chemistry = pybamm.parameter_sets.Chen2020
+parameter_values = pybamm.ParameterValues(chemistry=chemistry)
+
+# Solve the pack problem
+output = lp.solve(netlist=netlist,
+                  parameter_values=parameter_values,
+                  experiment=experiment,
+                  output_variables=output_variables,
+                  initial_soc=0.5)
+
+# Display the results
+lp.plot_output(output)
+```
 
 Single dollars ($) are required for inline mathematics e.g. $f(x) = e^{\pi/x}$
 
@@ -101,7 +142,15 @@ None
 
 # Figures
 
-None
+Figures can be included like this:
+
+![Caption for example figure.\label{fig:1}](./paper_figures/Figure_1.png)
+
+and referenced from text using \autoref{fig:1}.
+
+![Caption for example figure.\label{fig:2}](./paper_figures/Figure_2.png)
+
+![Caption for example figure.\label{fig:3}](./paper_figures/Figure_3.png)
 
 # Acknowledgements
 

@@ -7,6 +7,7 @@ import textwrap
 
 
 cmap = plt.cm.cool
+white_cmap = plt.cm.coolwarm
 init_printing(pretty_print=False)
 lp_context = {
     "text.color": "white",
@@ -21,7 +22,19 @@ lp_context = {
     "axes.labelsize": "large",
     "figure.figsize": (8, 6),
 }
-
+white_context = {
+    "text.color": "black",
+    "axes.edgecolor": "black",
+    "axes.titlecolor": "black",
+    "axes.labelcolor": "black",
+    "xtick.color": "black",
+    "ytick.color": "black",
+    "figure.facecolor": "white",
+    "axes.facecolor": "white",
+    "axes.grid": False,
+    "axes.labelsize": "large",
+    "figure.figsize": (8, 6),
+}
 
 def draw_circuit(netlist, **kwargs):
     """
@@ -185,7 +198,7 @@ def cell_scatter_plot(ax, X, Y, c, text_prec=1, **kwargs):
     _cell_text_numbers(ax, X, Y, text_colors)
 
 
-def plot_pack(output):
+def plot_pack(output, context="black"):
     """
     Plot the battery pack voltage and current.
 
@@ -198,8 +211,15 @@ def plot_pack(output):
     time = output["Time [s]"]
     v_pack = output["Pack terminal voltage [V]"]
     i_pack = output["Pack current [A]"]
-    colors = cmap(np.linspace(0, 1, 2))
-    with plt.rc_context(lp_context):
+    
+    if context == "black":
+        use_context = lp_context
+        use_cmap = cmap
+    else:
+        use_context = white_context
+        use_cmap = white_cmap
+    colors = use_cmap(np.linspace(0, 1, 2))
+    with plt.rc_context(use_context):
         # Plot pack voltage and current
         _, ax = plt.subplots(tight_layout=True)
         ax.plot(time, v_pack, color=colors[0], label="simulation")
@@ -212,7 +232,7 @@ def plot_pack(output):
         ax2.set_title("Pack Summary")
 
 
-def plot_cells(output):
+def plot_cells(output, context="black"):
     """
     Plot results for the battery cells.
 
@@ -225,12 +245,18 @@ def plot_cells(output):
     time = output["Time [s]"]
     cell_vars = [k for k in output.keys() if len(output[k].shape) > 1]
 
+    if context == "black":
+        use_context = lp_context
+        use_cmap = cmap
+    else:
+        use_context = white_context
+        use_cmap = white_cmap
     # Get number of cells and setup colormap
     n = output[cell_vars[0]].shape[-1]
-    colors = cmap(np.linspace(0, 1, n))
+    colors = use_cmap(np.linspace(0, 1, n))
 
     # Create plot figures for cell variables
-    with plt.rc_context(lp_context):
+    with plt.rc_context(use_context):
         for var in cell_vars:
             _, ax = plt.subplots(tight_layout=True)
             for i in range(n):
@@ -240,7 +266,7 @@ def plot_cells(output):
             ax.ticklabel_format(axis="y", scilimits=[-5, 5])
 
 
-def plot_output(output):
+def plot_output(output, context="black"):
     """
     Plot all results for pack and cells
 
@@ -249,8 +275,8 @@ def plot_output(output):
             Output from liionpack.solve which contains pack and cell variables.
 
     """
-    plot_pack(output)
-    plot_cells(output)
+    plot_pack(output, context)
+    plot_cells(output, context)
 
 
 def show_plots():  # pragma: no cover
