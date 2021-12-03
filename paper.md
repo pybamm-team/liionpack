@@ -26,22 +26,34 @@ authors:
   - name: V. Karra
     orcid: 0000-0002-5671-0998
     affiliation: "6"
+  - name: S. Chopra
+    orcid: ?
+    affilation: ?
+  - name: P. Agarwal
+    orcid: ?
+    affiliation: ?
   - name: S. Allu
     orcid: 0000-0003-2841-4398
     affiliation: "6"
+  - name: P. Shearing
+    orcid: 0000-0002-1387-9531
+    affiliation: "1, 2"
+  - name: D. J. L. Brett
+    orcid: 0000-0002-8545-3126
+    affiliation: "1, 2"
 
 affiliations:
- - name: Department of Chemical Engineering, University College London, United Kingdom.
+ - name: Department of Chemical Engineering, University College London, London, WC1E 7JE, United Kingdom.
    index: 1
- - name: The Faraday Institution, United Kingdom.
+ - name: The Faraday Institution, Quad One, Becquerel Avenue, Harwell Campus, Didcot, OX11 0RA, United Kingdom.
    index: 2
- - name: Mathematical Institute, University of Oxford, United Kingdom.
+ - name: Mathematical Institute, University of Oxford, OX2 6GG, United Kingdom.
    index: 3
- - name: Carnegie Mellon University, United States.
+ - name: Carnegie Mellon University, Scott Hall 5109, 5000 Forbes Ave, Pittsburgh, PA 15213, United States.
    index: 4
- - name: WMG, University of Warwick, United Kingdom
+ - name: WMG, University of Warwick, Coventry, CV4 7AL, United Kingdom
    index: 5
- - name: Oak Ridge National Laboratory, United States.
+ - name: Oak Ridge National Laboratory, 2360 Cherahala Boulevard, Knoxville, Tennessee 37932, United States.
    index: 6
 
 date: 03 December 2021
