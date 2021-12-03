@@ -2,15 +2,13 @@
 title: 'Liionpack: A Python package for simulating packs of batteries with PyBaMM'
 
 tags:
-  - python
+  - Python
   - batteries
-  - energy
-  - physics
-  - engineering
-
+  - packs
+  - electrochemistry
 
 authors:
-  - name: T. G. Tranter^[corresponding author]
+  - name: T. G. Tranter
     orcid: 0000-0003-4721-5941
     affiliation: "1, 2"
   - name: R. Timms
@@ -40,7 +38,7 @@ authors:
   - name: P. Shearing
     orcid: 0000-0002-1387-9531
     affiliation: "1, 2"
-  - name: D. J. L. Brett^[corresponding author]
+  - name: D. J. L. Brett
     orcid: 0000-0002-8545-3126
     affiliation: "1, 2"
 
@@ -59,6 +57,7 @@ affiliations:
    index: 6
 
 date: 03 December 2021
+
 bibliography: paper.bib
 
 ---
@@ -70,6 +69,7 @@ Electrification of transport and other energy intensive activities is of growing
 # Statement of need
 
 `Liionpack` is a PyBaMM-affiliated Python package for simulating large systems of batteries connected in series and parallel. Python enables wrapping low-level languages (e.g., C) for speed without losing flexibility or ease-of-use in the user-interface. The API for `Liionpack` was designed to provide a simple and efficient extension to the `PyBaMM` framework allowing users to scale up simulations from single cells to many thousands with a few extra lines of code. `PyBaMM` provides a number of classic physics-based single battery models with configurable options to investigate thermal effects and degradation for example. The pack architecture introduced by `Liionpack` can be defined as a number of batteries connected in series and parallel to one another using busbars and interconnections with defined resistances. A netlist may also be used to construct the pack which is more flexible and allows for configurable network topology and can be constructed graphically with packages such as `LTSpice` or simply created manually specifying nodal connections as either current sources, voltage sources or resistors. Statistical distributions can be easily incorporated into the pack architecture elements through the use of input parameters that allow a single model to be solved with varying inputs.
+<<<<<<< Updated upstream
 
 `Liionpack` was designed to be used by physicists, engineers, students, academics and industrial researchers and system designers concerned with the dynamics of electric current and heat transport in large battery systems. The nature of the solving process facilitates parallel processing of the electrochemical problem formulated as a 1D DAE. Several distributed solvers are provided and can be selected through a common function with a simple function argument. These are `Casadi` which uses multi-threading and works well for single or multi-core machines and `ray` and `dask` [@dask] which are designed for running on clusters and use multi-processing. Many of the functions and models that can be found in `PyBaMM` should work in exactly the same way in `Liionpack` and examples are provided showing how to set up and configure different battery models for running in the pack system. Several visualization tools are also provided for analysis of the results.
 
@@ -119,5 +119,27 @@ Figure sizes can be customized by adding an optional second parameter:
 
 We acknowledge contributions from Brigitta Sipocz, Syrtis Major, and Semyeong
 Oh, and support from Kathryn Johnston during the genesis of this project.
+=======
+
+`Liionpack` was designed to be used by physicists, engineers, students, academics and industrial researchers and system designers concerned with the dynamics of electric current and heat transport in large battery systems. The nature of the solving process facilitates parallel processing of the electrochemical problem formulated as a 1D DAE. Several distributed solvers are provided and can be selected through a common function with a simple function argument. These are `Casadi` which uses multi-threading and works well for single or multi-core machines and `ray` and `dask` [@dask] which are designed for running on clusters and use multi-processing. Many of the functions and models that can be found in `PyBaMM` should work in exactly the same way in `Liionpack` and examples are provided showing how to set up and configure different battery models for running in the pack system. Several visualization tools are also provided for analysis of the results.
+
+# Mathematics
+
+At present, the circuits may only contain three different types of element, namely a current source, voltage source and resistor. Resistors are used to represent the busbars and interconnections in the pack as well as the internal resistance of the batteries. The open circuit voltage is used for the voltage sources in the circuit and modified nodal analysis (MNA) is used to solve the circuit problem determining the distribution of current in the pack.
+
+# Citations
+
+None
+
+# Figures
+
+None
+
+# Acknowledgements
+
+PyBaMM-team acknowledges the funding and support of the Faraday Institution's multi-scale modelling project and Innovate UK.
+
+The development work carried out by members at Oak Ridge National Laboratory was partially sponsored by the Office of Electricity under the United States Department of Energy (DOE).
+>>>>>>> Stashed changes
 
 # References
