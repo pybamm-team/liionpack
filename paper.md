@@ -27,11 +27,11 @@ authors:
     orcid: 0000-0002-5671-0998
     affiliation: "6"
   - name: S. Chopra
-    orcid: ?
-    affilation: ?
+    orcid: 0000-0000-0000-0000
+    affilation: 7
   - name: P. Agarwal
-    orcid: ?
-    affiliation: ?
+    orcid: 0000-0000-0000-0000
+    affiliation: 7
   - name: S. Allu
     orcid: 0000-0003-2841-4398
     affiliation: "6"
@@ -55,7 +55,8 @@ affiliations:
    index: 5
  - name: Oak Ridge National Laboratory, 2360 Cherahala Boulevard, Knoxville, Tennessee 37932, United States.
    index: 6
-
+ - name: GSOC
+   index: 7
 date: 03 December 2021
 
 bibliography: paper.bib
