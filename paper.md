@@ -31,7 +31,7 @@ authors:
     affiliation: "7"
   - name: S. Chopra
     orcid: 0000-0000-0000-0001
-    affilation: "7"
+    affiliation: "7"
   - name: S. Allu
     orcid: 0000-0003-2841-4398
     affiliation: "6"
