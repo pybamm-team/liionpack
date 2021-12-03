@@ -1,44 +1,50 @@
 ---
-title: 'PoreSpy: A Python Toolkit for Quantitative Analysis of Porous Media Images'
+title: 'Liionpack: A Python package for simulating packs of batteries with PyBaMM'
 
 tags:
   - Python
-  - porous media
-  - tomography
-  - image analysis
+  - batteries
+  - packs
+  - electrochemistry
 
 authors:
-  - name: Jeff T. Gostick
-    orcid: 0000-0001-7736-7124
-    affiliation: 1
-  - name: Zohaib A. Khan
-    orcid: 0000-0003-2115-7798
-    affiliation: 1
-  - name: Thomas G. Tranter
+  - name: T. G. Tranter
     orcid: 0000-0003-4721-5941
     affiliation: "1, 2"
-  - name: Matthew D.R. Kok
-    orcid: 0000-0001-8410-9748
+  - name: R. Timms
+    orcid: 0000-0002-8858-4818
     affiliation: "2, 3"
-  - name: Mehrez Agnaou
-    orcid: 0000-0002-6635-080X
-    affiliation: 1
-  - name: Mohammadamin Sadeghi
-    orcid: 0000-0002-6756-9117
-    affiliation: 3
-  - name: Rhodri Jervis
-    orcid: 0000-0003-2784-7802
-    affiliation: 2
+  - name: V. Sulzer
+    orcid: 0000-0002-8687-327X
+    affiliation: "4"
+  - name: F. Brosa Planella
+    orcid: 0000-0001-6363-2812
+    affiliation "2, 5"
+  - name: G. M. Wiggins
+    orcid: 0000-0002-4737-6596
+    affiliation: "6"
+  - name: V. Karra
+    orcid: 0000-0002-5671-0998
+    affiliation: "6"
+  - name: S. Allu
+    orcid: 0000-0003-2841-4398
+    affiliation: "6"
 
 affiliations:
- - name: Department of Chemical Engineering, University of Waterloo, Waterloo, ON, Canada
+ - name: Department of Chemical Engineering, University College London, United Kingdom.
    index: 1
- - name: Department of Chemical Engineering, University College London, London, United Kingdom
+ - name: The Faraday Institution, United Kingdom.
    index: 2
- - name: Department of Chemical Engineering, McGill University, Montreal, QC, Canada
+ - name: Mathematical Institute, University of Oxford, United Kingdom.
    index: 3
+ - name: Carnegie Mellon University, United States.
+   index: 4
+ - name: WMG, University of Warwick, United Kingdom
+   index: 5
+ - name: Oak Ridge National Laboratory, United States.
+   index: 6
 
-date: 14 April 2019
+date: 03 December 2021
 
 bibliography: paper.bib
 
