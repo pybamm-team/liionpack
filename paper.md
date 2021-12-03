@@ -27,11 +27,11 @@ authors:
     orcid: 0000-0002-5671-0998
     affiliation: "6"
   - name: P. Agarwal
-    orcid: 0000-0000-0000-0002
+    orcid: 0000-0002-5333-1634
     affiliation: "7"
   - name: S. Chopra
     orcid: 0000-0003-3046-7675
-    affiliation: "7"
+    affiliation: "8"
   - name: S. Allu
     orcid: 0000-0003-2841-4398
     affiliation: "6"
@@ -55,8 +55,10 @@ affiliations:
    index: 5
  - name: Oak Ridge National Laboratory, 2360 Cherahala Boulevard, Knoxville, Tennessee 37932, United States.
    index: 6
- - name: Cluster Innovation Centre, University of Delhi, GC Narang Road, Delhi, 110007, India.
+ - name: Symbiosis Institute of Technology, Symbiosis International University, Lavale, Pune, Maharashtra 412115, India.
    index: 7
+ - name: Cluster Innovation Centre, University of Delhi, GC Narang Road, Delhi, 110007, India.
+   index: 8
 
 date: 03 December 2021
 
