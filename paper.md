@@ -26,12 +26,12 @@ authors:
   - name: V. Karra
     orcid: 0000-0002-5671-0998
     affiliation: "6"
-  - name: S. Chopra
-    orcid: 0000-0000-0000-0000
-    affilation: "7"
   - name: P. Agarwal
-    orcid: 0000-0000-0000-0000
+    orcid: 0000-0000-0000-0002
     affiliation: "7"
+  - name: S. Chopra
+    orcid: 0000-0000-0000-0001
+    affilation: "7"
   - name: S. Allu
     orcid: 0000-0003-2841-4398
     affiliation: "6"
@@ -57,6 +57,7 @@ affiliations:
    index: 6
  - name: GSOC
    index: 7
+
 date: 03 December 2021
 
 bibliography: paper.bib
