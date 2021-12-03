@@ -30,7 +30,7 @@ authors:
     orcid: 0000-0000-0000-0002
     affiliation: "7"
   - name: S. Chopra
-    orcid: 0000-0000-0000-0001
+    orcid: 0000-0003-3046-7675
     affiliation: "7"
   - name: S. Allu
     orcid: 0000-0003-2841-4398
@@ -55,7 +55,7 @@ affiliations:
    index: 5
  - name: Oak Ridge National Laboratory, 2360 Cherahala Boulevard, Knoxville, Tennessee 37932, United States.
    index: 6
- - name: GSOC
+ - name: Cluster Innovation Centre, University of Delhi, GC Narang Road, Delhi, 110007, India.
    index: 7
 
 date: 03 December 2021
