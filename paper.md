@@ -1,62 +1,44 @@
 ---
-title: 'Liionpack: A Python package for simulating packs of batteries with PyBaMM'
+title: 'PoreSpy: A Python Toolkit for Quantitative Analysis of Porous Media Images'
 
 tags:
   - Python
-  - batteries
-  - packs
-  - electrochemistry
+  - porous media
+  - tomography
+  - image analysis
 
 authors:
-  - name: T. G. Tranter
+  - name: Jeff T. Gostick
+    orcid: 0000-0001-7736-7124
+    affiliation: 1
+  - name: Zohaib A. Khan
+    orcid: 0000-0003-2115-7798
+    affiliation: 1
+  - name: Thomas G. Tranter
     orcid: 0000-0003-4721-5941
     affiliation: "1, 2"
-  - name: R. Timms
-    orcid: 0000-0002-8858-4818
+  - name: Matthew D.R. Kok
+    orcid: 0000-0001-8410-9748
     affiliation: "2, 3"
-  - name: V. Sulzer
-    orcid: 0000-0002-8687-327X
-    affiliation: "4"
-  - name: F. Brosa Planella
-    orcid: 0000-0001-6363-2812
-    affiliation "2, 5"
-  - name: G. M. Wiggins
-    orcid: 0000-0002-4737-6596
-    affiliation: "6"
-  - name: V. Karra
-    orcid: 0000-0002-5671-0998
-    affiliation: "6"
-  - name: S. Chopra
-    orcid: ?
-    affilation: ?
-  - name: P. Agarwal
-    orcid: ?
-    affiliation: ?
-  - name: S. Allu
-    orcid: 0000-0003-2841-4398
-    affiliation: "6"
-  - name: P. Shearing
-    orcid: 0000-0002-1387-9531
-    affiliation: "1, 2"
-  - name: D. J. L. Brett
-    orcid: 0000-0002-8545-3126
-    affiliation: "1, 2"
+  - name: Mehrez Agnaou
+    orcid: 0000-0002-6635-080X
+    affiliation: 1
+  - name: Mohammadamin Sadeghi
+    orcid: 0000-0002-6756-9117
+    affiliation: 3
+  - name: Rhodri Jervis
+    orcid: 0000-0003-2784-7802
+    affiliation: 2
 
 affiliations:
- - name: Department of Chemical Engineering, University College London, United Kingdom.
+ - name: Department of Chemical Engineering, University of Waterloo, Waterloo, ON, Canada
    index: 1
- - name: The Faraday Institution, United Kingdom.
+ - name: Department of Chemical Engineering, University College London, London, United Kingdom
    index: 2
- - name: Mathematical Institute, University of Oxford, United Kingdom.
+ - name: Department of Chemical Engineering, McGill University, Montreal, QC, Canada
    index: 3
- - name: Carnegie Mellon University, United States.
-   index: 4
- - name: WMG, University of Warwick, United Kingdom
-   index: 5
- - name: Oak Ridge National Laboratory, United States.
-   index: 6
 
-date: 03 December 2021
+date: 14 April 2019
 
 bibliography: paper.bib
 
