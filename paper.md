@@ -19,7 +19,7 @@ authors:
     affiliation: "4"
   - name: F. Brosa Planella
     orcid: 0000-0001-6363-2812
-    affiliation "2, 5"
+    affiliation: "2, 5"
   - name: G. M. Wiggins
     orcid: 0000-0002-4737-6596
     affiliation: "6"
