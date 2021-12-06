@@ -89,9 +89,6 @@ import pybamm
 # Generate the netlist
 netlist = lp.setup_circuit(Np=4, Ns=1, Rb=1e-3, Rc=1e-2)
 
-# Draw the circuit
-lp.draw_circuit(netlist, cpt_size=1.0, dpi=150, node_spacing=2.5)
-
 # Define some additional variables to output
 output_variables = [
     'X-averaged negative particle surface concentration [mol.m-3]',
@@ -119,6 +116,9 @@ output = lp.solve(netlist=netlist,
 
 # Display the results
 lp.plot_output(output)
+
+# Draw the circuit at final state
+lp.draw_circuit(netlist, cpt_size=1.0, dpi=150, node_spacing=2.5)
 ```
 
 Single dollars ($) are required for inline mathematics e.g. $f(x) = e^{\pi/x}$
