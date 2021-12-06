@@ -292,7 +292,7 @@ def _create_casadi_objects(inputs, sim, dt, Nspm, nproc, variable_names, mapped)
     for inpt in inputs:
         initial_solutions.append(init_sol.copy())
         initial_solutions[-1].y[:] = sim.built_model.init_eval(inpt)
-        
+
     # Step model forward dt seconds
     t_eval = np.linspace(0, dt, 11)
     t_eval_ndim = t_eval / sim.model.timescale.evaluate()
