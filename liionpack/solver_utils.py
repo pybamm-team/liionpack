@@ -282,25 +282,17 @@ def _create_casadi_objects(inputs, sim, dt, Nspm, nproc, variable_names, mapped)
             evaluates the event variables. see casadi function
 
     """
-    # inputs = {
-    #     "Current function [A]": I_init,
-    # }
-    # inputs.update(inputs_init)
     solver = sim.solver
-
     # Initial solution - this builds the model behind the scenes
-    # solve model for 1 second to initialise the circuit
-    t_eval = np.linspace(0, 1, 2)
-    # sim.solve(t_eval, inputs=inputs)
     sim.build()
     initial_solutions = []
+    init_sol = sim.step(
+        dt=1e-6, save=False, starting_solution=None, inputs=inputs[0]
+    ).last_state
     for inpt in inputs:
-        initial_solutions.append(
-            sim.step(
-                dt=1e-6, save=False, starting_solution=None, inputs=inpt
-            ).last_state
-        )
-        sim._solution = None
+        initial_solutions.append(init_sol.copy())
+        initial_solutions[-1].y[:] = sim.built_model.init_eval(inpt)
+        
     # Step model forward dt seconds
     t_eval = np.linspace(0, dt, 11)
     t_eval_ndim = t_eval / sim.model.timescale.evaluate()
