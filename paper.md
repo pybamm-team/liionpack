@@ -72,13 +72,21 @@ Electrification of transport and other energy intensive activities is of growing
 
 # Statement of need
 
-`Liionpack` is a PyBaMM-affiliated Python package for simulating large systems of batteries connected in series and parallel. Python enables wrapping low-level languages (e.g., C) for speed without losing flexibility or ease-of-use in the user-interface. The API for `Liionpack` was designed to provide a simple and efficient extension to the `PyBaMM` [@pybamm] framework allowing users to scale up simulations from single cells to many thousands with a few extra lines of code. `PyBaMM` provides a number of classic physics-based single battery models with configurable options to investigate thermal effects and degradation for example. The pack architecture introduced by `Liionpack` can be defined as a number of batteries connected in series and parallel to one another using busbars and interconnections with defined resistances. A netlist may also be used to construct the pack which is more flexible and allows for configurable network topology and can be constructed graphically with packages such as `LTSpice` [@ltspice] or simply created manually specifying nodal connections as either current sources, voltage sources or resistors. Statistical distributions can be easily incorporated into the pack architecture elements through the use of input parameters that allow a single model to be solved with varying inputs.
+`Liionpack` was designed to be used by physicists, engineers, students, academics and industrial researchers and system designers concerned with the dynamics of electric current and heat transport in large battery systems. `Liionpack` is a PyBaMM-affiliated Python package for simulating large systems of batteries connected in series and parallel. Python enables wrapping low-level languages (e.g., C) for speed without losing flexibility or ease-of-use in the user-interface. The API for `Liionpack` was designed to provide a simple and efficient extension to the `PyBaMM` [@pybamm] framework allowing users to scale up simulations from single cells to many thousands with a few extra lines of code. `PyBaMM` provides a number of classic physics-based single battery models with configurable options to investigate thermal effects and degradation for example. The pack architecture introduced by `Liionpack` can be defined as a number of batteries connected in series and parallel to one another using busbars and interconnections with defined resistances. A netlist may also be used to construct the pack which is more flexible and allows for configurable network topology and can be constructed graphically with packages such as `LTSpice` [@ltspice] or simply created manually specifying nodal connections as either current sources, voltage sources or resistors. Statistical distributions can be easily incorporated into the pack architecture elements through the use of input parameters that allow a single model to be solved with varying inputs.
 
-`Liionpack` was designed to be used by physicists, engineers, students, academics and industrial researchers and system designers concerned with the dynamics of electric current and heat transport in large battery systems. The nature of the solving process facilitates parallel processing of the electrochemical problem formulated as a 1D DAE. Several distributed solvers are provided and can be selected through a common function with a simple function argument. These are `Casadi` [@casadi] which uses multi-threading and works well for single workstations and `ray` [@ray] and `dask` [@dask] which are designed for running on clusters and use multi-processing. Many of the functions and models that can be found in `PyBaMM` should work in exactly the same way in `Liionpack` and examples are provided showing how to set up and configure different battery models for running in the pack system. Several visualization tools are also provided for analysis of the results.
+# Algorithm
 
-# Mathematics
+The algorithm to solve the coupled system of batteries is shown in figure \autoref{fig:0}. The nature of the solving process facilitates parallel processing of the electrochemical problem for each battery during each time-step formulated as an integrable 1D DAE. The system is coupled electrically at the global level via the busbars and interconnections in the circuit and solving this linear algebraic system between electrochemical time-steps determines the current balance and boundary conditions for each battery at the next time-step. The combination of a global circuit solve and local electrochemical solve repeatedly iterated over in time in a see-saw fashion provides the most simple and efficient way of coupling the system without repeating time-steps. Results for solving a single battery forming a circuit with negligible busbar resistance deviates by less than 0.01% from a pure `PyBaMM` simulation.
 
-At present, the circuits may only contain three different types of element, namely a current source, voltage source and resistor. Resistors are used to represent the busbars and interconnections in the pack as well as the internal resistance of the batteries. The open circuit voltage is used for the voltage sources in the circuit and modified nodal analysis (MNA) [@mna] is used to solve the circuit problem determining the distribution of current in the pack.
+![Coupled system solution algorithm.\label{fig:0}](./paper_figures/Figure_0.png)
+
+At present, the circuits that are solved may only contain three different types of element: namely current sources, voltage sources and resistors. Resistors are used to represent the busbars and interconnections in the pack as well as the internal resistance of the batteries. The open circuit voltage is used for the voltage sources in the circuit and modified nodal analysis (MNA) [@mna] is used to solve the circuit problem determining the distribution of current in the pack. A typical 4p1s pack architecture is shown below in \autoref{fig:1}.
+
+![Typical pack architecture.\label{fig:1}](./paper_figures/Figure_1.png)
+
+Presently, the thermal problem is solved in a non-coupled way with each battery acting as an independent heat source and interacting with it's environment in a "lumped" sense with a volume-averaged heat transfer coefficient. Heat generation and conduction through the busbars and from cell to neighbouring cells is likely to occur in some scenarios and can be accounted for by solving a transient thermal problem on the network architecture [@jellyroll]. Heat transfer coefficients may also be easily adjusted on a cell-by-cell basis and also throughout the simulation solving process to reflect heterogenous and time-dependent cooling conditions.
+
+Several distributed solvers are provided and can be selected through a common function with a simple function argument. These are `Casadi` [@casadi] which uses multi-threading and works well for single workstations and `ray` [@ray] and `dask` [@dask] which are designed for running on clusters and use multi-processing. Many of the functions and models that can be found in `PyBaMM` should work in exactly the same way in `Liionpack` and examples are provided showing how to set up and configure different battery models for running in the pack system. Several visualization tools are also provided for analysis of the results.
 
 # Example
 
@@ -121,36 +129,12 @@ lp.plot_output(output)
 lp.draw_circuit(netlist, cpt_size=1.0, dpi=150, node_spacing=2.5)
 ```
 
-Single dollars ($) are required for inline mathematics e.g. $f(x) = e^{\pi/x}$
+The output for the examples is shown below as a pack summary in figure \autoref{fig:2} and an example of a cell variable plot showing each battery current in figure \autoref{fig:3}.
 
-Double dollars make self-standing equations:
 
-$$\Theta(x) = \left\{\begin{array}{l}
-0\textrm{ if } x < 0\cr
-1\textrm{ else}
-\end{array}\right.$$
+![Pack summary.\label{fig:2}](./paper_figures/Figure_2.png)
 
-You can also use plain \LaTeX for equations
-\begin{equation}\label{eq:fourier}
-\hat f(\omega) = \int_{-\infty}^{\infty} f(x) e^{i\omega x} dx
-\end{equation}
-and refer to \autoref{eq:fourier} from text.
-
-# Citations
-
-None
-
-# Figures
-
-Figures can be included like this:
-
-![Caption for example figure.\label{fig:1}](./paper_figures/Figure_1.png)
-
-and referenced from text using \autoref{fig:1}.
-
-![Caption for example figure.\label{fig:2}](./paper_figures/Figure_2.png)
-
-![Caption for example figure.\label{fig:3}](./paper_figures/Figure_3.png)
+![Cell variable data.\label{fig:3}](./paper_figures/Figure_3.png)
 
 # Acknowledgements
 
