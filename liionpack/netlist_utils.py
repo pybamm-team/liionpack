@@ -95,7 +95,8 @@ def read_netlist(
 
 
 def setup_circuit(
-    Np=1, Ns=1, Ri=1e-2, Rc=1e-2, Rb=1e-4, Rl=5e-4, I=80.0, V=4.2, plot=False
+    Np=1, Ns=1, Ri=1e-2, Rc=1e-2, Rb=1e-4, Rl=5e-4, I=80.0, V=4.2, plot=False,
+    terminals="left"
 ):
     """
     Define a netlist from a number of batteries in parallel and series
@@ -216,8 +217,18 @@ def setup_circuit(
     # Current source - spans the entire first column
     desc.append("I" + str(num_I))
     num_I += 1
-    node1.append(grid[-1, 0])
-    node2.append(grid[0, 0])
+    if (terminals == 'left') or (terminals is None):
+        t_nodes = [0, 0]
+    elif terminals == 'right':
+        t_nodes = [-1, -1]
+    elif terminals == 'left-right':
+        t_nodes = [0, -1]
+    elif terminals == 'right-left':
+        t_nodes = [-1, 0]
+    else:
+        lp.logger.error('Please specify a valid terminals argument: "left", "right", "left-right" or "right-left"')
+    node1.append(grid[-1, t_nodes[0]])
+    node2.append(grid[0, t_nodes[1]])
     value.append(I)
 
     desc = np.asarray(desc)
