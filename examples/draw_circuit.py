@@ -1,17 +1,20 @@
-#
-# Set up a simulation and draw the circuit
-#
+"""
+Set up a simulation and draw the circuit.
+"""
 
 import liionpack as lp
 import pybamm
-import matplotlib.pyplot as plt
 
-plt.close("all")
 lp.logger.setLevel("NOTICE")
 
-# Generate the netlist
-netlist = lp.setup_circuit(Np=4, Ns=1, Rb=1.5e-3, Rc=1e-2, Ri=5e-2, V=4.0, I=5.0)
-lp.draw_circuit(netlist, scale_factor=0.5, cpt_size=1.0, dpi=300, node_spacing=2.5)
+# Define parameters
+Np = 4
+Ns = 1
+
+# Generate the netlist and draw circuit
+netlist = lp.setup_circuit(Np=Np, Ns=Ns, I=5)
+lp.draw_circuit(netlist, cpt_size=1, dpi=300, node_spacing=3, scale=0.5)
+
 output_variables = [
     "X-averaged negative particle surface concentration [mol.m-3]",
     "X-averaged positive particle surface concentration [mol.m-3]",
@@ -37,7 +40,9 @@ output = lp.solve(
     netlist=netlist,
     parameter_values=parameter_values,
     experiment=experiment,
+    initial_soc=0.5,
     output_variables=output_variables,
 )
 
 lp.plot_output(output)
+lp.show_plots()
