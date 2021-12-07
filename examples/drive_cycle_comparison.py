@@ -1,6 +1,7 @@
-#
-# Compare a drive-cycle simulation between PyBaMM and Liionpack
-#
+"""
+Compare a drive-cycle simulation between PyBaMM and Liionpack.
+"""
+
 import pybamm
 import os
 import pandas as pd
@@ -10,7 +11,6 @@ import numpy as np
 
 if __name__ == "__main__":
     lp.set_logging_level("NOTICE")
-    plt.close("all")
 
     os.chdir(pybamm.__path__[0] + "/..")
     netlist = lp.setup_circuit(Np=1, Ns=1, Rb=1.0e-6, Rc=1e-6, Ri=3e-2, V=3.75, I=1.0)
@@ -41,7 +41,7 @@ if __name__ == "__main__":
     chemistry = pybamm.parameter_sets.Chen2020
     parameter_values = pybamm.ParameterValues(chemistry=chemistry)
 
-    init_SoC = 0.9
+    init_SoC = 0.5
 
     # Solve pack
     output = lp.solve(
@@ -50,17 +50,16 @@ if __name__ == "__main__":
         experiment=experiment,
         output_variables=output_variables,
         initial_soc=init_SoC,
-        manager="casadi",
-        nproc=2,
-    )
+        manager='casadi',
+        nproc=8)
 
     parameter_values = pybamm.ParameterValues(chemistry=chemistry)
 
     sim = pybamm.Simulation(
         model=pybamm.lithium_ion.SPM(),
         experiment=experiment,
-        parameter_values=parameter_values,
-    )
+        parameter_values=parameter_values)
+
     sol = sim.solve(initial_soc=init_SoC)
 
     t_pybamm = sol["Time [s]"].entries
@@ -115,3 +114,5 @@ if __name__ == "__main__":
         ax5.set_ylabel("Pos particle conc. [mol.m-3]")
         handles, labels = ax5.get_legend_handles_labels()
         fig.legend(handles, labels, loc="upper right")
+
+    plt.show()
