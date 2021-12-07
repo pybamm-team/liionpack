@@ -41,7 +41,6 @@ class netlist_utilsTest(unittest.TestCase):
         vector_time = t3 - t2
         serial_time = t2 - t1
         assert np.allclose(V_node, V_node_v)
-        assert serial_time > vector_time
 
 
 if __name__ == "__main__":
