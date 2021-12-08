@@ -273,18 +273,23 @@ def simple_netlist_plot(netlist):
         elem, node1, node2, value, x1, y1, x2, y2 = row[1]
         if elem[0] == "I":
             color = "g"
-        elif elem[:2] == "Rs":
-            color = "r"
-        elif elem[:2] == "Rb":
-            color = "k"
-        elif elem[:2] == "Ri":
-            color = "y"
-        elif elem[0] == "V":
-            color = "b"
+            xs = [x1, x1, -1, -1, x2, x2]
+            ys = [y1, y1 + 1, y1 + 1, -1, -1, y2]
+            plt.scatter(xs, ys, c="k")
+            plt.plot(xs, ys, c=color)
         else:
-            color = "k"
-        plt.scatter([x1, x2], [y1, y2], c="k")
-        plt.plot([x1, x2], [y1, y2], c=color)
+            if elem[:2] == "Rs":
+                color = "r"
+            elif elem[:2] == "Rb":
+                color = "k"
+            elif elem[:2] == "Ri":
+                color = "y"
+            elif elem[0] == "V":
+                color = "b"
+            else:
+                color = "k"
+            plt.scatter([x1, x2], [y1, y2], c="k")
+            plt.plot([x1, x2], [y1, y2], c=color)
 
 
 def compare_solution_output(a, b):
