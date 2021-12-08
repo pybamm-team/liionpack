@@ -95,8 +95,16 @@ def read_netlist(
 
 
 def setup_circuit(
-    Np=1, Ns=1, Ri=1e-2, Rc=1e-2, Rb=1e-4, Rl=5e-4, I=80.0, V=4.2, plot=False,
-    terminals="left"
+    Np=1,
+    Ns=1,
+    Ri=1e-2,
+    Rc=1e-2,
+    Rb=1e-4,
+    Rl=5e-4,
+    I=80.0,
+    V=4.2,
+    plot=False,
+    terminals="left",
 ):
     """
     Define a netlist from a number of batteries in parallel and series
@@ -110,6 +118,8 @@ def setup_circuit(
         I (float): Current (A).
         V (float): Initial battery voltage (V).
         plot (bool): Plot the circuit.
+        terminals (string): The location of the terminals. Can be "left", "right",
+        "left-right", "right-left" or a list or array of node integers.
 
     Returns:
         pandas.DataFrame:
@@ -217,16 +227,22 @@ def setup_circuit(
     # Current source - spans the entire first column
     desc.append("I" + str(num_I))
     num_I += 1
-    if (terminals == 'left') or (terminals is None):
+    if (terminals == "left") or (terminals is None):
         t_nodes = [0, 0]
-    elif terminals == 'right':
+    elif terminals == "right":
         t_nodes = [-1, -1]
-    elif terminals == 'left-right':
+    elif terminals == "left-right":
         t_nodes = [0, -1]
-    elif terminals == 'right-left':
+    elif terminals == "right-left":
         t_nodes = [-1, 0]
+    elif isinstance(terminals, (list, np.ndarray)):
+        t_nodes = terminals
     else:
-        lp.logger.error('Please specify a valid terminals argument: "left", "right", "left-right" or "right-left"')
+        raise ValueError(
+            'Please specify a valid terminals argument: "left", '
+            + '"right", "left-right" or "right-left" or a list or '
+            + "array of nodes"
+        )
     node1.append(grid[-1, t_nodes[0]])
     node2.append(grid[0, t_nodes[1]])
     value.append(I)

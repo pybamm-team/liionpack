@@ -36,6 +36,31 @@ class netlist_utilsTest(unittest.TestCase):
         V_node_v, I_batt_v = lp.solve_circuit_vectorized(netlist)
         assert np.allclose(V_node, V_node_v)
 
+    def test_setup_circuit_terminals(self):
+        combos = [
+            ["left", "right", "left-right", "right-left"],
+            [[0, 0], [-1, -1], [0, -1], [-1, 0]],
+        ]
+        expected = [[0, 0], [7, 7], [0, 7], [7, 0]]
+        for terminals in combos:
+            for i, t in enumerate(terminals):
+                netlist = lp.setup_circuit(Np=7, Ns=1, Rb=1e-4, terminals=t)
+                I_src = netlist[netlist["desc"] == "I0"]
+                assert I_src["node1_x"].item() == expected[i][0]
+                assert I_src["node2_x"].item() == expected[i][1]
+
+        netlist = lp.setup_circuit(Np=7, Ns=1, Rb=1e-4, terminals=[4, 4])
+        I_src = netlist[netlist["desc"] == "I0"]
+        assert I_src["node1_x"].item() == 4
+        assert I_src["node2_x"].item() == 4
+
+    def test_terminals_exception(self):
+        def bad_terminals():
+            _ = lp.setup_circuit(Np=7, Ns=1, Rb=1e-4, terminals="bad")
+
+        with self.assertRaises(ValueError):
+            bad_terminals()
+
 
 if __name__ == "__main__":
     unittest.main()
