@@ -21,12 +21,12 @@ import time as ticker
 
 def read_netlist(
     filepath,
-    Ri=1e-2,
-    Rc=1e-2,
-    Rb=1e-4,
-    Rl=5e-4,
-    I=80.0,
-    V=4.2,
+    Ri=None,
+    Rc=None,
+    Rb=None,
+    Rt=None,
+    I=None,
+    V=None,
 ):
     """
     Assumes netlist has been saved by LTSpice with format Descriptor Node1 Node2 Value
@@ -35,11 +35,11 @@ def read_netlist(
     Open ended components are not allowed and their nodes start with NC (no-connection)
 
     Args:
-        filepath (str): Path to netlist circuit file '.cir'.
+        filepath (str): Path to netlist circuit file '.cir' or '.txt'.
         Ri (float): Internal resistance ($\Omega$).
         Rc (float): Connection resistance ($\Omega$).
         Rb (float): Busbar resistance ($\Omega$).
-        Rl (float): Long Busbar resistance ($\Omega$).
+        Rt (float): Terminal connection resistance ($\Omega$).
         I (float): Current (A).
         V (float): Initial battery voltage (V).
 
@@ -49,7 +49,7 @@ def read_netlist(
     """
 
     # Read in the netlist
-    if ".cir" not in filepath:
+    if "." not in filepath:
         filepath += ".cir"
     if not os.path.isfile(filepath):
         temp = os.path.join(lp.CIRCUIT_DIR, filepath)
@@ -57,8 +57,14 @@ def read_netlist(
             pass
         else:
             filepath = temp
-    with codecs.open(filepath, "r", "utf-16LE") as fd:
-        Lines = fd.readlines()
+    if ".cir" in filepath:
+        with codecs.open(filepath, "r", "utf-16LE") as fd:
+            Lines = fd.readlines()
+    elif ".txt" in filepath:
+        with open(filepath, 'r') as f:
+            Lines = f.readlines()
+    else:
+        raise FileNotFoundError('Please supply a valid file with extension ".cir" or ".txt"')
     # Ignore lines starting with * or .
     Lines = [l.strip("\n").split(" ") for l in Lines if l[0] not in ["*", "."]]
     Lines = np.array(Lines, dtype="<U16")
@@ -68,7 +74,7 @@ def read_netlist(
     desc = Lines[:, 0]
     node1 = Lines[:, 1]
     node2 = Lines[:, 2]
-    value = np.zeros(len(node1))
+    value = Lines[:, 3].astype(float)
     node1 = np.array([x.strip("N") for x in node1], dtype=int)
     node2 = np.array([x.strip("N") for x in node2], dtype=int)
     netlist = pd.DataFrame(
@@ -80,15 +86,16 @@ def read_netlist(
         ("Ri", Ri),
         ("Rc", Rc),
         ("Rb", Rb),
-        ("Rl", Rl),
+        ("Rt", Rt),
         ("I", I),
         ("V", V),
     ]:
-        # netlist["desc"] consists of entries like 'Ri13'
-        # this map finds all the entries that start with (e.g.) 'Ri'
-        name_map = netlist["desc"].str.find(name) > -1
-        # then allocates the value to the corresponding indices
-        netlist.loc[name_map, ("value")] = val
+        if val is not None:
+            # netlist["desc"] consists of entries like 'Ri13'
+            # this map finds all the entries that start with (e.g.) 'Ri'
+            name_map = netlist["desc"].str.find(name) > -1
+            # then allocates the value to the corresponding indices
+            netlist.loc[name_map, ("value")] = val
 
     lp.logger.notice("netlist " + filepath + " loaded")
     return netlist
