@@ -142,7 +142,7 @@ def setup_circuit(
     x = x[mask].flatten()
     y = y[mask].flatten()
     grid[~mask] = -2  # These should never be used
-    
+
     # grid is a Nr x Nc matrix
     # 1st column is terminals only
     # 1st and last rows are busbars
