@@ -100,7 +100,7 @@ def setup_circuit(
     Ri=1e-2,
     Rc=1e-2,
     Rb=1e-4,
-    Rl=5e-4,
+    Rt=1e-5,
     I=80.0,
     V=4.2,
     plot=False,
@@ -115,6 +115,7 @@ def setup_circuit(
         Ri (float): Internal resistance ($\Omega$).
         Rc (float): Connection resistance ($\Omega$).
         Rb (float): Busbar resistance ($\Omega$).
+        Rt (float): Terminal connection resistance ($\Omega$).
         I (float): Current (A).
         V (float): Initial battery voltage (V).
         plot (bool): Plot the circuit.
@@ -227,9 +228,23 @@ def setup_circuit(
             node2.append(nodes[i])
             value.append(Rb)
 
-    # Current source - spans the entire first column
-    desc.append("I" + str(num_I))
-    num_I += 1
+    desc = np.asarray(desc)
+    node1 = np.asarray(node1)
+    node2 = np.asarray(node2)
+    value = np.asarray(value)
+    main_grid = {
+            "desc": desc,
+            "node1": node1,
+            "node2": node2,
+            "value": value,
+            "node1_x": x[node1],
+            "node1_y": y[node1],
+            "node2_x": x[node2],
+            "node2_y": y[node2],
+        }
+
+   
+    # Current source - spans the entire pack
     if (terminals == "left") or (terminals is None):
         t_nodes = [0, 0]
     elif terminals == "right":
@@ -246,26 +261,43 @@ def setup_circuit(
             + '"right", "left-right" or "right-left" or a list or '
             + "array of nodes"
         )
-    node1.append(grid[-1, t_nodes[0]])
-    node2.append(grid[0, t_nodes[1]])
-    value.append(I)
+    # terminal nodes
+    t1 = grid[-1, t_nodes[0]]
+    t2 = grid[0, t_nodes[1]]
+    # terminal coords
+    x1 = x[t1]
+    x2 = x[t2]
+    y1 = y[t1]
+    y2 = y[t2]
+    nn = grid.max() + 1 # next node
+    # coords of nodes forming current source loop
+    desc = ["Rt0", "Rt1", "I0", "Rt2", "Rt3"]
+    xs = np.array([x1, x1, -1, -1, x2, x2])
+    ys = np.array([y1, y1 + 1, y1 + 1, -1, -1, y2])
+    node1 = [t1, nn, nn+1, nn+2, nn+3]
+    node2 = [nn, nn+1, nn+2, nn+3, t2]
+    value = [Rt, Rt, I, Rt, Rt]
 
     desc = np.asarray(desc)
     node1 = np.asarray(node1)
     node2 = np.asarray(node2)
     value = np.asarray(value)
-
-    netlist = pd.DataFrame(
-        {
+    current_loop = {
             "desc": desc,
             "node1": node1,
             "node2": node2,
             "value": value,
-            "node1_x": x[node1],
-            "node1_y": y[node1],
-            "node2_x": x[node2],
-            "node2_y": y[node2],
+            "node1_x": xs[:5],
+            "node1_y": ys[:5],
+            "node2_x": xs[1:],
+            "node2_y": ys[1:],
         }
+    
+    for key in main_grid.keys():
+        main_grid[key] = np.concatenate((main_grid[key], current_loop[key]))
+    # main_grid.update(current_loop)
+    netlist = pd.DataFrame(
+        main_grid
     )
 
     if plot:

@@ -63,10 +63,19 @@ def draw_circuit(netlist, **kwargs):
                                 direction = "right"
                             else:
                                 direction = "left"
+                        elif col[1][1] == "t":
+                            if col[1][2] == "0":
+                                direction = "up"
+                            elif col[1][2] == "1":
+                                direction = "left"
+                            elif col[1][2] == "2":
+                                direction = "right"
+                            elif col[1][2] == "3":
+                                direction = "up"
+                        
                         else:
                             direction = "down"
                 string = string + str(col[1]) + " "
-
         string = string + "; " + direction
         cct.add(string)
 
@@ -273,23 +282,20 @@ def simple_netlist_plot(netlist):
         elem, node1, node2, value, x1, y1, x2, y2 = row[1]
         if elem[0] == "I":
             color = "g"
-            xs = [x1, x1, -1, -1, x2, x2]
-            ys = [y1, y1 + 1, y1 + 1, -1, -1, y2]
-            plt.scatter(xs, ys, c="k")
-            plt.plot(xs, ys, c=color)
+        elif elem[:2] == "Rs":
+            color = "r"
+        elif elem[:2] == "Rb":
+            color = "k"
+        elif elem[:2] == "Ri":
+            color = "y"
+        elif elem[:2] == "Rt":
+            color = "pink"
+        elif elem[0] == "V":
+            color = "b"
         else:
-            if elem[:2] == "Rs":
-                color = "r"
-            elif elem[:2] == "Rb":
-                color = "k"
-            elif elem[:2] == "Ri":
-                color = "y"
-            elif elem[0] == "V":
-                color = "b"
-            else:
-                color = "k"
-            plt.scatter([x1, x2], [y1, y2], c="k")
-            plt.plot([x1, x2], [y1, y2], c=color)
+            color = "k"
+        plt.scatter([x1, x2], [y1, y2], c="k")
+        plt.plot([x1, x2], [y1, y2], c=color)
 
 
 def compare_solution_output(a, b):
