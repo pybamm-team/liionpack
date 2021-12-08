@@ -41,11 +41,12 @@ def draw_circuit(netlist, **kwargs):
     V_map = netlist["desc"].str.find("V") > -1
     I_map = netlist["desc"].str.find("I") > -1
     net2 = netlist.copy()
-    net2.loc[V_map, ("node1")] = netlist["node2"][V_map]
-    net2.loc[V_map, ("node2")] = netlist["node1"][V_map]
+    # net2.loc[V_map, ("node1")] = netlist["node2"][V_map]
+    # net2.loc[V_map, ("node2")] = netlist["node1"][V_map]
     net2.loc[I_map, ("node1")] = netlist["node2"][I_map]
     net2.loc[I_map, ("node2")] = netlist["node1"][I_map]
-
+    d2 = "up"
+    d1 = "down"
     for index, row in net2.iterrows():
         # print(row['desc'])
         string = ""
@@ -54,27 +55,24 @@ def draw_circuit(netlist, **kwargs):
             if ei < 4:
                 if col[0] == "desc":
                     if col[1][0] == "V":
-                        direction = "up"
+                        direction = d1
                     elif col[1][0] == "I":
-                        direction = "up"
+                        direction = d2
                     elif col[1][0] == "R":
                         if col[1][1] == "b":
-                            if col[1][2] == "n":
-                                direction = "right"
-                            else:
-                                direction = "left"
+                            direction = "right"
                         elif col[1][1] == "t":
                             if col[1][2] == "0":
-                                direction = "up"
+                                direction = d2
                             elif col[1][2] == "1":
                                 direction = "left"
                             elif col[1][2] == "2":
                                 direction = "right"
                             elif col[1][2] == "3":
-                                direction = "up"
+                                direction = d2
                         
                         else:
-                            direction = "down"
+                            direction = d1
                 string = string + str(col[1]) + " "
         string = string + "; " + direction
         cct.add(string)

@@ -20,7 +20,7 @@ V1, I1 = lp.solve_circuit(net1)
 net2 = lp.setup_circuit(Np=4, Ns=1, Rb=Rb, Ri=Ri, Rc=Rc, Rt=Rt, I=I, V=V)
 V2, I2 = lp.solve_circuit(net2)
 
-
+# Nodal order is different
 print("V match: ", np.allclose(np.sort(V1), np.sort(V2)))
 print("I match: ", np.allclose(np.sort(I1), np.sort(I2)))
 

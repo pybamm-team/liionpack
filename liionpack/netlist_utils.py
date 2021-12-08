@@ -184,8 +184,8 @@ def setup_circuit(
     node2 = []
     value = []
 
-    # -ve busbars (final row of the grid)
-    bus_nodes = [grid[-1, :]]
+    # -ve busbars (bottom row of the grid)
+    bus_nodes = [grid[0, :]]
     for nodes in bus_nodes:
         for i in range(len(nodes) - 1):
             # netline = []
@@ -199,13 +199,13 @@ def setup_circuit(
     # Series resistors and voltage sources
     cols = np.arange(Nc)
     rows = np.arange(Nr)[:-1]
-    rtype = ["Rs", "V", "Ri"] * Ns
+    rtype = ["Rc", "V", "Ri"] * Ns
     for col in cols:
         # Go down the column alternating Rs, V, Ri connections between nodes
         nodes = grid[:, col]
         for row in rows:
-            if rtype[row] == "Rs":
-                # Series resistor
+            if rtype[row] == "Rc":
+                # Inter(c)onnection / weld
                 desc.append(rtype[row] + str(num_Rs))
                 num_Rs += 1
                 val = Rc
@@ -224,15 +224,15 @@ def setup_circuit(
             value.append(val)
             # netlist.append(netline)
 
-    # +ve busbar (first row of the grid)
-    bus_nodes = [grid[0, :]]
+    # +ve busbar (top row of the grid)
+    bus_nodes = [grid[-1, :]]
     for nodes in bus_nodes:
         for i in range(len(nodes) - 1):
             # netline = []
             desc.append("Rbp" + str(num_Rb))
             num_Rb += 1
-            node1.append(nodes[i + 1])
-            node2.append(nodes[i])
+            node1.append(nodes[i])
+            node2.append(nodes[i + 1])
             value.append(Rb)
 
     desc = np.asarray(desc)
@@ -302,7 +302,6 @@ def setup_circuit(
     
     for key in main_grid.keys():
         main_grid[key] = np.concatenate((main_grid[key], current_loop[key]))
-    # main_grid.update(current_loop)
     netlist = pd.DataFrame(
         main_grid
     )
