@@ -7,16 +7,10 @@ Created on Thu Sep 23 10:36:15 2021
 import numpy as np
 import codecs
 import pandas as pd
-import matplotlib.pyplot as plt
 import liionpack as lp
 import os
-
-# from scipy.linalg import solve
-# import pyamg
-# import pypardiso
 import pybamm
 import scipy as sp
-import time as ticker
 
 
 def read_netlist(
@@ -178,7 +172,6 @@ def setup_circuit(
     netlist = []
 
     num_Rb = 0
-    num_I = 0
     num_V = 0
 
     desc = []

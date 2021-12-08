@@ -38,11 +38,8 @@ def draw_circuit(netlist, **kwargs):
         >>> lp.draw_circuit(net)
     """
     cct = Circuit()
-    V_map = netlist["desc"].str.find("V") > -1
     I_map = netlist["desc"].str.find("I") > -1
     net2 = netlist.copy()
-    # net2.loc[V_map, ("node1")] = netlist["node2"][V_map]
-    # net2.loc[V_map, ("node2")] = netlist["node1"][V_map]
     net2.loc[I_map, ("node1")] = netlist["node2"][I_map]
     net2.loc[I_map, ("node2")] = netlist["node1"][I_map]
     d2 = "up"
