@@ -41,7 +41,7 @@ class netlist_utilsTest(unittest.TestCase):
             ["left", "right", "left-right", "right-left"],
             [[0, 0], [-1, -1], [0, -1], [-1, 0]],
         ]
-        expected = [[0, 0], [7, 7], [0, 7], [7, 0]]
+        expected = [[0, 0], [6, 6], [0, 6], [6, 0]]
         for terminals in combos:
             for i, t in enumerate(terminals):
                 netlist = lp.setup_circuit(Np=7, Ns=1, Rb=1e-4, terminals=t)
@@ -49,10 +49,10 @@ class netlist_utilsTest(unittest.TestCase):
                 assert I_src["node1_x"].item() == expected[i][0]
                 assert I_src["node2_x"].item() == expected[i][1]
 
-        netlist = lp.setup_circuit(Np=7, Ns=1, Rb=1e-4, terminals=[4, 4])
+        netlist = lp.setup_circuit(Np=7, Ns=1, Rb=1e-4, terminals=[4, 2])
         I_src = netlist[netlist["desc"] == "I0"]
         assert I_src["node1_x"].item() == 4
-        assert I_src["node2_x"].item() == 4
+        assert I_src["node2_x"].item() == 2
 
     def test_terminals_exception(self):
         def bad_terminals():

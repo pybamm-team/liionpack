@@ -126,7 +126,7 @@ def setup_circuit(
             A netlist of circuit elements with format desc, node1, node2, value.
 
     """
-    Nc = Np + 1
+    Nc = Np
     Nr = Ns * 3 + 1
 
     grid = np.arange(Nc * Nr).reshape([Nr, Nc])
@@ -135,11 +135,14 @@ def setup_circuit(
     x = coords[1, :, :]
     # make contiguous now instead of later when netlist is done as very slow
     mask = np.ones([Nr, Nc], dtype=bool)
-    mask[1:-1, 0] = False
+    # This is no longer needed as terminals connect directly to battery
+    # Guess could also add a terminal connection resistor though
+    # mask[1:-1, 0] = False
     grid[mask] = np.arange(np.sum(mask))
     x = x[mask].flatten()
     y = y[mask].flatten()
     grid[~mask] = -2  # These should never be used
+    
     # grid is a Nr x Nc matrix
     # 1st column is terminals only
     # 1st and last rows are busbars
@@ -186,7 +189,7 @@ def setup_circuit(
     num_Rs = 0
     num_Ri = 0
     # Series resistors and voltage sources
-    cols = np.arange(Nc)[1:]
+    cols = np.arange(Nc)
     rows = np.arange(Nr)[:-1]
     rtype = ["Rs", "V", "Ri"] * Ns
     for col in cols:

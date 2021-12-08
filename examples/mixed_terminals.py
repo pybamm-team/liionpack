@@ -12,7 +12,7 @@ Np = 7
 Ns = 1
 combos = [
     ["left", "right", "left-right", "right-left"],
-    [[0, 0], [-1, -1], [0, -1], [-1, 0], [4, 4]],
+    [[0, 0], [-1, -1], [0, -1], [-1, 0], [3, 3]],
 ]
 for terminals in combos:
     lines = ["-", "--", "-.", ":", ".-"]
