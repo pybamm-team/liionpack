@@ -70,7 +70,7 @@ def draw_circuit(netlist, **kwargs):
                                 direction = "right"
                             elif col[1][2] == "3":
                                 direction = d2
-                        
+
                         else:
                             direction = d1
                 string = string + str(col[1]) + " "

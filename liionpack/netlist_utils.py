@@ -61,10 +61,12 @@ def read_netlist(
         with codecs.open(filepath, "r", "utf-16LE") as fd:
             Lines = fd.readlines()
     elif ".txt" in filepath:
-        with open(filepath, 'r') as f:
+        with open(filepath, "r") as f:
             Lines = f.readlines()
     else:
-        raise FileNotFoundError('Please supply a valid file with extension ".cir" or ".txt"')
+        raise FileNotFoundError(
+            'Please supply a valid file with extension ".cir" or ".txt"'
+        )
     # Ignore lines starting with * or .
     Lines = [l.strip("\n").split(" ") for l in Lines if l[0] not in ["*", "."]]
     Lines = np.array(Lines, dtype="<U16")
@@ -240,17 +242,16 @@ def setup_circuit(
     node2 = np.asarray(node2)
     value = np.asarray(value)
     main_grid = {
-            "desc": desc,
-            "node1": node1,
-            "node2": node2,
-            "value": value,
-            "node1_x": x[node1],
-            "node1_y": y[node1],
-            "node2_x": x[node2],
-            "node2_y": y[node2],
-        }
+        "desc": desc,
+        "node1": node1,
+        "node2": node2,
+        "value": value,
+        "node1_x": x[node1],
+        "node1_y": y[node1],
+        "node2_x": x[node2],
+        "node2_y": y[node2],
+    }
 
-   
     # Current source - spans the entire pack
     if (terminals == "left") or (terminals is None):
         t_nodes = [0, 0]
@@ -276,13 +277,13 @@ def setup_circuit(
     x2 = x[t2]
     y1 = y[t1]
     y2 = y[t2]
-    nn = grid.max() + 1 # next node
+    nn = grid.max() + 1  # next node
     # coords of nodes forming current source loop
     desc = ["Rt0", "Rt1", "I0", "Rt2", "Rt3"]
     xs = np.array([x1, x1, -1, -1, x2, x2])
     ys = np.array([y1, y1 + 1, y1 + 1, -1, -1, y2])
-    node1 = [t1, nn, nn+1, nn+2, nn+3]
-    node2 = [nn, nn+1, nn+2, nn+3, t2]
+    node1 = [t1, nn, nn + 1, nn + 2, nn + 3]
+    node2 = [nn, nn + 1, nn + 2, nn + 3, t2]
     value = [Rt, Rt, I, Rt, Rt]
 
     desc = np.asarray(desc)
@@ -290,21 +291,19 @@ def setup_circuit(
     node2 = np.asarray(node2)
     value = np.asarray(value)
     current_loop = {
-            "desc": desc,
-            "node1": node1,
-            "node2": node2,
-            "value": value,
-            "node1_x": xs[:5],
-            "node1_y": ys[:5],
-            "node2_x": xs[1:],
-            "node2_y": ys[1:],
-        }
-    
+        "desc": desc,
+        "node1": node1,
+        "node2": node2,
+        "value": value,
+        "node1_x": xs[:5],
+        "node1_y": ys[:5],
+        "node2_x": xs[1:],
+        "node2_y": ys[1:],
+    }
+
     for key in main_grid.keys():
         main_grid[key] = np.concatenate((main_grid[key], current_loop[key]))
-    netlist = pd.DataFrame(
-        main_grid
-    )
+    netlist = pd.DataFrame(main_grid)
 
     if plot:
         lp.simple_netlist_plot(netlist)
