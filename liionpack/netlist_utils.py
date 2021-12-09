@@ -128,7 +128,7 @@ def setup_circuit(
         V (float): Initial battery voltage (V).
         plot (bool): Plot the circuit.
         terminals (string): The location of the terminals. Can be "left", "right",
-        "left-right", "right-left" or a list or array of node integers.
+            "left-right", "right-left" or a list or array of node integers.
 
     Returns:
         pandas.DataFrame:
