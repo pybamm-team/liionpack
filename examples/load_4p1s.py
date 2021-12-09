@@ -10,14 +10,14 @@ import numpy as np
 Rb = 1e-3
 Ri = 1e-2
 Rc = 1e-2
-Rt = 5e-5
+Rt = 1e-5
 I = -2
 V = 4.0
 
 net1 = lp.read_netlist(filepath="4p1s.cir", Rb=Rb, Ri=Ri, Rc=Rc, Rt=Rt, I=I, V=V)
 V1, I1 = lp.solve_circuit(net1)
 
-net2 = lp.setup_circuit(Np=4, Ns=1, Rb=Rb, Ri=Ri, Rc=Rc, Rt=Rt, I=I, V=V)
+net2 = lp.setup_circuit(Np=4, Ns=1, Rb=Rb, Ri=Ri, Rc=Rc, Rt=2*Rt, I=I, V=V)
 V2, I2 = lp.solve_circuit(net2)
 
 # Nodal order is different

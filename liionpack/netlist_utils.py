@@ -70,7 +70,11 @@ def read_netlist(
     desc = Lines[:, 0]
     node1 = Lines[:, 1]
     node2 = Lines[:, 2]
-    value = Lines[:, 3].astype(float)
+    value = Lines[:, 3]
+    try:
+        value = value.astype(float)
+    except ValueError:
+        pass
     node1 = np.array([x.strip("N") for x in node1], dtype=int)
     node2 = np.array([x.strip("N") for x in node2], dtype=int)
     netlist = pd.DataFrame(
@@ -82,6 +86,7 @@ def read_netlist(
         ("Ri", Ri),
         ("Rc", Rc),
         ("Rb", Rb),
+        ("Rl", Rb*2),
         ("Rt", Rt),
         ("I", I),
         ("V", V),
@@ -272,12 +277,13 @@ def setup_circuit(
     y2 = y[t2 - 1]
     nn = grid.max() + 1  # next node
     # coords of nodes forming current source loop
-    desc = ["Rt0", "Rt1", "I0", "Rt2", "Rt3"]
+    desc = ["Rtp0", "Rtp1", "I0", "Rtn1", "Rtn0"]
     xs = np.array([x1, x1, -1, -1, x2, x2])
     ys = np.array([y1, y1 + 1, y1 + 1, -1, -1, y2])
     node1 = [t1, nn, nn + 1, 0, nn + 2]
     node2 = [nn, nn + 1, 0, nn + 2, t2]
-    value = [Rt, Rt, I, Rt, Rt]
+    hRt = Rt / 2
+    value = [hRt, hRt, I, hRt, hRt]
 
     desc = np.asarray(desc)
     node1 = np.asarray(node1)

@@ -42,15 +42,11 @@ def draw_circuit(netlist, **kwargs):
     net2 = netlist.copy()
     net2.loc[I_map, ("node1")] = netlist["node2"][I_map]
     net2.loc[I_map, ("node2")] = netlist["node1"][I_map]
-    d2 = "up"
     d1 = "down"
+    d2 = "up"
     for index, row in net2.iterrows():
 
         desc, n1, n2, value, n1x, n1y, n2x, n2y = row
-        string = desc + " " + str(n1) + " " + str(n2) + " " + str(value)
-        # for ei, col in enumerate(row.iteritems()):
-        #     if ei < 4:
-        # if col[0] == "desc":
         if desc[0] == "V":
             direction = d1
         elif desc[0] == "I":
@@ -59,19 +55,26 @@ def draw_circuit(netlist, **kwargs):
             if desc[1] == "b":
                 direction = "right"
             elif desc[1] == "t":
-                if desc[2] == "0":
+                # Netlist has two resistors with half the value to make a
+                # Nice circuit diagram. Convert into 1 + wire
+                if desc[3] == "0":
                     direction = d2
-                elif desc[2] == "1":
-                    direction = "left"
-                    if n1x > 0:
-                        direction += "=" + str(1 + n1x)
-                elif desc[2] == "2":
-                    direction = "right"
-                elif desc[2] == "3":
-                    direction = d2
+                    desc = "W"
+                else:
+                    value *= 2
+                    desc = desc[:3]
+                    if desc[2] == "p":
+                        direction = "left"
+                        if n1x > 0:
+                            direction += "=" + str(1 + n1x)
+                    else:
+                        direction = "right"
             else:
                 direction = d1
-
+        if desc == "W":
+            string = desc + " " + str(n1) + " " + str(n2)
+        else:
+            string = desc + " " + str(n1) + " " + str(n2) + " " + str(value)
         string = string + "; " + direction
         cct.add(string)
     default = {
