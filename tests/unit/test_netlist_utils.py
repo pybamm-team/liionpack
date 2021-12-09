@@ -6,9 +6,20 @@ import unittest
 
 class netlist_utilsTest(unittest.TestCase):
     def test_read_netlist(self):
-        netlist = lp.read_netlist("4p1s", I=50.0)
-        I_map = netlist["desc"].str.find("I") > -1
-        assert np.all(netlist[I_map]["value"] == 50.0)
+        net1 = lp.read_netlist("4p1s", I=50.0)
+        net2 = lp.read_netlist("4p1s.txt", I=50.0)
+        net3 = lp.read_netlist("4p1s.cir", I=50.0)
+        I_map = net1["desc"].str.find("I") > -1
+        assert np.all(net1[I_map]["value"] == 50.0)
+        assert np.all(net2[I_map]["value"] == 50.0)
+        assert np.all(net3[I_map]["value"] == 50.0)
+
+    def test_netlist_exception(self):
+        def bad_filename():
+            _ = lp.read_netlist("4p1s.bad", I=50.0)
+
+        with self.assertRaises(FileNotFoundError):
+            bad_filename()
 
     def test_setup_circuit(self):
         netlist = lp.setup_circuit(Np=1, Ns=2, Rb=1e-4, Rc=1e-2, Ri=1e-3, V=2.0, I=10.0)
