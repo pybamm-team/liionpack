@@ -39,6 +39,7 @@ nav:
         - 'examples/06 Changing a model.ipynb'
         - 'examples/07 Visualizing larger packs.ipynb'
         - 'examples/08 SEI degradation model.ipynb'
+        - 'examples/09 Terminal locations.ipynb'
     - Reference: 'reference.md'
     - Code of conduct: 'conduct.md'
     - Contributing: 'contributing.md'
