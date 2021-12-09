@@ -37,7 +37,5 @@ for terminals in combos:
         )
 
         plt.plot(range(Np), output["Cell current [A]"][-1, :], lines[i], label=t)
-        print("*" * 20)
-        print(t)
-        print(netlist[netlist["desc"] == "I0"])
+
     plt.legend()

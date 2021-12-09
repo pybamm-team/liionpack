@@ -6,7 +6,7 @@ import unittest
 
 class netlist_utilsTest(unittest.TestCase):
     def test_read_netlist(self):
-        netlist = lp.read_netlist("AMMBa", I=50.0)
+        netlist = lp.read_netlist("4p1s", I=50.0)
         I_map = netlist["desc"].str.find("I") > -1
         assert np.all(netlist[I_map]["value"] == 50.0)
 
@@ -41,18 +41,17 @@ class netlist_utilsTest(unittest.TestCase):
             ["left", "right", "left-right", "right-left"],
             [[0, 0], [-1, -1], [0, -1], [-1, 0]],
         ]
-        expected = [[0, 0], [6, 6], [0, 6], [6, 0]]
         for terminals in combos:
             for i, t in enumerate(terminals):
                 netlist = lp.setup_circuit(Np=7, Ns=1, Rb=1e-4, terminals=t)
                 I_src = netlist[netlist["desc"] == "I0"]
-                assert I_src["node1_x"].item() == expected[i][0]
-                assert I_src["node2_x"].item() == expected[i][1]
+                assert I_src["node1_x"].item() == -1
+                assert I_src["node2_x"].item() == -1
 
         netlist = lp.setup_circuit(Np=7, Ns=1, Rb=1e-4, terminals=[4, 2])
         I_src = netlist[netlist["desc"] == "I0"]
-        assert I_src["node1_x"].item() == 4
-        assert I_src["node2_x"].item() == 2
+        assert I_src["node1_x"].item() == -1
+        assert I_src["node2_x"].item() == -1
 
     def test_terminals_exception(self):
         def bad_terminals():

@@ -45,35 +45,55 @@ def draw_circuit(netlist, **kwargs):
     d2 = "up"
     d1 = "down"
     for index, row in net2.iterrows():
-        # print(row['desc'])
-        string = ""
-        direction = ""
-        for ei, col in enumerate(row.iteritems()):
-            if ei < 4:
-                if col[0] == "desc":
-                    if col[1][0] == "V":
-                        direction = d1
-                    elif col[1][0] == "I":
-                        direction = d2
-                    elif col[1][0] == "R":
-                        if col[1][1] == "b":
-                            direction = "right"
-                        elif col[1][1] == "t":
-                            if col[1][2] == "0":
-                                direction = d2
-                            elif col[1][2] == "1":
-                                direction = "left"
-                            elif col[1][2] == "2":
-                                direction = "right"
-                            elif col[1][2] == "3":
-                                direction = d2
 
-                        else:
-                            direction = d1
-                string = string + str(col[1]) + " "
+        desc, n1, n2, value, n1x, n1y, n2x, n2y = row
+        string = desc + " " + str(n1) + " " + str(n2) + " " + str(value)
+        # for ei, col in enumerate(row.iteritems()):
+        #     if ei < 4:
+        # if col[0] == "desc":
+        if desc[0] == "V":
+            direction = d1
+        elif desc[0] == "I":
+            direction = d2
+        elif desc[0] == "R":
+            if desc[1] == "b":
+                direction = "right"
+            elif desc[1] == "t":
+                if desc[2] == "0":
+                    direction = d2
+                elif desc[2] == "1":
+                    direction = "left"
+                    if n1x > 0:
+                        direction += "=" + str(1 + n1x)
+                elif desc[2] == "2":
+                    direction = "right"
+                elif desc[2] == "3":
+                    direction = d2
+            else:
+                direction = d1
+
         string = string + "; " + direction
         cct.add(string)
+    default = {
+        # 'label_ids': True,
+        # 'label_values': True,
+        # 'draw_nodes': True,
+        # 'label_nodes': True,
+        "cpt_size": 1.0,
+        "dpi": 300,
+        "node_spacing": 2.5,
+        "scale": 1.0,
+        # 'style': "american",
+        # 'help_lines': 0.0,
+        # 'debug': 0
+    }
+    for key in default.keys():
+        if key not in kwargs.keys():
+            kwargs[key] = default[key]
 
+    # Add ground node
+    # nn = np.max([netlist["node1"].max(), netlist["node2"].max()]) + 1
+    cct.add("W 0 00; down, sground")
     cct.draw(**kwargs)
 
 

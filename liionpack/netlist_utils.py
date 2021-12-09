@@ -142,7 +142,7 @@ def setup_circuit(
     # This is no longer needed as terminals connect directly to battery
     # Guess could also add a terminal connection resistor though
     # mask[1:-1, 0] = False
-    grid[mask] = np.arange(np.sum(mask))
+    grid[mask] = np.arange(np.sum(mask)) + 1
     x = x[mask].flatten()
     y = y[mask].flatten()
     grid[~mask] = -2  # These should never be used
@@ -239,10 +239,10 @@ def setup_circuit(
         "node1": node1,
         "node2": node2,
         "value": value,
-        "node1_x": x[node1],
-        "node1_y": y[node1],
-        "node2_x": x[node2],
-        "node2_y": y[node2],
+        "node1_x": x[node1 - 1],
+        "node1_y": y[node1 - 1],
+        "node2_x": x[node2 - 1],
+        "node2_y": y[node2 - 1],
     }
 
     # Current source - spans the entire pack
@@ -266,17 +266,17 @@ def setup_circuit(
     t1 = grid[-1, t_nodes[0]]
     t2 = grid[0, t_nodes[1]]
     # terminal coords
-    x1 = x[t1]
-    x2 = x[t2]
-    y1 = y[t1]
-    y2 = y[t2]
+    x1 = x[t1 - 1]
+    x2 = x[t2 - 1]
+    y1 = y[t1 - 1]
+    y2 = y[t2 - 1]
     nn = grid.max() + 1  # next node
     # coords of nodes forming current source loop
     desc = ["Rt0", "Rt1", "I0", "Rt2", "Rt3"]
     xs = np.array([x1, x1, -1, -1, x2, x2])
     ys = np.array([y1, y1 + 1, y1 + 1, -1, -1, y2])
-    node1 = [t1, nn, nn + 1, nn + 2, nn + 3]
-    node2 = [nn, nn + 1, nn + 2, nn + 3, t2]
+    node1 = [t1, nn, nn + 1, 0, nn + 2]
+    node2 = [nn, nn + 1, 0, nn + 2, t2]
     value = [Rt, Rt, I, Rt, Rt]
 
     desc = np.asarray(desc)
