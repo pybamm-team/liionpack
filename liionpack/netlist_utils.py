@@ -86,7 +86,7 @@ def read_netlist(
         ("Ri", Ri),
         ("Rc", Rc),
         ("Rb", Rb),
-        ("Rl", Rb * 2),
+        ("Rl", Rb),
         ("Rt", Rt),
         ("I", I),
         ("V", V),
