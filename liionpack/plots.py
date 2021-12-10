@@ -46,6 +46,7 @@ def draw_circuit(netlist, **kwargs):
     d2 = "up"
     I_xs = [net2[I_map]["node1_x"].values[0], net2[I_map]["node2_x"].values[0]]
     I_left = np.any(np.array(I_xs) == -1)
+    all_desc = netlist["desc"].values
     for index, row in net2.iterrows():
         color = "black"
         desc, n1, n2, value, n1x, n1y, n2x, n2y = row
@@ -84,9 +85,10 @@ def draw_circuit(netlist, **kwargs):
                     desc = "W"
                 else:
                     # The reistors have the 1 suffix
-                    # Convert the value to the total reistance if not both at
-                    # same end
-                    if I_xs[0] != I_xs[1]:
+                    # Convert the value to the total reistance if a wire element
+                    # is in the netlist
+                    w_desc = desc[:3] + "0"
+                    if w_desc in all_desc:
                         value *= 2
                     desc = desc[:3]
                     # Terminal loop is C shaped with positive at the top so
