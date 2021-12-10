@@ -7,6 +7,17 @@ import matplotlib.pyplot as plt
 
 plt.close("all")
 
-netlist = lp.setup_circuit(Np=5, Ns=1, terminals=[2, 3])
-# lp.simple_netlist_plot(netlist)
-lp.draw_circuit(netlist)
+left = lp.setup_circuit(Np=3, Ns=1, terminals="left")
+lp.draw_circuit(left)
+
+right = lp.setup_circuit(Np=3, Ns=1, terminals="right")
+lp.draw_circuit(right)
+
+left_right = lp.setup_circuit(Np=3, Ns=1, terminals="left-right")
+lp.draw_circuit(left_right)
+
+right_left = lp.setup_circuit(Np=3, Ns=1, terminals="right-left")
+lp.draw_circuit(right_left)
+
+middle = lp.setup_circuit(Np=3, Ns=1, terminals=[1, 1])
+lp.draw_circuit(middle)

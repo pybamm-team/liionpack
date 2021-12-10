@@ -277,13 +277,36 @@ def setup_circuit(
     y2 = y[t2 - 1]
     nn = grid.max() + 1  # next node
     # coords of nodes forming current source loop
-    desc = ["Rtp0", "Rtp1", "I0", "Rtn1", "Rtn0"]
-    xs = np.array([x1, x1, -1, -1, x2, x2])
-    ys = np.array([y1, y1 + 1, y1 + 1, -1, -1, y2])
-    node1 = [t1, nn, nn + 1, 0, nn + 2]
-    node2 = [nn, nn + 1, 0, nn + 2, t2]
-    hRt = Rt / 2
-    value = [hRt, hRt, I, hRt, hRt]
+    if terminals == "left" or (
+        isinstance(terminals, (list, np.ndarray)) and np.all(np.array(terminals) == 0)
+    ):
+        ix = x1 - 1
+        dy = 0
+    elif terminals == "right" or (
+        isinstance(terminals, (list, np.ndarray)) and np.all(np.array(terminals) == -1)
+    ):
+        ix = x1 + 1
+        dy = 0
+    else:
+        ix = -1
+        dy = 1
+    if dy == 0:
+        desc = ["Rtp1", "I0", "Rtn1"]
+        xs = np.array([x1, ix, ix, x2])
+        ys = np.array([y1, y1, y2, y2])
+        node1 = [t1, nn, 0]
+        node2 = [nn, 0, t2]
+        value = [Rt, I, Rt]
+        num_elem = 3
+    else:
+        desc = ["Rtp0", "Rtp1", "I0", "Rtn1", "Rtn0"]
+        xs = np.array([x1, x1, ix, ix, x2, x2])
+        ys = np.array([y1, y1 + dy, y1 + dy, 0 - dy, 0 - dy, y2])
+        node1 = [t1, nn, nn + 1, 0, nn + 2]
+        node2 = [nn, nn + 1, 0, nn + 2, t2]
+        hRt = Rt / 2
+        value = [hRt, hRt, I, hRt, hRt]
+        num_elem = 5
 
     desc = np.asarray(desc)
     node1 = np.asarray(node1)
@@ -294,8 +317,8 @@ def setup_circuit(
         "node1": node1,
         "node2": node2,
         "value": value,
-        "node1_x": xs[:5],
-        "node1_y": ys[:5],
+        "node1_x": xs[:num_elem],
+        "node1_y": ys[:num_elem],
         "node2_x": xs[1:],
         "node2_y": ys[1:],
     }
