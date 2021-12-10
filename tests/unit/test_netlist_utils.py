@@ -52,12 +52,13 @@ class netlist_utilsTest(unittest.TestCase):
             ["left", "right", "left-right", "right-left"],
             [[0, 0], [-1, -1], [0, -1], [-1, 0]],
         ]
+        expected = [-1, 7, -1, -1]
         for terminals in combos:
             for i, t in enumerate(terminals):
                 netlist = lp.setup_circuit(Np=7, Ns=1, Rb=1e-4, terminals=t)
                 I_src = netlist[netlist["desc"] == "I0"]
-                assert I_src["node1_x"].item() == -1
-                assert I_src["node2_x"].item() == -1
+                assert I_src["node1_x"].item() == expected[i]
+                assert I_src["node2_x"].item() == expected[i]
 
         netlist = lp.setup_circuit(Np=7, Ns=1, Rb=1e-4, terminals=[4, 2])
         I_src = netlist[netlist["desc"] == "I0"]

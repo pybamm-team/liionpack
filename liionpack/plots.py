@@ -84,8 +84,10 @@ def draw_circuit(netlist, **kwargs):
                     desc = "W"
                 else:
                     # The reistors have the 1 suffix
-                    # Convert the value to the total reistance
-                    value *= 2
+                    # Convert the value to the total reistance if not both at
+                    # same end
+                    if I_xs[0] != I_xs[1]:
+                        value *= 2
                     desc = desc[:3]
                     # Terminal loop is C shaped with positive at the top so
                     # order is left-vertical-right if we're on the left side
