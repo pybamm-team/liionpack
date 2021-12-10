@@ -32,6 +32,34 @@ def draw_circuit(netlist, **kwargs):
         netlist (pandas.DataFrame):
             A netlist of circuit elements with format. desc, node1, node2, value.
 
+    Kwargs:
+        cpt_size (float):
+            component size, default 1.0
+        dpi (int):
+            dots per inch, default 300
+        node_spacing (float):
+            spacing between component nodes, default 2.0
+        scale (float):
+            schematic scale factor, default 1.0
+        help_lines (float):
+            distance between lines in grid, default 0.0 (disabled)
+        font (string):
+            LaTex font size, default \scriptsize
+        label_ids (bool):
+            Show component ids, default True
+        label_values (bool):
+            Display component values, default True
+        draw_nodes (bool):
+            True to show all nodes (default), False to show no nodes,'primary' to show
+            primary nodes, 'connections' to show nodes that connect more than
+            two components, 'all' to show all nodes.
+        label_nodes (bool):
+            True to label all nodes, False to label no nodes, 'primary' to label
+            primary nodes (default), 'alpha' to label nodes starting with a letter,
+            'pins' to label nodes that are pins on a chip, 'all' to label all nodes
+        style (string):
+            'american', 'british', or 'european'
+
     Example:
         >>> import liionpack as lp
         >>> net = lp.setup_circuit(Np=3, Ns=1, Rb=1e-4, Rc=1e-2, Ri=5e-2, V=3.2, I=80.0)
@@ -39,17 +67,17 @@ def draw_circuit(netlist, **kwargs):
     """
     cct = lp.make_lcapy_circuit(netlist)
     default = {
-        # 'label_ids': True,
-        # 'label_values': True,
-        # 'draw_nodes': True,
-        # 'label_nodes': True,
         "cpt_size": 1.0,
         "dpi": 300,
-        "node_spacing": 2.5,
+        "node_spacing": 2.0,
         "scale": 1.0,
-        # 'style': "american",
-        # 'help_lines': 0.0,
-        # 'debug': 0
+        "help_lines": 0.0,
+        "font": "\scriptsize",
+        "label_ids": True,
+        "label_values": True,
+        "draw_nodes": True,
+        "label_nodes": "primary",
+        "style": "american",
     }
     for key in default.keys():
         if key not in kwargs.keys():

@@ -649,18 +649,7 @@ def make_lcapy_circuit(netlist):
                 # diagram. Convert into 1 resistor + 1 wire
                 if desc[3] == "0":
                     # The wires have the zero suffix
-                    if n1y != n2y:
-                        direction = d2
-                    elif desc[2] == "p":
-                        if I_left:
-                            direction = "left"
-                        else:
-                            direction = "right"
-                    else:
-                        if I_left:
-                            direction = "right"
-                        else:
-                            direction = "left"
+                    direction = d2
                     desc = "W"
                 else:
                     # The reistors have the 1 suffix
