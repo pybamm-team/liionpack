@@ -72,6 +72,23 @@ class netlist_utilsTest(unittest.TestCase):
         with self.assertRaises(ValueError):
             bad_terminals()
 
+    def test_lcapy_circuit(self):
+        l = lp.setup_circuit(Np=3, Ns=1, terminals="left")
+        r = lp.setup_circuit(Np=3, Ns=1, terminals="right")
+        lr = lp.setup_circuit(Np=3, Ns=1, terminals="left-right")
+        rl = lp.setup_circuit(Np=3, Ns=1, terminals="right-left")
+        m = lp.setup_circuit(Np=3, Ns=1, terminals=[1, 1])
+        cct_l = lp.make_lcapy_circuit(l)
+        cct_r = lp.make_lcapy_circuit(r)
+        cct_lr = lp.make_lcapy_circuit(lr)
+        cct_rl = lp.make_lcapy_circuit(rl)
+        cct_m = lp.make_lcapy_circuit(m)
+        assert cct_l.has_dc
+        assert cct_r.has_dc
+        assert cct_lr.has_dc
+        assert cct_rl.has_dc
+        assert cct_m.has_dc
+
 
 if __name__ == "__main__":
     unittest.main()

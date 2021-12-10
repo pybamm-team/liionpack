@@ -11,6 +11,7 @@ import liionpack as lp
 import os
 import pybamm
 import scipy as sp
+from lcapy import Circuit
 
 
 def read_netlist(
@@ -599,3 +600,104 @@ def solve_circuit_vectorized(netlist):
     lp.logger.info(f"Circuit set up and solved in {toc}")
 
     return V_node, I_batt
+
+
+def make_lcapy_circuit(netlist):
+    """
+    Generate a circuit that can be used with lcapy
+
+    Args:
+        netlist (pandas.DataFrame):
+            A netlist of circuit elements with format. desc, node1, node2, value.
+
+    Returns:
+        lcapy.Circuit:
+            The Circuit class is used for describing networks using netlists.
+            Despite the name, it does not require a closed path.
+
+    """
+    cct = Circuit()
+    I_map = netlist["desc"].str.find("I") > -1
+    net2 = netlist.copy()
+    net2.loc[I_map, ("node1")] = netlist["node2"][I_map]
+    net2.loc[I_map, ("node2")] = netlist["node1"][I_map]
+    d1 = "down"
+    d2 = "up"
+    I_xs = [net2[I_map]["node1_x"].values[0], net2[I_map]["node2_x"].values[0]]
+    I_left = np.any(np.array(I_xs) == -1)
+    all_desc = netlist["desc"].values
+    for index, row in net2.iterrows():
+        color = "black"
+        desc, n1, n2, value, n1x, n1y, n2x, n2y = row
+        if desc[0] == "V":
+            direction = d1
+        elif desc[0] == "I":
+            direction = d2
+        elif desc[0] == "R":
+            if desc[1] == "b":
+                direction = "right"
+            elif desc[1] == "t":
+                # These are the terminal nodes and require special attention
+                if desc[2] == "p":
+                    # positive
+                    color = "red"
+                else:
+                    # negative
+                    color = "blue"
+                # If terminals are not both at the same end then the netlist
+                # has two resistors with half the value to make a nice circuit
+                # diagram. Convert into 1 resistor + 1 wire
+                if desc[3] == "0":
+                    # The wires have the zero suffix
+                    if n1y != n2y:
+                        direction = d2
+                    elif desc[2] == "p":
+                        if I_left:
+                            direction = "left"
+                        else:
+                            direction = "right"
+                    else:
+                        if I_left:
+                            direction = "right"
+                        else:
+                            direction = "left"
+                    desc = "W"
+                else:
+                    # The reistors have the 1 suffix
+                    # Convert the value to the total reistance if a wire element
+                    # is in the netlist
+                    w_desc = desc[:3] + "0"
+                    if w_desc in all_desc:
+                        value *= 2
+                    desc = desc[:3]
+                    # Terminal loop is C shaped with positive at the top so
+                    # order is left-vertical-right if we're on the left side
+                    # and right-vertical-left if we're on the right side
+                    if desc[2] == "p":
+                        if I_left:
+                            direction = "left"
+                            # if the terminal connection is not at the end then
+                            # extend the element connections
+                            if n1x > 0:
+                                direction += "=" + str(1 + n1x)
+                        else:
+                            direction = "right"
+                            if n1x < I_xs[0] - 1:
+                                direction += "=" + str(1 + I_xs[0] - n1x)
+                    else:
+                        if I_left:
+                            direction = "right"
+                        else:
+                            direction = "left"
+            else:
+                direction = d1
+        if desc == "W":
+            string = desc + " " + str(n1) + " " + str(n2)
+        else:
+            string = desc + " " + str(n1) + " " + str(n2) + " " + str(value)
+        string = string + "; " + direction
+        string = string + ", color=" + color
+        cct.add(string)
+    # Add ground node
+    cct.add("W 0 00; down, sground")
+    return cct
