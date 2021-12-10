@@ -45,7 +45,6 @@ def draw_circuit(netlist, **kwargs):
     d1 = "down"
     d2 = "up"
     I_xs = [net2[I_map]["node1_x"].values[0], net2[I_map]["node2_x"].values[0]]
-    I_ys = [net2[I_map]["node1_y"].values[0], net2[I_map]["node2_y"].values[0]]
     I_left = np.any(np.array(I_xs) == -1)
     for index, row in net2.iterrows():
         color = "black"
