@@ -23,7 +23,20 @@ lp_context = {
 }
 
 
-def draw_circuit(netlist, **kwargs):
+def draw_circuit(
+    netlist,
+    cpt_size=1.0,
+    dpi=300,
+    node_spacing=2.0,
+    scale=1.0,
+    help_lines=0.0,
+    font="\scriptsize",
+    label_ids=True,
+    label_values=True,
+    draw_nodes=True,
+    label_nodes="primary",
+    style="american",
+):
     """
     Draw a latex version of netlist circuit
     N.B only works with generated netlists not imported ones.
@@ -31,8 +44,6 @@ def draw_circuit(netlist, **kwargs):
     Args:
         netlist (pandas.DataFrame):
             A netlist of circuit elements with format. desc, node1, node2, value.
-
-    Kwargs:
         cpt_size (float):
             component size, default 1.0
         dpi (int):
@@ -66,22 +77,19 @@ def draw_circuit(netlist, **kwargs):
         >>> lp.draw_circuit(net)
     """
     cct = lp.make_lcapy_circuit(netlist)
-    default = {
-        "cpt_size": 1.0,
-        "dpi": 300,
-        "node_spacing": 2.0,
-        "scale": 1.0,
-        "help_lines": 0.0,
-        "font": "\scriptsize",
-        "label_ids": True,
-        "label_values": True,
-        "draw_nodes": True,
-        "label_nodes": "primary",
-        "style": "american",
+    kwargs = {
+        "cpt_size": cpt_size,
+        "dpi": dpi,
+        "node_spacing": node_spacing,
+        "scale": scale,
+        "help_lines": help_lines,
+        "font": font,
+        "label_ids": label_ids,
+        "label_values": label_values,
+        "draw_nodes": draw_nodes,
+        "label_nodes": label_nodes,
+        "style": style,
     }
-    for key in default.keys():
-        if key not in kwargs.keys():
-            kwargs[key] = default[key]
     cct.draw(**kwargs)
 
 
