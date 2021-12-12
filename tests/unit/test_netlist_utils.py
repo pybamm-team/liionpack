@@ -2,14 +2,24 @@ import liionpack as lp
 import numpy as np
 import matplotlib.pyplot as plt
 import unittest
-import time as time
 
 
 class netlist_utilsTest(unittest.TestCase):
     def test_read_netlist(self):
-        netlist = lp.read_netlist("AMMBa", I=50.0)
-        I_map = netlist["desc"].str.find("I") > -1
-        assert np.all(netlist[I_map]["value"] == 50.0)
+        net1 = lp.read_netlist("4p1s", I=50.0)
+        net2 = lp.read_netlist("4p1s.txt", I=50.0)
+        net3 = lp.read_netlist("4p1s.cir", I=50.0)
+        I_map = net1["desc"].str.find("I") > -1
+        assert np.all(net1[I_map]["value"] == 50.0)
+        assert np.all(net2[I_map]["value"] == 50.0)
+        assert np.all(net3[I_map]["value"] == 50.0)
+
+    def test_netlist_exception(self):
+        def bad_filename():
+            _ = lp.read_netlist("4p1s.bad", I=50.0)
+
+        with self.assertRaises(FileNotFoundError):
+            bad_filename()
 
     def test_setup_circuit(self):
         netlist = lp.setup_circuit(Np=1, Ns=2, Rb=1e-4, Rc=1e-2, Ri=1e-3, V=2.0, I=10.0)
@@ -33,15 +43,51 @@ class netlist_utilsTest(unittest.TestCase):
         netlist = lp.setup_circuit(
             Np=1, Ns=100, Rb=1e-4, Rc=1e-2, Ri=1e-3, V=2.0, I=1.0
         )
-        t1 = time.time()
         V_node, I_batt = lp.solve_circuit(netlist)
-        t2 = time.time()
         V_node_v, I_batt_v = lp.solve_circuit_vectorized(netlist)
-        t3 = time.time()
-        vector_time = t3 - t2
-        serial_time = t2 - t1
         assert np.allclose(V_node, V_node_v)
-        assert serial_time > vector_time
+
+    def test_setup_circuit_terminals(self):
+        combos = [
+            ["left", "right", "left-right", "right-left"],
+            [[0, 0], [-1, -1], [0, -1], [-1, 0]],
+        ]
+        expected = [-1, 7, -1, -1]
+        for terminals in combos:
+            for i, t in enumerate(terminals):
+                netlist = lp.setup_circuit(Np=7, Ns=1, Rb=1e-4, terminals=t)
+                I_src = netlist[netlist["desc"] == "I0"]
+                assert I_src["node1_x"].item() == expected[i]
+                assert I_src["node2_x"].item() == expected[i]
+
+        netlist = lp.setup_circuit(Np=7, Ns=1, Rb=1e-4, terminals=[4, 2])
+        I_src = netlist[netlist["desc"] == "I0"]
+        assert I_src["node1_x"].item() == -1
+        assert I_src["node2_x"].item() == -1
+
+    def test_terminals_exception(self):
+        def bad_terminals():
+            _ = lp.setup_circuit(Np=7, Ns=1, Rb=1e-4, terminals="bad")
+
+        with self.assertRaises(ValueError):
+            bad_terminals()
+
+    def test_lcapy_circuit(self):
+        l = lp.setup_circuit(Np=3, Ns=1, terminals="left")
+        r = lp.setup_circuit(Np=3, Ns=1, terminals="right")
+        lr = lp.setup_circuit(Np=3, Ns=1, terminals="left-right")
+        rl = lp.setup_circuit(Np=3, Ns=1, terminals="right-left")
+        m = lp.setup_circuit(Np=3, Ns=1, terminals=[1, 1])
+        cct_l = lp.make_lcapy_circuit(l)
+        cct_r = lp.make_lcapy_circuit(r)
+        cct_lr = lp.make_lcapy_circuit(lr)
+        cct_rl = lp.make_lcapy_circuit(rl)
+        cct_m = lp.make_lcapy_circuit(m)
+        assert cct_l.has_dc
+        assert cct_r.has_dc
+        assert cct_lr.has_dc
+        assert cct_rl.has_dc
+        assert cct_m.has_dc
 
 
 if __name__ == "__main__":

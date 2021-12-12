@@ -1,4 +1,4 @@
-from lcapy import Circuit
+import liionpack as lp
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib as mpl
@@ -36,7 +36,20 @@ white_context = {
     "figure.figsize": (8, 6),
 }
 
-def draw_circuit(netlist, **kwargs):
+def draw_circuit(
+    netlist,
+    cpt_size=1.0,
+    dpi=300,
+    node_spacing=2.0,
+    scale=1.0,
+    help_lines=0.0,
+    font="\scriptsize",
+    label_ids=True,
+    label_values=True,
+    draw_nodes=True,
+    label_nodes="primary",
+    style="american",
+):
     """
     Draw a latex version of netlist circuit
     N.B only works with generated netlists not imported ones.
@@ -44,45 +57,52 @@ def draw_circuit(netlist, **kwargs):
     Args:
         netlist (pandas.DataFrame):
             A netlist of circuit elements with format. desc, node1, node2, value.
+        cpt_size (float):
+            component size, default 1.0
+        dpi (int):
+            dots per inch, default 300
+        node_spacing (float):
+            spacing between component nodes, default 2.0
+        scale (float):
+            schematic scale factor, default 1.0
+        help_lines (float):
+            distance between lines in grid, default 0.0 (disabled)
+        font (string):
+            LaTex font size, default \scriptsize
+        label_ids (bool):
+            Show component ids, default True
+        label_values (bool):
+            Display component values, default True
+        draw_nodes (bool):
+            True to show all nodes (default), False to show no nodes,'primary' to show
+            primary nodes, 'connections' to show nodes that connect more than
+            two components, 'all' to show all nodes.
+        label_nodes (bool):
+            True to label all nodes, False to label no nodes, 'primary' to label
+            primary nodes (default), 'alpha' to label nodes starting with a letter,
+            'pins' to label nodes that are pins on a chip, 'all' to label all nodes
+        style (string):
+            'american', 'british', or 'european'
 
     Example:
         >>> import liionpack as lp
         >>> net = lp.setup_circuit(Np=3, Ns=1, Rb=1e-4, Rc=1e-2, Ri=5e-2, V=3.2, I=80.0)
         >>> lp.draw_circuit(net)
     """
-    cct = Circuit()
-    V_map = netlist["desc"].str.find("V") > -1
-    I_map = netlist["desc"].str.find("I") > -1
-    net2 = netlist.copy()
-    net2.loc[V_map, ("node1")] = netlist["node2"][V_map]
-    net2.loc[V_map, ("node2")] = netlist["node1"][V_map]
-    net2.loc[I_map, ("node1")] = netlist["node2"][I_map]
-    net2.loc[I_map, ("node2")] = netlist["node1"][I_map]
-
-    for index, row in net2.iterrows():
-        # print(row['desc'])
-        string = ""
-        direction = ""
-        for ei, col in enumerate(row.iteritems()):
-            if ei < 4:
-                if col[0] == "desc":
-                    if col[1][0] == "V":
-                        direction = "up"
-                    elif col[1][0] == "I":
-                        direction = "up"
-                    elif col[1][0] == "R":
-                        if col[1][1] == "b":
-                            if col[1][2] == "n":
-                                direction = "right"
-                            else:
-                                direction = "left"
-                        else:
-                            direction = "down"
-                string = string + str(col[1]) + " "
-
-        string = string + "; " + direction
-        cct.add(string)
-
+    cct = lp.make_lcapy_circuit(netlist)
+    kwargs = {
+        "cpt_size": cpt_size,
+        "dpi": dpi,
+        "node_spacing": node_spacing,
+        "scale": scale,
+        "help_lines": help_lines,
+        "font": font,
+        "label_ids": label_ids,
+        "label_values": label_values,
+        "draw_nodes": draw_nodes,
+        "label_nodes": label_nodes,
+        "style": style,
+    }
     cct.draw(**kwargs)
 
 
@@ -305,6 +325,8 @@ def simple_netlist_plot(netlist):
             color = "k"
         elif elem[:2] == "Ri":
             color = "y"
+        elif elem[:2] == "Rt":
+            color = "pink"
         elif elem[0] == "V":
             color = "b"
         else:
