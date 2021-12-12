@@ -34,7 +34,7 @@ output = lp.solve(netlist=netlist,
                   initial_soc=0.5)
 
 # Display the results
-lp.plot_output(output)
+lp.plot_output(output, context="white")
 
 # Draw the circuit at final state
-lp.draw_circuit(netlist)
+lp.draw_circuit(netlist, cpt_size=1.0, node_spacing=2.2)
