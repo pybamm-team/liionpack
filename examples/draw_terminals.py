@@ -1,11 +1,9 @@
-#
-# Plot a netlist
-#
+"""
+Draw circuits with different terminal locations.
+"""
 
 import liionpack as lp
 import matplotlib.pyplot as plt
-
-plt.close("all")
 
 left = lp.setup_circuit(Np=3, Ns=1, terminals="left")
 lp.draw_circuit(left)
@@ -21,3 +19,5 @@ lp.draw_circuit(right_left)
 
 middle = lp.setup_circuit(Np=3, Ns=1, terminals=[1, 1])
 lp.draw_circuit(middle)
+
+lp.show_plots()
