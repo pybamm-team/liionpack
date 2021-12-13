@@ -39,3 +39,5 @@ for terminals in combos:
         plt.plot(range(Np), output["Cell current [A]"][-1, :], lines[i], label=t)
 
     plt.legend()
+
+lp.show_plots()
