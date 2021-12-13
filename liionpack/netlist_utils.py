@@ -7,26 +7,21 @@ Created on Thu Sep 23 10:36:15 2021
 import numpy as np
 import codecs
 import pandas as pd
-import matplotlib.pyplot as plt
 import liionpack as lp
 import os
-
-# from scipy.linalg import solve
-# import pyamg
-# import pypardiso
 import pybamm
 import scipy as sp
-import time as ticker
+from lcapy import Circuit
 
 
 def read_netlist(
     filepath,
-    Ri=1e-2,
-    Rc=1e-2,
-    Rb=1e-4,
-    Rl=5e-4,
-    I=80.0,
-    V=4.2,
+    Ri=None,
+    Rc=None,
+    Rb=None,
+    Rt=None,
+    I=None,
+    V=None,
 ):
     """
     Assumes netlist has been saved by LTSpice with format Descriptor Node1 Node2 Value
@@ -35,11 +30,11 @@ def read_netlist(
     Open ended components are not allowed and their nodes start with NC (no-connection)
 
     Args:
-        filepath (str): Path to netlist circuit file '.cir'.
+        filepath (str): Path to netlist circuit file '.cir' or '.txt'.
         Ri (float): Internal resistance ($\Omega$).
         Rc (float): Connection resistance ($\Omega$).
         Rb (float): Busbar resistance ($\Omega$).
-        Rl (float): Long Busbar resistance ($\Omega$).
+        Rt (float): Terminal connection resistance ($\Omega$).
         I (float): Current (A).
         V (float): Initial battery voltage (V).
 
@@ -49,7 +44,7 @@ def read_netlist(
     """
 
     # Read in the netlist
-    if ".cir" not in filepath:
+    if "." not in filepath:
         filepath += ".cir"
     if not os.path.isfile(filepath):
         temp = os.path.join(lp.CIRCUIT_DIR, filepath)
@@ -57,8 +52,16 @@ def read_netlist(
             pass
         else:
             filepath = temp
-    with codecs.open(filepath, "r", "utf-16LE") as fd:
-        Lines = fd.readlines()
+    if ".cir" in filepath:
+        with codecs.open(filepath, "r", "utf-16LE") as fd:
+            Lines = fd.readlines()
+    elif ".txt" in filepath:
+        with open(filepath, "r") as f:
+            Lines = f.readlines()
+    else:
+        raise FileNotFoundError(
+            'Please supply a valid file with extension ".cir" or ".txt"'
+        )
     # Ignore lines starting with * or .
     Lines = [l.strip("\n").split(" ") for l in Lines if l[0] not in ["*", "."]]
     Lines = np.array(Lines, dtype="<U16")
@@ -68,7 +71,11 @@ def read_netlist(
     desc = Lines[:, 0]
     node1 = Lines[:, 1]
     node2 = Lines[:, 2]
-    value = np.zeros(len(node1))
+    value = Lines[:, 3]
+    try:
+        value = value.astype(float)
+    except ValueError:
+        pass
     node1 = np.array([x.strip("N") for x in node1], dtype=int)
     node2 = np.array([x.strip("N") for x in node2], dtype=int)
     netlist = pd.DataFrame(
@@ -80,22 +87,33 @@ def read_netlist(
         ("Ri", Ri),
         ("Rc", Rc),
         ("Rb", Rb),
-        ("Rl", Rl),
+        ("Rl", Rb),
+        ("Rt", Rt),
         ("I", I),
         ("V", V),
     ]:
-        # netlist["desc"] consists of entries like 'Ri13'
-        # this map finds all the entries that start with (e.g.) 'Ri'
-        name_map = netlist["desc"].str.find(name) > -1
-        # then allocates the value to the corresponding indices
-        netlist.loc[name_map, ("value")] = val
+        if val is not None:
+            # netlist["desc"] consists of entries like 'Ri13'
+            # this map finds all the entries that start with (e.g.) 'Ri'
+            name_map = netlist["desc"].str.find(name) > -1
+            # then allocates the value to the corresponding indices
+            netlist.loc[name_map, ("value")] = val
 
     lp.logger.notice("netlist " + filepath + " loaded")
     return netlist
 
 
 def setup_circuit(
-    Np=1, Ns=1, Ri=1e-2, Rc=1e-2, Rb=1e-4, Rl=5e-4, I=80.0, V=4.2, plot=False
+    Np=1,
+    Ns=1,
+    Ri=1e-2,
+    Rc=1e-2,
+    Rb=1e-4,
+    Rt=1e-5,
+    I=80.0,
+    V=4.2,
+    plot=False,
+    terminals="left",
 ):
     """
     Define a netlist from a number of batteries in parallel and series
@@ -106,16 +124,19 @@ def setup_circuit(
         Ri (float): Internal resistance ($\Omega$).
         Rc (float): Connection resistance ($\Omega$).
         Rb (float): Busbar resistance ($\Omega$).
+        Rt (float): Terminal connection resistance ($\Omega$).
         I (float): Current (A).
         V (float): Initial battery voltage (V).
         plot (bool): Plot the circuit.
+        terminals (string): The location of the terminals. Can be "left", "right",
+            "left-right", "right-left" or a list or array of node integers.
 
     Returns:
         pandas.DataFrame:
             A netlist of circuit elements with format desc, node1, node2, value.
 
     """
-    Nc = Np + 1
+    Nc = Np
     Nr = Ns * 3 + 1
 
     grid = np.arange(Nc * Nr).reshape([Nr, Nc])
@@ -124,11 +145,14 @@ def setup_circuit(
     x = coords[1, :, :]
     # make contiguous now instead of later when netlist is done as very slow
     mask = np.ones([Nr, Nc], dtype=bool)
-    mask[1:-1, 0] = False
-    grid[mask] = np.arange(np.sum(mask))
+    # This is no longer needed as terminals connect directly to battery
+    # Guess could also add a terminal connection resistor though
+    # mask[1:-1, 0] = False
+    grid[mask] = np.arange(np.sum(mask)) + 1
     x = x[mask].flatten()
     y = y[mask].flatten()
     grid[~mask] = -2  # These should never be used
+
     # grid is a Nr x Nc matrix
     # 1st column is terminals only
     # 1st and last rows are busbars
@@ -154,7 +178,6 @@ def setup_circuit(
     netlist = []
 
     num_Rb = 0
-    num_I = 0
     num_V = 0
 
     desc = []
@@ -162,8 +185,8 @@ def setup_circuit(
     node2 = []
     value = []
 
-    # -ve busbars (final row of the grid)
-    bus_nodes = [grid[-1, :]]
+    # -ve busbars (bottom row of the grid)
+    bus_nodes = [grid[0, :]]
     for nodes in bus_nodes:
         for i in range(len(nodes) - 1):
             # netline = []
@@ -175,15 +198,15 @@ def setup_circuit(
     num_Rs = 0
     num_Ri = 0
     # Series resistors and voltage sources
-    cols = np.arange(Nc)[1:]
+    cols = np.arange(Nc)
     rows = np.arange(Nr)[:-1]
-    rtype = ["Rs", "V", "Ri"] * Ns
+    rtype = ["Rc", "V", "Ri"] * Ns
     for col in cols:
         # Go down the column alternating Rs, V, Ri connections between nodes
         nodes = grid[:, col]
         for row in rows:
-            if rtype[row] == "Rs":
-                # Series resistor
+            if rtype[row] == "Rc":
+                # Inter(c)onnection / weld
                 desc.append(rtype[row] + str(num_Rs))
                 num_Rs += 1
                 val = Rc
@@ -202,41 +225,108 @@ def setup_circuit(
             value.append(val)
             # netlist.append(netline)
 
-    # +ve busbar (first row of the grid)
-    bus_nodes = [grid[0, :]]
+    # +ve busbar (top row of the grid)
+    bus_nodes = [grid[-1, :]]
     for nodes in bus_nodes:
         for i in range(len(nodes) - 1):
             # netline = []
             desc.append("Rbp" + str(num_Rb))
             num_Rb += 1
-            node1.append(nodes[i + 1])
-            node2.append(nodes[i])
+            node1.append(nodes[i])
+            node2.append(nodes[i + 1])
             value.append(Rb)
-
-    # Current source - spans the entire first column
-    desc.append("I" + str(num_I))
-    num_I += 1
-    node1.append(grid[-1, 0])
-    node2.append(grid[0, 0])
-    value.append(I)
 
     desc = np.asarray(desc)
     node1 = np.asarray(node1)
     node2 = np.asarray(node2)
     value = np.asarray(value)
+    main_grid = {
+        "desc": desc,
+        "node1": node1,
+        "node2": node2,
+        "value": value,
+        "node1_x": x[node1 - 1],
+        "node1_y": y[node1 - 1],
+        "node2_x": x[node2 - 1],
+        "node2_y": y[node2 - 1],
+    }
 
-    netlist = pd.DataFrame(
-        {
-            "desc": desc,
-            "node1": node1,
-            "node2": node2,
-            "value": value,
-            "node1_x": x[node1],
-            "node1_y": y[node1],
-            "node2_x": x[node2],
-            "node2_y": y[node2],
-        }
-    )
+    # Current source - spans the entire pack
+    if (terminals == "left") or (terminals is None):
+        t_nodes = [0, 0]
+    elif terminals == "right":
+        t_nodes = [-1, -1]
+    elif terminals == "left-right":
+        t_nodes = [0, -1]
+    elif terminals == "right-left":
+        t_nodes = [-1, 0]
+    elif isinstance(terminals, (list, np.ndarray)):
+        t_nodes = terminals
+    else:
+        raise ValueError(
+            'Please specify a valid terminals argument: "left", '
+            + '"right", "left-right" or "right-left" or a list or '
+            + "array of nodes"
+        )
+    # terminal nodes
+    t1 = grid[-1, t_nodes[0]]
+    t2 = grid[0, t_nodes[1]]
+    # terminal coords
+    x1 = x[t1 - 1]
+    x2 = x[t2 - 1]
+    y1 = y[t1 - 1]
+    y2 = y[t2 - 1]
+    nn = grid.max() + 1  # next node
+    # coords of nodes forming current source loop
+    if terminals == "left" or (
+        isinstance(terminals, (list, np.ndarray)) and np.all(np.array(terminals) == 0)
+    ):
+        ix = x1 - 1
+        dy = 0
+    elif terminals == "right" or (
+        isinstance(terminals, (list, np.ndarray)) and np.all(np.array(terminals) == -1)
+    ):
+        ix = x1 + 1
+        dy = 0
+    else:
+        ix = -1
+        dy = 1
+    if dy == 0:
+        desc = ["Rtp1", "I0", "Rtn1"]
+        xs = np.array([x1, ix, ix, x2])
+        ys = np.array([y1, y1, y2, y2])
+        node1 = [t1, nn, 0]
+        node2 = [nn, 0, t2]
+        value = [Rt, I, Rt]
+        num_elem = 3
+    else:
+        desc = ["Rtp0", "Rtp1", "I0", "Rtn1", "Rtn0"]
+        xs = np.array([x1, x1, ix, ix, x2, x2])
+        ys = np.array([y1, y1 + dy, y1 + dy, 0 - dy, 0 - dy, y2])
+        node1 = [t1, nn, nn + 1, 0, nn + 2]
+        node2 = [nn, nn + 1, 0, nn + 2, t2]
+        hRt = Rt / 2
+        value = [hRt, hRt, I, hRt, hRt]
+        num_elem = 5
+
+    desc = np.asarray(desc)
+    node1 = np.asarray(node1)
+    node2 = np.asarray(node2)
+    value = np.asarray(value)
+    current_loop = {
+        "desc": desc,
+        "node1": node1,
+        "node2": node2,
+        "value": value,
+        "node1_x": xs[:num_elem],
+        "node1_y": ys[:num_elem],
+        "node2_x": xs[1:],
+        "node2_y": ys[1:],
+    }
+
+    for key in main_grid.keys():
+        main_grid[key] = np.concatenate((main_grid[key], current_loop[key]))
+    netlist = pd.DataFrame(main_grid)
 
     if plot:
         lp.simple_netlist_plot(netlist)
@@ -510,3 +600,93 @@ def solve_circuit_vectorized(netlist):
     lp.logger.info(f"Circuit set up and solved in {toc}")
 
     return V_node, I_batt
+
+
+def make_lcapy_circuit(netlist):
+    """
+    Generate a circuit that can be used with lcapy
+
+    Args:
+        netlist (pandas.DataFrame):
+            A netlist of circuit elements with format. desc, node1, node2, value.
+
+    Returns:
+        lcapy.Circuit:
+            The Circuit class is used for describing networks using netlists.
+            Despite the name, it does not require a closed path.
+
+    """
+    cct = Circuit()
+    I_map = netlist["desc"].str.find("I") > -1
+    net2 = netlist.copy()
+    net2.loc[I_map, ("node1")] = netlist["node2"][I_map]
+    net2.loc[I_map, ("node2")] = netlist["node1"][I_map]
+    d1 = "down"
+    d2 = "up"
+    I_xs = [net2[I_map]["node1_x"].values[0], net2[I_map]["node2_x"].values[0]]
+    I_left = np.any(np.array(I_xs) == -1)
+    all_desc = netlist["desc"].values
+    for index, row in net2.iterrows():
+        color = "black"
+        desc, n1, n2, value, n1x, n1y, n2x, n2y = row
+        if desc[0] == "V":
+            direction = d1
+        elif desc[0] == "I":
+            direction = d2
+        elif desc[0] == "R":
+            if desc[1] == "b":
+                direction = "right"
+            elif desc[1] == "t":
+                # These are the terminal nodes and require special attention
+                if desc[2] == "p":
+                    # positive
+                    color = "red"
+                else:
+                    # negative
+                    color = "blue"
+                # If terminals are not both at the same end then the netlist
+                # has two resistors with half the value to make a nice circuit
+                # diagram. Convert into 1 resistor + 1 wire
+                if desc[3] == "0":
+                    # The wires have the zero suffix
+                    direction = d2
+                    desc = "W"
+                else:
+                    # The reistors have the 1 suffix
+                    # Convert the value to the total reistance if a wire element
+                    # is in the netlist
+                    w_desc = desc[:3] + "0"
+                    if w_desc in all_desc:
+                        value *= 2
+                    desc = desc[:3]
+                    # Terminal loop is C shaped with positive at the top so
+                    # order is left-vertical-right if we're on the left side
+                    # and right-vertical-left if we're on the right side
+                    if desc[2] == "p":
+                        if I_left:
+                            direction = "left"
+                            # if the terminal connection is not at the end then
+                            # extend the element connections
+                            if n1x > 0:
+                                direction += "=" + str(1 + n1x)
+                        else:
+                            direction = "right"
+                            if n1x < I_xs[0] - 1:
+                                direction += "=" + str(1 + I_xs[0] - n1x)
+                    else:
+                        if I_left:
+                            direction = "right"
+                        else:
+                            direction = "left"
+            else:
+                direction = d1
+        if desc == "W":
+            string = desc + " " + str(n1) + " " + str(n2)
+        else:
+            string = desc + " " + str(n1) + " " + str(n2) + " " + str(value)
+        string = string + "; " + direction
+        string = string + ", color=" + color
+        cct.add(string)
+    # Add ground node
+    cct.add("W 0 00; down, sground")
+    return cct

@@ -11,21 +11,21 @@ class plotsTest(unittest.TestCase):
         R_bus = 1e-4
         R_series = 1e-2
         R_int = 5e-2
-        I_app = 80.0
+        I_app = 1.0
         ref_voltage = 3.2
 
         # Load the netlist
         self.netlist = lp.read_netlist(
-            "AMMBa", Ri=R_int, Rc=R_series, Rb=R_bus, Rl=R_bus, I=I_app, V=ref_voltage
+            "AMMBa", Ri=R_int, Rc=R_series, Rb=R_bus, Rt=R_bus, I=I_app, V=ref_voltage
         )
 
         # Cycling experiment
         experiment = pybamm.Experiment(
             [
-                "Charge at 50 A for 300 seconds",
-                "Rest for 150 seconds",
-                "Discharge at 50 A for 300 seconds",
-                "Rest for 300 seconds",
+                f"Charge at {I_app} A for 300 seconds",
+                "Rest for 100 seconds",
+                f"Discharge at {I_app} A for 300 seconds",
+                "Rest for 100 seconds",
             ],
             period="10 seconds",
         )
@@ -39,6 +39,7 @@ class plotsTest(unittest.TestCase):
             experiment=experiment,
             output_variables=None,
             inputs=None,
+            initial_soc=0.5,
         )
         self.output = output
         self.sim = pybamm.Simulation(
@@ -48,7 +49,9 @@ class plotsTest(unittest.TestCase):
         )
 
     def test_draw_circuit(self):
-        net = lp.setup_circuit(Np=3, Ns=1, Rb=1e-4, Rc=1e-2, Ri=5e-2, V=3.2, I=80.0)
+        net = lp.setup_circuit(
+            Np=3, Ns=1, Rb=1e-4, Rc=1e-2, Ri=5e-2, V=3.2, I=80.0, terminals=[0, 1]
+        )
         lp.draw_circuit(net)
         plt.close("all")
 
@@ -141,7 +144,7 @@ class plotsTest(unittest.TestCase):
         plt.close("all")
 
     def test_compare_plots(self):
-        solution = self.sim.solve()
+        solution = self.sim.solve(initial_soc=0.5)
         lp.compare_solution_output(solution, self.output)
         lp.compare_solution_output(self.output, solution)
         plt.close("all")
