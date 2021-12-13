@@ -36,6 +36,7 @@ white_context = {
     "figure.figsize": (8, 6),
 }
 
+
 def draw_circuit(
     netlist,
     cpt_size=1.0,
@@ -231,7 +232,7 @@ def plot_pack(output, context="black"):
     time = output["Time [s]"]
     v_pack = output["Pack terminal voltage [V]"]
     i_pack = output["Pack current [A]"]
-    
+
     if context == "black":
         use_context = lp_context
         use_cmap = cmap
