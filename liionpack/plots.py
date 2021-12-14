@@ -4,36 +4,70 @@ import matplotlib.pyplot as plt
 from sympy import init_printing
 import textwrap
 
-
-cmap = plt.cm.cool
-white_cmap = plt.cm.coolwarm
 init_printing(pretty_print=False)
-lp_context = {
-    "text.color": "white",
-    "axes.edgecolor": "white",
-    "axes.titlecolor": "white",
-    "axes.labelcolor": "white",
-    "xtick.color": "white",
-    "ytick.color": "white",
-    "figure.facecolor": "#323232",
-    "axes.facecolor": "#323232",
-    "axes.grid": False,
-    "axes.labelsize": "large",
-    "figure.figsize": (8, 6),
-}
-white_context = {
-    "text.color": "black",
-    "axes.edgecolor": "black",
-    "axes.titlecolor": "black",
-    "axes.labelcolor": "black",
-    "xtick.color": "black",
-    "ytick.color": "black",
-    "figure.facecolor": "white",
-    "axes.facecolor": "white",
-    "axes.grid": False,
-    "axes.labelsize": "large",
-    "figure.figsize": (8, 6),
-}
+
+
+def lp_cmap(color="dark"):
+    """
+    Return the colormap to use in plots
+
+    Args:
+        color (string):
+            The color-scheme for plotting, default="dark".
+
+    Returns:
+        cmap (matplotlib.cm):
+            The colormap for matplotlib to plot
+
+    """
+    if color == "dark":
+        return plt.cm.cool
+    else:
+        return plt.cm.coolwarm
+
+
+def lp_context(color="dark"):
+    """
+    Return the liionpack matplotlib rc_context for plotting
+
+    Args:
+        color : (string):
+            The color-scheme for plotting, default="dark"
+
+    Returns:
+        context (dict):
+            The options to pass to matplotlib.pyplot.rc_context
+
+    """
+    if color == "dark":
+        context = {
+            "text.color": "white",
+            "axes.edgecolor": "white",
+            "axes.titlecolor": "white",
+            "axes.labelcolor": "white",
+            "xtick.color": "white",
+            "ytick.color": "white",
+            "figure.facecolor": "#323232",
+            "axes.facecolor": "#323232",
+            "axes.grid": False,
+            "axes.labelsize": "large",
+            "figure.figsize": (8, 6),
+        }
+    else:
+        context = {
+            "text.color": "black",
+            "axes.edgecolor": "black",
+            "axes.titlecolor": "black",
+            "axes.labelcolor": "black",
+            "xtick.color": "black",
+            "ytick.color": "black",
+            "figure.facecolor": "white",
+            "axes.facecolor": "white",
+            "axes.grid": False,
+            "axes.labelsize": "large",
+            "figure.figsize": (8, 6),
+        }
+    return context
 
 
 def draw_circuit(
@@ -106,7 +140,7 @@ def draw_circuit(
     cct.draw(**kwargs)
 
 
-def plot_pack(output, context="black"):
+def plot_pack(output, context="dark"):
     """
     Plot the battery pack voltage and current.
 
@@ -120,14 +154,11 @@ def plot_pack(output, context="black"):
     v_pack = output["Pack terminal voltage [V]"]
     i_pack = output["Pack current [A]"]
 
-    if context == "black":
-        use_context = lp_context
-        use_cmap = cmap
-    else:
-        use_context = white_context
-        use_cmap = white_cmap
-    colors = use_cmap(np.linspace(0, 1, 2))
-    with plt.rc_context(use_context):
+    context = lp_context(context)
+    cmap = lp_cmap(context)
+
+    colors = cmap(np.linspace(0, 1, 2))
+    with plt.rc_context(context):
         # Plot pack voltage and current
         _, ax = plt.subplots(tight_layout=True)
         ax.plot(time, v_pack, color=colors[0], label="simulation")
@@ -140,7 +171,7 @@ def plot_pack(output, context="black"):
         ax2.set_title("Pack Summary")
 
 
-def plot_cells(output, context="black"):
+def plot_cells(output, context="dark"):
     """
     Plot results for the battery cells.
 
@@ -153,18 +184,15 @@ def plot_cells(output, context="black"):
     time = output["Time [s]"]
     cell_vars = [k for k in output.keys() if len(output[k].shape) > 1]
 
-    if context == "black":
-        use_context = lp_context
-        use_cmap = cmap
-    else:
-        use_context = white_context
-        use_cmap = white_cmap
+    context = lp_context(context)
+    cmap = lp_cmap(context)
+
     # Get number of cells and setup colormap
     n = output[cell_vars[0]].shape[-1]
-    colors = use_cmap(np.linspace(0, 1, n))
+    colors = cmap(np.linspace(0, 1, n))
 
     # Create plot figures for cell variables
-    with plt.rc_context(use_context):
+    with plt.rc_context(context):
         for var in cell_vars:
             _, ax = plt.subplots(tight_layout=True)
             for i in range(n):
@@ -256,8 +284,9 @@ def compare_solution_output(a, b):
         v_b = b["Terminal voltage [V]"].entries
         i_b = b["Current [A]"].entries
         title_b = "b) PyBaMM Simulation"
+    cmap = lp_cmap()
     colors = cmap(np.linspace(0, 1, 4))
-    with plt.rc_context(lp_context):
+    with plt.rc_context(lp_context()):
         # Plot pack voltage and current
         _, (axl, axr) = plt.subplots(
             1, 2, tight_layout=True, figsize=(15, 10), sharex=True, sharey=True
@@ -308,7 +337,8 @@ def plot_cell_data_image(netlist, data, tick_labels=True, figsize=(8, 6)):
     im = np.ones([Nx, Ny])
     im[np.array(vlist["node1_x"]), np.array(vlist["node1_y"])] = data
 
-    with plt.rc_context(lp_context):
+    cmap = lp_cmap()
+    with plt.rc_context(lp_context()):
         fig, ax = plt.subplots(figsize=figsize)
         mappable = ax.imshow(im.T, cmap=cmap)
         # Major ticks
