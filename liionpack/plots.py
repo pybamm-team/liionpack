@@ -1,7 +1,6 @@
 import liionpack as lp
 import numpy as np
 import matplotlib.pyplot as plt
-import matplotlib as mpl
 from sympy import init_printing
 import textwrap
 
@@ -105,118 +104,6 @@ def draw_circuit(
         "style": style,
     }
     cct.draw(**kwargs)
-
-
-def _text_color(vals, vmin, vmax, cmap):
-    """
-    Returns list of either black or white to write text, depending on whether
-    plotted color is closer to white or black
-
-    Args:
-        vals (TYPE): DESCRIPTION.
-        vmin (TYPE): DESCRIPTION.
-        vmax (TYPE): DESCRIPTION.
-        cmap (TYPE): DESCRIPTION.
-
-    Returns:
-        list: DESCRIPTION.
-
-    """
-    # return list of either black or white to write text, depending on whether
-    # plotted color is closer to white or black
-    cm = mpl.cm.get_cmap(cmap)
-    norm = mpl.colors.Normalize(vmin=vmin, vmax=vmax)
-    val_cm = cm(norm(vals))[:, :3]
-    val_norm = np.dot(val_cm, [0.2989, 0.5870, 0.1140])
-    return ["k" if v > 0.5 else "w" for v in val_norm]
-
-
-def _cell_text(ax, X, Y, vals, prec, text_colors):
-    """
-
-    Args:
-        ax (TYPE): DESCRIPTION.
-        vals (TYPE): DESCRIPTION.
-        prec (TYPE): DESCRIPTION.
-        text_colors (TYPE): DESCRIPTION.
-
-    """
-    # X_pos, Y_pos = cell_XY_positions()
-    for i, val in enumerate(vals):
-        ax.text(
-            x=X[i],
-            y=Y[i],
-            s="{:.{}f}".format(val, prec),
-            color=text_colors[i],
-            ha="center",
-            va="center",
-        )
-
-
-def _cell_text_numbers(ax, X, Y, text_colors):
-    """
-
-    Args:
-        ax (TYPE): DESCRIPTION.
-        text_colors (TYPE): DESCRIPTION.
-
-    """
-    # X_pos, Y_pos = cell_XY_positions()
-    y_offset = 0.005
-    for i, [x_pos, y_pos] in enumerate(zip(X, Y)):
-        ax.text(
-            x=x_pos,
-            y=y_pos - y_offset,
-            s="{:d}".format(i + 1),
-            color=text_colors[i],
-            ha="center",
-            va="top",
-            fontsize=7,
-        )
-
-
-def cell_scatter_plot(ax, X, Y, c, text_prec=1, **kwargs):
-    """
-
-    Args:
-        ax (matplotlib.axes): axis to plot on.
-        X (np.ndarray): x-coordinate of the battery
-        Y (np.ndarray): y-coordinate of the battery
-        c (like plt.scatter c kwarg): colors to plot scatter with.
-        text_prec (int): precision to write text of values on cells.
-        **kwargs : plt.scatter kwargs.
-
-    """
-
-    # X_pos, Y_pos = cell_XY_positions()
-
-    # set size of markers
-    diameter = 21.44 / 1000
-    area = np.pi * (diameter / 2) ** 2
-    s = area * 4 / np.pi  # points
-    s = s * 72 / 0.0254 * 1000  # some scaling...
-
-    # scatter plot
-    sc = ax.scatter(X, Y, s, c, **kwargs)
-    # set limits
-    ax.set_xlim(-0.1, 0.1)
-    ax.set_ylim(-0.06, 0.06)
-    # colorbar
-    plt.colorbar(sc, ax=ax, orientation="vertical")
-    # set axis equal
-    ax.set_aspect("equal")
-    ax.set_axis_off()
-
-    vmin, vmax = sc.get_clim()
-    if "cmap" in kwargs:
-        cmap = kwargs.get("cmap")
-    else:
-        cmap = "viridis"
-
-    text_colors = _text_color(c, vmin, vmax, cmap)
-    # write cell text
-    _cell_text(ax, X, Y, c, text_prec, text_colors)
-    _cell_text_numbers(ax, X, Y, text_colors)
 
 
 def plot_pack(output, context="black"):
