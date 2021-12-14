@@ -1,9 +1,9 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Thu Sep 23 10:36:15 2021
+#
+# Utility functions for loading and creating and solving circuits defined by
+# netlists
+#
 
-@author: Tom
-"""
+
 import numpy as np
 import codecs
 import pandas as pd

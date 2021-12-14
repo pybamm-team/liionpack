@@ -395,8 +395,9 @@ def solve(
             The solver manager to use for solving the electrochemical problem.
 
     Returns:
-        np.ndarray:
-            simulation output array with shape - [# variable, # steps, # batteries]):
+        output (dict):
+            simulation output with keys including those specified in output
+            variables, values are arrays of shape - [# steps, # batteries])
 
     """
 

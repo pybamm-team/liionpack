@@ -1,3 +1,7 @@
+#
+# Postprocessing plot functions
+#
+
 import liionpack as lp
 import numpy as np
 import matplotlib.pyplot as plt
@@ -31,7 +35,7 @@ def lp_context(color="dark"):
     Return the liionpack matplotlib rc_context for plotting
 
     Args:
-        color : (string):
+        color (string):
             The color-scheme for plotting, default="dark"
 
     Returns:
