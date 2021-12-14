@@ -6,6 +6,7 @@ cells connected in series for a total of 32 cells.
 import liionpack as lp
 import pybamm
 import numpy as np
+import os
 
 lp.set_logging_level('NOTICE')
 
@@ -19,7 +20,6 @@ netlist = lp.setup_circuit(Np=Np, Ns=Ns)
 
 # Define additional output variables
 output_variables = [
-    'Local ECM resistance [Ohm]',
     'Volume-averaged cell temperature [K]']
 
 # Define a cycling experiment using PyBaMM
@@ -43,7 +43,7 @@ output = lp.solve(netlist=netlist,
                   output_variables=output_variables,
                   initial_soc=0.5,
                   inputs=inputs,
-                  nproc=8,
+                  nproc=os.cpu_count(),
                   manager='casadi')
 
 # Plot the pack and individual cell results
