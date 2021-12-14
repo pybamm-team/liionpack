@@ -13,7 +13,7 @@ if __name__ == "__main__":
     lp.set_logging_level("NOTICE")
 
     os.chdir(pybamm.__path__[0] + "/..")
-    netlist = lp.setup_circuit(Np=1, Ns=1, Rb=1.0e-6, Rc=1e-6, Ri=3e-2, V=3.75, I=1.0)
+    netlist = lp.setup_circuit(Np=1, Ns=1, Rb=1.0e-6, Rc=1e-6, Ri=3e-2)
 
     chemistry = pybamm.parameter_sets.Chen2020
     parameter_values = pybamm.ParameterValues(chemistry=chemistry)

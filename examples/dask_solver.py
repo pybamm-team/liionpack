@@ -5,6 +5,7 @@ cores that are available on your computer.
 
 import liionpack as lp
 import pybamm
+import os
 
 
 def main():
@@ -33,7 +34,7 @@ def main():
         parameter_values=parameter_values,
         experiment=experiment,
         initial_soc=0.5,
-        nproc=8,
+        nproc=os.cpu_count(),
         manager='dask')
 
     # Plot the pack and individual cell results

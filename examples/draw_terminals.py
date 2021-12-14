@@ -3,7 +3,6 @@ Draw circuits with different terminal locations.
 """
 
 import liionpack as lp
-import matplotlib.pyplot as plt
 
 left = lp.setup_circuit(Np=3, Ns=1, terminals="left")
 lp.draw_circuit(left)

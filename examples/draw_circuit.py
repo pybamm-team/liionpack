@@ -13,7 +13,7 @@ Ns = 1
 
 # Generate the netlist and draw circuit
 netlist = lp.setup_circuit(Np=Np, Ns=Ns, I=5)
-lp.draw_circuit(netlist, cpt_size=1, dpi=300, node_spacing=3, scale=0.5)
+lp.draw_circuit(netlist, node_spacing=2.5)
 
 output_variables = [
     "X-averaged negative particle surface concentration [mol.m-3]",
