@@ -34,7 +34,7 @@ class TestLogger(unittest.TestCase):
     def test_log_to_file(self):
         cwd = os.getcwd()
         filename = os.path.join(cwd, "temp_log_file.log")
-        with open(filename, "w") as outfile:
+        with open(filename, "w"):
             lp.log_to_file(filename)
             lp.logger.warning("This should write to file")
             assert os.path.isfile(filename)
