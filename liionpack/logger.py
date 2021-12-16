@@ -14,23 +14,26 @@ format = (
     + "%(message)s"
 )
 
+
 def set_logging_level(level):
     logger.setLevel(level)
 
 
 def log_to_file(filename):
     logFormatter = logging.Formatter(datefmt="%Y-%m-%d %H:%M:%S", fmt=format)
-    rootLogger = logging.getLogger()   
+    rootLogger = logging.getLogger()
     fileHandler = logging.FileHandler("{0}.log".format(filename))
     fileHandler.setFormatter(logFormatter)
     rootLogger.addHandler(fileHandler)
 
+
 def _log_to_console():
     logFormatter = logging.Formatter(datefmt="%Y-%m-%d %H:%M:%S", fmt=format)
-    rootLogger = logging.getLogger()  
+    rootLogger = logging.getLogger()
     consoleHandler = logging.StreamHandler()
     consoleHandler.setFormatter(logFormatter)
     rootLogger.addHandler(consoleHandler)
+
 
 _log_to_console()
 
