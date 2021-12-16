@@ -78,4 +78,4 @@ logging.Logger.success = success
 
 # Create a custom logger
 logger = logging.getLogger(__name__)
-set_logging_level("NOTICE")
+set_logging_level("WARNING")
