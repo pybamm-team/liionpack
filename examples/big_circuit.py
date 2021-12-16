@@ -5,11 +5,12 @@ Simulate a big circuit containing 384 battery cells.
 import liionpack as lp
 import pybamm
 import os
+import pickle
+
+lp.log_to_file('logger_info')
+
 
 if __name__ == "__main__":
-
-    lp.logger.setLevel("NOTICE")
-
     Np = 32
     Ns = 12
     Nspm = Np * Ns
@@ -41,5 +42,5 @@ if __name__ == "__main__":
         nproc=os.cpu_count(),
     )
 
-    lp.plot_output(output)
-    lp.show_plots()
+    with open('output.pickle', 'wb') as handle:
+        pickle.dump(output, handle, protocol=pickle.HIGHEST_PROTOCOL)

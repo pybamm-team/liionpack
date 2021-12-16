@@ -9,16 +9,30 @@
 import logging
 
 
-def set_logging_level(level):
-    logger.setLevel(level)
-
-
 format = (
     "%(asctime)s - [%(levelname)s] %(module)s.%(funcName)s(%(lineno)d): "
     + "%(message)s"
 )
-logging.basicConfig(format=format)
-logging.Formatter(datefmt="%Y-%m-%d %H:%M:%S", fmt="%(asctime)s.%(msecs)03d")
+
+def set_logging_level(level):
+    logger.setLevel(level)
+
+
+def log_to_file(filename):
+    logFormatter = logging.Formatter(datefmt="%Y-%m-%d %H:%M:%S", fmt=format)
+    rootLogger = logging.getLogger()   
+    fileHandler = logging.FileHandler("{0}.log".format(filename))
+    fileHandler.setFormatter(logFormatter)
+    rootLogger.addHandler(fileHandler)
+
+def _log_to_console():
+    logFormatter = logging.Formatter(datefmt="%Y-%m-%d %H:%M:%S", fmt=format)
+    rootLogger = logging.getLogger()  
+    consoleHandler = logging.StreamHandler()
+    consoleHandler.setFormatter(logFormatter)
+    rootLogger.addHandler(consoleHandler)
+
+_log_to_console()
 
 # Additional levels inspired by verboselogs
 SPAM_LEVEL_NUM = 5
@@ -61,4 +75,4 @@ logging.Logger.success = success
 
 # Create a custom logger
 logger = logging.getLogger(__name__)
-set_logging_level("WARNING")
+set_logging_level("NOTICE")

@@ -29,7 +29,7 @@ from .plots import compare_solution_output
 from .plots import plot_cell_data_image
 from .plots import lp_cmap
 from .plots import lp_context
-from .logger import logger, set_logging_level
+from .logger import logger, set_logging_level, log_to_file
 from .definitions import ROOT_DIR
 from .definitions import MODULE_DIR
 from .definitions import CIRCUIT_DIR
