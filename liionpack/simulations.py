@@ -5,6 +5,12 @@
 import pybamm
 import liionpack as lp
 
+def _replace_timescale(model, parameter_values):
+    symbolic_tau = pybamm.LithiumIonParameters().tau_discharge
+    tau = parameter_values.process_symbol(symbolic_tau)
+    tau_eval = tau.evaluate()
+    model.timescale = pybamm.Scalar(2*tau_eval)
+
 
 def basic_simulation(parameter_values=None):
     """
@@ -33,6 +39,7 @@ def basic_simulation(parameter_values=None):
     else:
         param = parameter_values.copy()
 
+    _replace_timescale(model, param)
     # Set up solver and simulation
     solver = pybamm.CasadiSolver(mode="safe")
     sim = pybamm.Simulation(
@@ -71,7 +78,8 @@ def thermal_simulation(parameter_values=None):
     if parameter_values is None:
         chemistry = pybamm.parameter_sets.Chen2020
         parameter_values = pybamm.ParameterValues(chemistry=chemistry)
-
+    
+    _replace_timescale(model, parameter_values)
     # Change the current function and heat transfer coefficient to be
     # inputs controlled by the external circuit
     parameter_values.update(
