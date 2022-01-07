@@ -44,7 +44,9 @@ class generic_actor:
                 or (type(initial_soc) is list and len(initial_soc) == 1)
                 or (type(initial_soc) is np.ndarray and len(initial_soc) == 1)
             ):
-                _, _ = lp.update_init_conc(parameter_values, initial_soc, update=True)
+                _, _ = lp.update_init_conc(parameter_values,
+                                           initial_soc,
+                                           update=True)
             else:
                 lp.logger.warning(
                     "Using a list or an array of initial_soc "
@@ -163,7 +165,7 @@ class generic_manager:
         Nsteps = len(protocol)
         netlist.loc[I_map, ("value")] = protocol[0]
         # Solve the circuit to initialise the electrochemical models
-        V_node, I_batt = lp.solve_circuit_vectorized(netlist)
+        V_node, I_batt = lp.solve_circuit(netlist)
 
         # The simulation output variables calculated at each step for each battery
         # Must be a 0D variable i.e. battery wide volume average - or X-averaged for
@@ -232,7 +234,7 @@ class generic_manager:
                 netlist.loc[I_map, ("value")] = protocol[step]
                 # 05 Solve the circuit with updated netlist
                 if step <= Nsteps:
-                    V_node, I_batt = lp.solve_circuit_vectorized(netlist)
+                    V_node, I_batt = lp.solve_circuit(netlist)
                     record_times.append((step) * self.dt)
                     V_terminal.append(V_node[Terminal_Node][0])
                 if step < Nsteps - 1:
