@@ -8,8 +8,27 @@ import liionpack as lp
 def _replace_timescale(model, parameter_values):
     symbolic_tau = pybamm.LithiumIonParameters().tau_discharge
     tau = parameter_values.process_symbol(symbolic_tau)
-    tau_eval = tau.evaluate()
-    model.timescale = pybamm.Scalar(2*tau_eval)
+    try:
+        tau_eval = tau.evaluate()
+        model.timescale = pybamm.Scalar(tau_eval)
+    except KeyError:
+        # A child of the timescale is an input
+        keys = [
+            'Maximum concentration in negative electrode [mol.m-3]',
+            'Negative electrode thickness [m]',
+            'Separator thickness [m]',
+            'Positive electrode thickness [m]',
+            'Typical current [A]',
+            'Number of electrodes connected in parallel to make a cell',
+            'Electrode width [m]',
+            'Electrode height [m]',
+            ]
+        for key in keys:
+            if parameter_values[key].__class__ is pybamm.InputParameter:
+                print(key, 'is an input parameter that affects the timescale, setting timescale to typical timescale')
+        model.timescale = pybamm.Scalar(parameter_values['Typical timescale [s]'])
+        
+    
 
 
 def basic_simulation(parameter_values=None):
