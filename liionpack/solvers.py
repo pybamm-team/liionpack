@@ -141,6 +141,7 @@ class generic_manager:
         parameter_values,
         experiment,
         inputs,
+        external_variables,
         output_variables,
         initial_soc,
         nproc,
@@ -199,7 +200,10 @@ class generic_manager:
 
         # Handle the inputs
         self.inputs = inputs
-        self.inputs_dict = lp.build_inputs_dict(self.shm_i_app[0, :], self.inputs)
+        self.external_variables = external_variables
+        self.inputs_dict = lp.build_inputs_dict(self.shm_i_app[0, :],
+                                                self.inputs,
+                                                self.external_variables)
         # Solver specific setup
         self.setup_actors(nproc, self.inputs_dict, initial_soc)
         # Get the initial state of the system
@@ -242,7 +246,9 @@ class generic_manager:
                     # for the next step
                     I_app = I_batt[:] * -1
                     self.shm_i_app[step + 1, :] = I_app
-                    self.inputs_dict = lp.build_inputs_dict(I_app, self.inputs)
+                    self.inputs_dict = lp.build_inputs_dict(I_app,
+                                                            self.inputs,
+                                                            self.external_variables)
                 # 06 Check if voltage limits are reached and terminate
                 if np.any(temp_v < v_cut_lower):
                     lp.logger.warning("Low voltage limit reached")
