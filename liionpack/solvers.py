@@ -236,11 +236,13 @@ class generic_manager:
                 netlist.loc[V_map, ("value")] = temp_ocv
                 netlist.loc[Ri_map, ("value")] = temp_Ri
                 netlist.loc[I_map, ("value")] = protocol[step]
-                # 05 Solve the circuit with updated netlist
+                # 05a Solve the circuit with updated netlist
                 if step <= Nsteps:
                     V_node, I_batt = lp.solve_circuit(netlist)
                     record_times.append((step) * self.dt)
                     V_terminal.append(V_node[Terminal_Node][0])
+                # 05b Update the external variables
+                self.update_external_variables()
                 if step < Nsteps - 1:
                     # igore last step save the new currents and build inputs
                     # for the next step
@@ -248,7 +250,7 @@ class generic_manager:
                     self.shm_i_app[step + 1, :] = I_app
                     self.inputs_dict = lp.build_inputs_dict(I_app,
                                                             self.inputs,
-                                                            self.external_variables)
+                                                            self.external_variables)                
                 # 06 Check if voltage limits are reached and terminate
                 if np.any(temp_v < v_cut_lower):
                     lp.logger.warning("Low voltage limit reached")
@@ -314,6 +316,12 @@ class generic_manager:
         temp_I = self.shm_i_app[step, :]
         temp_Ri = np.abs((temp_ocv - temp_v) / temp_I)
         return temp_Ri
+
+    def update_external_variables(self):
+        # This is probably going to involve reading from disc unless the whole
+        # algorithm is wrapped inside an "external" solver
+        # For now use a dummy function to test changing the values
+        pass
 
     def split_models(self, Nspm, nproc):
         pass
