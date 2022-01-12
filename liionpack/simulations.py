@@ -17,20 +17,23 @@ def _replace_timescale(model, parameter_values):
     except KeyError:
         # A child of the timescale is an input
         keys = [
-            'Maximum concentration in negative electrode [mol.m-3]',
-            'Negative electrode thickness [m]',
-            'Separator thickness [m]',
-            'Positive electrode thickness [m]',
-            'Typical current [A]',
-            'Number of electrodes connected in parallel to make a cell',
-            'Electrode width [m]',
-            'Electrode height [m]',
-            ]
+            "Maximum concentration in negative electrode [mol.m-3]",
+            "Negative electrode thickness [m]",
+            "Separator thickness [m]",
+            "Positive electrode thickness [m]",
+            "Typical current [A]",
+            "Number of electrodes connected in parallel to make a cell",
+            "Electrode width [m]",
+            "Electrode height [m]",
+        ]
         for key in keys:
             if parameter_values[key].__class__ is pybamm.InputParameter:
-                lp.logger.warn(key, 'is an input parameter that affects the ' +
-                               'timescale, setting timescale to typical timescale')
-        model.timescale = pybamm.Scalar(parameter_values['Typical timescale [s]'])
+                lp.logger.warn(
+                    key,
+                    "is an input parameter that affects the "
+                    + "timescale, setting timescale to typical timescale",
+                )
+        model.timescale = pybamm.Scalar(parameter_values["Typical timescale [s]"])
 
 
 def basic_simulation(parameter_values=None):
@@ -48,7 +51,7 @@ def basic_simulation(parameter_values=None):
 
     """
     # Create the pybamm model
-    model = pybamm.lithium_ion.SPM({"timescale":tscale})
+    model = pybamm.lithium_ion.SPM({"timescale": tscale})
 
     # Add events to the model
     model = lp.add_events_to_model(model)
@@ -88,7 +91,7 @@ def thermal_simulation(parameter_values=None):
     model = pybamm.lithium_ion.SPMe(
         options={
             "thermal": "lumped",
-            "timescale":tscale,
+            "timescale": tscale,
         }
     )
 
@@ -99,7 +102,7 @@ def thermal_simulation(parameter_values=None):
     if parameter_values is None:
         chemistry = pybamm.parameter_sets.Chen2020
         parameter_values = pybamm.ParameterValues(chemistry=chemistry)
-    
+
     # Change the heat transfer coefficient to be an input controlled by the
     # external circuit
     parameter_values.update(
@@ -141,7 +144,7 @@ def thermal_external(parameter_values=None):
         options={
             "thermal": "lumped",
             "external submodels": ["thermal"],
-            "timescale":tscale,
+            "timescale": tscale,
         }
     )
 
@@ -152,7 +155,7 @@ def thermal_external(parameter_values=None):
     if parameter_values is None:
         chemistry = pybamm.parameter_sets.Chen2020
         parameter_values = pybamm.ParameterValues(chemistry=chemistry)
-    
+
     # _replace_timescale(model, parameter_values)
     # Change the current function and heat transfer coefficient to be
     # inputs controlled by the external circuit
