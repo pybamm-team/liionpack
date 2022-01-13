@@ -417,7 +417,7 @@ def solve(
         rm = lp.casadi_manager()
         lp.logger.notice("manager instruction not supported, using default")
 
-    output = rm.solve(
+    output = rm.step_solve(
         netlist=netlist,
         sim_func=sim_func,
         parameter_values=parameter_values,
