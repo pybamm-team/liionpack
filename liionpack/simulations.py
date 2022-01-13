@@ -156,15 +156,6 @@ def thermal_external(parameter_values=None):
         chemistry = pybamm.parameter_sets.Chen2020
         parameter_values = pybamm.ParameterValues(chemistry=chemistry)
 
-    # _replace_timescale(model, parameter_values)
-    # Change the current function and heat transfer coefficient to be
-    # inputs controlled by the external circuit
-    parameter_values.update(
-        {
-            "Total heat transfer coefficient [W.m-2.K-1]": "[input]",
-        },
-    )
-
     # Set up solver and simulation
     solver = pybamm.CasadiSolver(mode="safe")
     sim = pybamm.Simulation(
