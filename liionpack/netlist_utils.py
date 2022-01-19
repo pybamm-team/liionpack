@@ -711,7 +711,7 @@ def power_loss(netlist, include_Ri=False):
     V_node, I_batt = lp.solve_circuit(netlist)
     R_map = netlist["desc"].str.find("R") > -1
     R_map = R_map.values
-    if not include_Ri: 
+    if not include_Ri:
         Ri_map = netlist["desc"].str.find("Ri") > -1
         Ri_map = Ri_map.values
         R_map *= ~Ri_map
