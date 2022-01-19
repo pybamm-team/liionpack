@@ -234,6 +234,7 @@ class generic_manager:
                 netlist.loc[V_map, ("value")] = temp_ocv
                 netlist.loc[Ri_map, ("value")] = temp_Ri
                 netlist.loc[I_map, ("value")] = protocol[step]
+                lp.power_loss(netlist)
                 # 05a Solve the circuit with updated netlist
                 if step <= Nsteps:
                     V_node, I_batt = lp.solve_circuit(netlist)
@@ -419,6 +420,7 @@ class generic_manager:
         self.netlist.loc[self.V_map, ("value")] = temp_ocv
         self.netlist.loc[self.Ri_map, ("value")] = self.temp_Ri
         self.netlist.loc[self.I_map, ("value")] = self.protocol[step]
+        lp.power_loss(self.netlist)
         # 05 Solve the circuit with updated netlist
         if step <= self.Nsteps:
             V_node, I_batt = lp.solve_circuit(self.netlist)

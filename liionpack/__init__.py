@@ -16,6 +16,8 @@ from .netlist_utils import setup_circuit
 from .netlist_utils import solve_circuit
 from .netlist_utils import solve_circuit_vectorized
 from .netlist_utils import make_lcapy_circuit
+from .netlist_utils import power_loss
+from .netlist_utils import write_netlist
 from .sim_utils import get_initial_stoichiometries
 from .sim_utils import update_init_conc
 from .solver_utils import solve

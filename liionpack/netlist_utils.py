@@ -690,3 +690,70 @@ def make_lcapy_circuit(netlist):
     # Add ground node
     cct.add("W 0 00; down, sground")
     return cct
+
+
+def power_loss(netlist, include_Ri=False):
+    """
+    Calculate the power loss through joule heating of all the resistors in the
+    circuit
+
+    Args:
+        netlist (pandas.DataFrame):
+            A netlist of circuit elements with format desc, node1, node2, value.
+        include_Ri (bool):
+            Default is False. If True the internal resistance of the batteries
+            is included
+
+    Returns:
+        None
+
+    """
+    V_node, I_batt = lp.solve_circuit(netlist)
+    R_map = netlist["desc"].str.find("R") > -1
+    R_map = R_map.values
+    if not include_Ri: 
+        Ri_map = netlist["desc"].str.find("Ri") > -1
+        Ri_map = Ri_map.values
+        R_map *= ~Ri_map
+    R_value = netlist[R_map].value.values
+    R_node1 = netlist[R_map].node1.values
+    R_node2 = netlist[R_map].node2.values
+    R_node1_V = V_node[R_node1]
+    R_node2_V = V_node[R_node2]
+    V_diff = np.abs(R_node1_V - R_node2_V)
+    P_loss = V_diff**2 / R_value
+    netlist["power_loss"] = 0
+    netlist.loc[R_map, ("power_loss")] = P_loss
+
+
+def _fn(n):
+    if n == 0:
+        return "0"
+    else:
+        return "N" + str(n).zfill(3)
+
+
+def write_netlist(netlist, filename):
+    """
+    Write netlist to file
+
+    Args:
+        netlist (pandas.DataFrame):
+            A netlist of circuit elements with format desc, node1, node2, value.
+
+    Returns:
+        None
+
+
+    """
+    lines = ["* " + filename]
+    for (i, r) in netlist.iterrows():
+        line = r.desc + " " + _fn(r.node1) + " " + _fn(r.node2) + " " + str(r.value)
+        lines.append(line)
+    lines.append(".op")
+    lines.append(".backanno")
+    lines.append(".end")
+    with open(filename, "w") as f:
+        for line in lines:
+            f.write(line)
+            f.write("\n")
