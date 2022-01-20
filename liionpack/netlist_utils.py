@@ -628,7 +628,7 @@ def make_lcapy_circuit(netlist):
     all_desc = netlist["desc"].values
     for index, row in net2.iterrows():
         color = "black"
-        desc, n1, n2, value, n1x, n1y, n2x, n2y = row
+        desc, n1, n2, value, n1x, n1y, n2x, n2y = row[:8]
         if desc[0] == "V":
             direction = d1
         elif desc[0] == "I":
