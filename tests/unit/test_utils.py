@@ -2,6 +2,7 @@ import liionpack as lp
 import pandas as pd
 import pybamm
 import unittest
+import numpy as np
 
 
 class utilsTest(unittest.TestCase):
@@ -20,6 +21,13 @@ class utilsTest(unittest.TestCase):
                 events_in = True
                 break
         assert events_in
+
+    def test_build_inputs_dict(self):
+        I_batt = np.array([1.0, 2.0])
+        inputs = {"Electrode height [m]": [3.0, 4.0]}
+        external_variables = {"Volume averaged cell temperature": [5.0, 6.0]}
+        in_dict = lp.build_inputs_dict(I_batt, inputs, external_variables)
+        assert len(in_dict) == 2
 
 
 if __name__ == "__main__":
