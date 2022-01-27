@@ -51,7 +51,7 @@ external_variables = {"Volume-averaged cell temperature": T0_non_dim}
 # Solve the pack
 
 rm = lp.casadi_manager()
-rm.step_solve(
+rm.solve(
     netlist=netlist,
     sim_func=lp.thermal_external,
     parameter_values=parameter_values,
@@ -61,6 +61,7 @@ rm.step_solve(
     external_variables=external_variables,
     nproc=2,
     initial_soc=0.5,
+    setup_only=True
 )
 
 

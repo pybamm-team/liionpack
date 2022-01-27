@@ -427,5 +427,6 @@ def solve(
         external_variables=external_variables,
         nproc=nproc,
         initial_soc=initial_soc,
+        setup_only=False,
     )
     return output
