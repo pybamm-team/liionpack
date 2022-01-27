@@ -39,7 +39,7 @@ def get_initial_stoichiometries(initial_soc, parameter_values):
         n_Li = parameter_values.evaluate(param.n_Li_particles_init)
     except ValueError:
         # The initial concentration is dependent on an input
-        lp.logger.error(
+        lp.logger.warning(
             "Initial concentrations are dependent on an input, "
             + "please also supply initial concentrations as inputs"
         )
