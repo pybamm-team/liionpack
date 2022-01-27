@@ -373,8 +373,9 @@ class generic_manager:
             step = 0
             while step < self.Nsteps and vlims_ok:
                 vlims_ok = self._step(step, external_variables)
-                step += 1
-                pbar.update(1)
+                if vlims_ok:
+                    step += 1
+                    pbar.update(1)
         self.step = step
         toc = ticker.time()
         lp.logger.notice("Step solve finished")
