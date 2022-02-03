@@ -345,8 +345,8 @@ class generic_manager:
         self.shm_i_app[0, :] = I_batt * -1
 
         # Step forward in time
-        self.V_terminal = []
-        self.record_times = []
+        self.V_terminal = np.zeros(self.Nsteps)
+        self.record_times = np.zeros(self.Nsteps)
 
         self.v_cut_lower = parameter_values["Lower voltage cut-off [V]"]
         self.v_cut_higher = parameter_values["Upper voltage cut-off [V]"]
@@ -389,9 +389,9 @@ class generic_manager:
         self.shm_Ri = np.abs(self.shm_Ri)
         # Collect outputs
         self.all_output = {}
-        self.all_output["Time [s]"] = np.asarray(self.record_times)
+        self.all_output["Time [s]"] = self.record_times[: self.step + 1]
         self.all_output["Pack current [A]"] = np.asarray(self.protocol[: self.step + 1])
-        self.all_output["Pack terminal voltage [V]"] = np.asarray(self.V_terminal)
+        self.all_output["Pack terminal voltage [V]"] = self.V_terminal[: self.step + 1]
         self.all_output["Cell current [A]"] = self.shm_i_app[: self.step + 1, :]
         self.all_output["Cell internal resistance [Ohm]"] = self.shm_Ri[
             : self.step + 1, :
@@ -429,8 +429,8 @@ class generic_manager:
         # 05 Solve the circuit with updated netlist
         if step <= self.Nsteps:
             V_node, I_batt = lp.solve_circuit(self.netlist)
-            self.record_times.append((step) * self.dt)
-            self.V_terminal.append(V_node[self.Terminal_Node][0])
+            self.record_times[step] = step * self.dt
+            self.V_terminal[step] = V_node[self.Terminal_Node][0]
         if step < self.Nsteps - 1:
             # igore last step save the new currents and build inputs
             # for the next step
