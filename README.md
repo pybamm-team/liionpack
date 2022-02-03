@@ -2,18 +2,18 @@
 
 #
 <div align="center">
-    
+
 [![liionpack](https://github.com/pybamm-team/liionpack/actions/workflows/test_on_push.yml/badge.svg)](https://github.com/pybamm-team/liionpack/actions/workflows/test_on_push.yml)
 [![Documentation Status](https://readthedocs.org/projects/liionpack/badge/?version=main)](https://liionpack.readthedocs.io/en/main/?badge=main)
 [![codecov](https://codecov.io/gh/pybamm-team/liionpack/branch/main/graph/badge.svg)](https://codecov.io/gh/pybamm-team/liionpack)
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/pybamm-team/liionpack/blob/main/)
-    
+
 </div>
 
 # Overview of liionpack
 *liionpack* takes a 1D PyBaMM model and makes it into a pack. You can either specify
 the configuration e.g. 16 cells in parallel and 2 in series (16p2s) or load a
-netlist
+netlist.
 
 ## Installation
 
@@ -97,12 +97,24 @@ output = lp.solve(netlist=netlist,
                   htc=htc)
 ```
 
+## Documentation
+
+There is a full API documentation, hosted on Read The Docs that can be found [here](https://liionpack.readthedocs.io/).
+
 ## Contributing to liionpack
 
 If you'd like to help us develop liionpack by adding new methods, writing documentation, or fixing embarrassing bugs, please have a look at these [guidelines](https://github.com/pybamm-team/liionpack/blob/main/docs/contributing.md) first.
+
+## Get in touch
+
+For any questions, comments, suggestions or bug reports, please see the [contact page](https://www.pybamm.org/contact).
 
 ## Acknowledgments
 
 PyBaMM-team acknowledges the funding and support of the Faraday Institution's multi-scale modelling project and Innovate UK.
 
 The development work carried out by members at Oak Ridge National Laboratory was partially sponsored by the Office of Electricity under the United States Department of Energy (DOE).
+
+## License
+
+liionpack is fully open source. For more information about its license, see [LICENSE](https://github.com/pybamm-team/liionpack/blob/main/LICENSE).
