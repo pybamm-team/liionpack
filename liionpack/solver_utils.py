@@ -405,13 +405,13 @@ def solve(
         raise Exception("Please supply a netlist, paramater_values, and experiment")
 
     if manager == "casadi":
-        rm = lp.casadi_manager()
+        rm = lp.CasadiManager()
     elif manager == "ray":
-        rm = lp.ray_manager()
+        rm = lp.RayManager()
     elif manager == "dask":
-        rm = lp.dask_manager()
+        rm = lp.DaskManager()
     else:
-        rm = lp.casadi_manager()
+        rm = lp.CasadiManager()
         lp.logger.notice("manager instruction not supported, using default")
 
     output = rm.solve(

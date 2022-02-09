@@ -33,10 +33,10 @@ from .logger import logger, set_logging_level, log_to_file
 from .definitions import ROOT_DIR
 from .definitions import MODULE_DIR
 from .definitions import CIRCUIT_DIR
-from .solvers import casadi_manager
-from .solvers import ray_manager
-from .solvers import dask_manager
-from .solvers import generic_actor
-from .solvers import ray_actor
+from .solvers import CasadiManager
+from .solvers import RayManager
+from .solvers import DaskManager
+from .solvers import GenericActor
+from .solvers import RayActor
 
 __version__ = "0.2.1"

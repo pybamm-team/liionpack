@@ -89,7 +89,7 @@ if __name__ == "__main__":
     t_liionpack -= timestep
     sol_diff = ((v_liionpack.flatten()[1:] - v_pybamm[:-1]) / v_pybamm[:-1]) * 100
 
-    with plt.rc_context(lp.lp_context):
+    with plt.rc_context(lp.lp_context()):
         fig, ((ax0, ax1), (ax2, ax3), (ax4, ax5)) = plt.subplots(
             3, 2, figsize=(12, 10), sharex=True
         )

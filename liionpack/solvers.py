@@ -15,7 +15,7 @@ from tqdm import tqdm
 import pybamm
 
 
-class generic_actor:
+class GenericActor:
     def __init__(self):
         pass
 
@@ -121,12 +121,12 @@ class generic_actor:
 
 
 @ray.remote(num_cpus=1)
-class ray_actor(generic_actor):
+class RayActor(GenericActor):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
 
-class generic_manager:
+class GenericManager:
     def __init__(
         self,
     ):
@@ -326,7 +326,7 @@ class generic_manager:
         pass
 
 
-class ray_manager(generic_manager):
+class RayManager(GenericManager):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         lp.logger.notice("Ray initialization started")
@@ -348,7 +348,7 @@ class ray_manager(generic_manager):
         # Ray setup an actor for each worker
         self.actors = []
         for i in range(nproc):
-            self.actors.append(lp.ray_actor.remote())
+            self.actors.append(lp.RayActor.remote())
         setup_futures = []
         for i, a in enumerate(self.actors):
             # Create actor on each worker containing a simulation
@@ -430,7 +430,7 @@ class ray_manager(generic_manager):
         ray.shutdown()
 
 
-class casadi_manager(generic_manager):
+class CasadiManager(GenericManager):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
@@ -448,7 +448,7 @@ class casadi_manager(generic_manager):
         # the scenes
         tic = ticker.time()
 
-        self.actors = [generic_actor()]
+        self.actors = [GenericActor()]
         for a in self.actors:
             a.setup(
                 Nspm=self.spm_per_worker,
@@ -507,7 +507,7 @@ class casadi_manager(generic_manager):
         pass
 
 
-class dask_manager(generic_manager):
+class DaskManager(GenericManager):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
@@ -530,7 +530,7 @@ class dask_manager(generic_manager):
         futures = []
         for i in range(nproc):
             # Create actor on each worker containing a simulation
-            futures.append(self.client.submit(generic_actor, actor=True, pure=False))
+            futures.append(self.client.submit(GenericActor, actor=True, pure=False))
         self.actors = [af.result() for af in futures]
         futures = []
         for i, a in enumerate(self.actors):
