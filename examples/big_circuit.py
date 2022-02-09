@@ -31,8 +31,7 @@ if __name__ == "__main__":
     )
 
     # PyBaMM parameters
-    chemistry = pybamm.parameter_sets.Chen2020
-    parameter_values = pybamm.ParameterValues(chemistry=chemistry)
+    parameter_values = pybamm.ParameterValues("Chen2020")
 
     # Solve pack
     output = lp.solve(

@@ -86,8 +86,7 @@ experiment = pybamm.Experiment([
     period="10 seconds")
 
 # PyBaMM parameters
-chemistry = pybamm.parameter_sets.Chen2020
-parameter_values = pybamm.ParameterValues(chemistry=chemistry)
+parameter_values = pybamm.ParameterValues("Chen2020")
 
 # Solve pack
 output = lp.solve(netlist=netlist,

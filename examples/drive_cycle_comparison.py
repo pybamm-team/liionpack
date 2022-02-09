@@ -15,8 +15,7 @@ if __name__ == "__main__":
     os.chdir(pybamm.__path__[0] + "/..")
     netlist = lp.setup_circuit(Np=1, Ns=1, Rb=1.0e-6, Rc=1e-6, Ri=3e-2)
 
-    chemistry = pybamm.parameter_sets.Chen2020
-    parameter_values = pybamm.ParameterValues(chemistry=chemistry)
+    parameter_values = pybamm.ParameterValues("Chen2020")
 
     # import drive cycle from file
     drive_cycle = pd.read_csv(
@@ -38,8 +37,7 @@ if __name__ == "__main__":
     ]
 
     # PyBaMM parameters
-    chemistry = pybamm.parameter_sets.Chen2020
-    parameter_values = pybamm.ParameterValues(chemistry=chemistry)
+    parameter_values = pybamm.ParameterValues("Chen2020")
 
     init_SoC = 0.5
 
@@ -53,7 +51,7 @@ if __name__ == "__main__":
         manager='casadi',
         nproc=8)
 
-    parameter_values = pybamm.ParameterValues(chemistry=chemistry)
+    parameter_values = pybamm.ParameterValues("Chen2020")
 
     sim = pybamm.Simulation(
         model=pybamm.lithium_ion.SPM(),

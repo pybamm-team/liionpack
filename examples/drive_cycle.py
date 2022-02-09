@@ -17,8 +17,7 @@ Ns = 1
 netlist = lp.setup_circuit(Np=Np, Ns=Ns, Rb=1.5e-3, Rc=1e-2, Ri=5e-2, V=4.0, I=5.0)
 
 # Define the PyBaMM parameters
-chemistry = pybamm.parameter_sets.Chen2020
-parameter_values = pybamm.ParameterValues(chemistry=chemistry)
+parameter_values = pybamm.ParameterValues("Chen2020")
 
 # Import drive cycle from file
 drive_cycle = pd.read_csv(
@@ -31,8 +30,7 @@ experiment = pybamm.Experiment(
     drive_cycles={"US06": drive_cycle})
 
 # PyBaMM parameters
-chemistry = pybamm.parameter_sets.Chen2020
-parameter_values = pybamm.ParameterValues(chemistry=chemistry)
+parameter_values = pybamm.ParameterValues("Chen2020")
 
 # Solve pack
 output = lp.solve(

@@ -29,8 +29,7 @@ class solver_utilsTest(unittest.TestCase):
             period="10 seconds",
         )
         # PyBaMM parameters
-        chemistry = pybamm.parameter_sets.Chen2020
-        self.parameter_values = pybamm.ParameterValues(chemistry=chemistry)
+        self.parameter_values = pybamm.ParameterValues("Chen2020")
 
     def test_mapped_step(self):
         pass

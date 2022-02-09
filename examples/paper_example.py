@@ -23,8 +23,7 @@ experiment = pybamm.Experiment([
     period="10 seconds")
 
 # PyBaMM battery parameters
-chemistry = pybamm.parameter_sets.Chen2020
-parameter_values = pybamm.ParameterValues(chemistry=chemistry)
+parameter_values = pybamm.ParameterValues("Chen2020")
 
 # Solve the pack problem
 output = lp.solve(netlist=netlist,

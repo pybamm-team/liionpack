@@ -32,8 +32,7 @@ experiment = pybamm.Experiment(
 )
 
 # PyBaMM parameters
-chemistry = pybamm.parameter_sets.Chen2020
-param = pybamm.ParameterValues(chemistry=chemistry)
+param = pybamm.ParameterValues("Chen2020")
 
 c_s_n_init, c_s_p_init = lp.update_init_conc(
     param, SoC=np.array([0.5, 0.6]), update=False

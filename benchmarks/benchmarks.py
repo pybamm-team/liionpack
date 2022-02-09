@@ -19,8 +19,7 @@ class SmallPack:
 
     def setup(self):
         self.netlist = lp.setup_circuit(Np=2, Ns=1, Rb=1e-4, Rc=1e-2)
-        chemistry = pybamm.parameter_sets.Chen2020
-        self.parameter_values = pybamm.ParameterValues(chemistry=chemistry)
+        self.parameter_values = pybamm.ParameterValues("Chen2020")
         self.experiment = pybamm.Experiment(
             [
                 "Discharge at 2 A for 5 minutes",
@@ -53,8 +52,7 @@ class MediumPack:
 
     def setup(self):
         self.netlist = lp.setup_circuit(Np=32, Ns=10, Rb=1e-4, Rc=1e-2)
-        chemistry = pybamm.parameter_sets.Chen2020
-        self.parameter_values = pybamm.ParameterValues(chemistry=chemistry)
+        self.parameter_values = pybamm.ParameterValues("Chen2020")
         self.experiment = pybamm.Experiment(
             [
                 "Discharge at 32 A for 5 minutes",
@@ -87,8 +85,7 @@ class LargePack:
 
     def setup(self):
         self.netlist = lp.setup_circuit(Np=64, Ns=10, Rb=1e-4, Rc=1e-2)
-        chemistry = pybamm.parameter_sets.Chen2020
-        self.parameter_values = pybamm.ParameterValues(chemistry=chemistry)
+        self.parameter_values = pybamm.ParameterValues("Chen2020")
         self.experiment = pybamm.Experiment(
             [
                 "Discharge at 64 A for 5 minutes",

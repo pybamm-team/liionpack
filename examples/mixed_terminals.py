@@ -19,8 +19,7 @@ for terminals in combos:
     plt.figure()
     for i, t in enumerate(terminals):
         netlist = lp.setup_circuit(Np=Np, Ns=Ns, Rb=1e-4, Rc=1e-2, terminals=t)
-        chemistry = pybamm.parameter_sets.Chen2020
-        param = pybamm.ParameterValues(chemistry=chemistry)
+        param = pybamm.ParameterValues("Chen2020")
         experiment = pybamm.Experiment(
             [
                 f"Discharge at {Np} A for 1 minutes",

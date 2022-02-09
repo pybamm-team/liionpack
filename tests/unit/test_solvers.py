@@ -30,8 +30,7 @@ class solversTest(unittest.TestCase):
             period="10 seconds",
         )
         # PyBaMM parameters
-        chemistry = pybamm.parameter_sets.Chen2020
-        self.parameter_values = pybamm.ParameterValues(chemistry=chemistry)
+        self.parameter_values = pybamm.ParameterValues("Chen2020")
         self.managers = ["casadi", "ray", "dask"]
 
     def test_multiprocessing(self):
@@ -93,8 +92,7 @@ class solversTest(unittest.TestCase):
         netlist = lp.setup_circuit(
             Np=1, Ns=1, Rb=1e-4, Rc=1e-2, Ri=3e-2, V=3.6, I=I_app
         )
-        chemistry = pybamm.parameter_sets.Chen2020
-        parameter_values = pybamm.ParameterValues(chemistry=chemistry)
+        parameter_values = pybamm.ParameterValues("Chen2020")
         # Cycling experiment
         charge_exp = pybamm.Experiment(
             [

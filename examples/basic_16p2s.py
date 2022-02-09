@@ -31,8 +31,7 @@ experiment = pybamm.Experiment([
     period='10 seconds')
 
 # Define the PyBaMM parameters
-chemistry = pybamm.parameter_sets.Chen2020
-parameter_values = pybamm.ParameterValues(chemistry=chemistry)
+parameter_values = pybamm.ParameterValues("Chen2020")
 inputs = {"Total heat transfer coefficient [W.m-2.K-1]": np.ones(Np * Ns) * 10}
 
 # Solve the pack
