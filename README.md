@@ -55,6 +55,10 @@ $ conda activate liionpack
 $ pip install -e .
 ```
 
+### Latex
+
+In order to use the `draw_circuit` functionality a version of Latex must be installed on your machine. We use an underlying Python package `Lcapy` for making the drawing and direct you to its installation instructions [here](https://lcapy.readthedocs.io/en/latest/install.html) for operating system specifics.
+
 ## Example Usage
 
 The following code block illustrates how to use liionpack to perform a simulation:
