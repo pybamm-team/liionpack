@@ -8,8 +8,7 @@ on:
         default: 'pypi'
 
 jobs:
-
-  build-pkg:
+  build:
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -37,8 +36,8 @@ jobs:
           if-no-files-found: error
 
 
-  publish-pypi:
-    needs: build-pkg
+  publish:
+    needs: build
     runs-on: ubuntu-latest
     steps:
       - name: Download package
