@@ -8,37 +8,37 @@ tags:
   - electrochemistry
 
 authors:
-  - name: T. G. Tranter
+  - name: Thomas G. Tranter
     orcid: 0000-0003-4721-5941
     affiliation: "1, 2"
-  - name: R. Timms
+  - name: Robert Timms
     orcid: 0000-0002-8858-4818
     affiliation: "2, 3"
-  - name: V. Sulzer
+  - name: Valentin Sulzer
     orcid: 0000-0002-8687-327X
     affiliation: "4"
-  - name: F. Brosa Planella
+  - name: Ferran Brosa Planella
     orcid: 0000-0001-6363-2812
     affiliation: "2, 5"
-  - name: G. M. Wiggins
+  - name: Gavin M. Wiggins
     orcid: 0000-0002-4737-6596
     affiliation: "6"
-  - name: V. Karra
+  - name: Suryanarayana V. Karra
     orcid: 0000-0002-5671-0998
     affiliation: "6"
-  - name: P. Agarwal
+  - name: Priyanshu Agarwal
     orcid: 0000-0002-5333-1634
     affiliation: "7"
-  - name: S. Chopra
+  - name: Saransh Chopra
     orcid: 0000-0003-3046-7675
     affiliation: "8"
-  - name: S. Allu
+  - name: Srikanth Allu
     orcid: 0000-0003-2841-4398
     affiliation: "6"
-  - name: P. Shearing
+  - name: Paul R. Shearing
     orcid: 0000-0002-1387-9531
     affiliation: "1, 2"
-  - name: D. J. L. Brett
+  - name: Dan J. L. Brett
     orcid: 0000-0002-8545-3126
     affiliation: "1, 2"
 
@@ -80,7 +80,7 @@ The API for `liionpack` was designed to provide a simple and efficient extension
 
 # Algorithm
 
-The algorithm to solve the coupled system of batteries is shown in \autoref{fig:0}. The nature of the solving process facilitates parallel processing of the electrochemical problem for each battery during each time-step formulated as an integrable 1D DAE. The system is coupled electrically at the global level via the busbars and interconnections in the circuit and solving this linear algebraic system between electrochemical time-steps determines the current balance and boundary conditions for each battery at the next time-step. The combination of a global circuit solve and local electrochemical solve repeatedly iterated over in time in a see-saw fashion provides the most simple and efficient way of coupling the system without repeating time-steps. Results for solving a single battery forming a circuit with negligible busbar resistance deviates by less than 0.01% from a pure `PyBaMM` simulation.
+The algorithm to solve the coupled system of batteries is shown in \autoref{fig:0}. The nature of the solving process facilitates parallel processing of the electrochemical problem for each battery during each time-step formulated as an integrable 1D differential-algebraic equations (DAE). The system is coupled electrically at the global level via the busbars and interconnections in the circuit and solving this linear algebraic system between electrochemical time-steps determines the current balance and boundary conditions for each battery at the next time-step. The combination of a global circuit solve and local electrochemical solve repeatedly iterated over in time in a see-saw fashion provides the most simple and efficient way of coupling the system without repeating time-steps. Results for solving a single battery forming a circuit with negligible busbar resistance deviates by less than 0.01% from a pure `PyBaMM` simulation.
 
 At present, the circuits that are solved may only contain three different types of element: namely current sources, voltage sources and resistors. Resistors are used to represent the busbars and interconnections in the pack as well as the internal resistance of the batteries. The open circuit voltage is used for the voltage sources in the circuit and modified nodal analysis (MNA) [@mna] is used to solve the circuit problem determining the distribution of current in the pack. A typical 4p1s pack architecture is shown below in \autoref{fig:1} which was produced using `Lcapy` [@lcapy].
 
