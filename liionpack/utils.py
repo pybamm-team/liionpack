@@ -2,6 +2,8 @@
 # General utility functions
 #
 
+import numpy as np
+import pathlib
 from scipy.interpolate import interp1d
 
 
@@ -91,3 +93,31 @@ def add_events_to_model(model):
     for event in model.events:
         model.variables.update({"Event: " + event.name: event.expression})
     return model
+
+
+def save_to_csv(output, path='./csv-results'):
+    """
+    Save simulation output to a CSV file for each output variable.
+
+    Parameters
+    ----------
+    output : dict
+        Simulation output dictionary.
+    path : str
+        Folder path for saving the CSV files. Default path is a folder named
+        `csv-results` in the current directory.
+
+    Returns
+    -------
+        CSV files written to the specified path. Each file represents a single
+        output variable.
+    """
+
+    # Create folder path for saving files
+    path = pathlib.Path(path)
+    path.mkdir(exist_ok=True)
+
+    # Save simulation output to CSV files
+    for k, v in output.items():
+        filename = k.replace(' ', '_') + '.csv'
+        np.savetxt(path / filename, v, delimiter=', ')
