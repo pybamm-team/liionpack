@@ -1,6 +1,6 @@
 """
-Example of saving the output from a 16p2s battery pack simulation to CSV
-files.
+Example of saving the output from a 16p2s battery pack simulation. Examples
+are given for CSV, NumPy `.npy`, and NumPy `.npz` file formats.
 """
 
 import liionpack as lp
@@ -45,3 +45,9 @@ output = lp.solve(netlist=netlist,
 
 # Save simulation output to CSV files
 lp.save_to_csv(output)
+
+# Save simulation output to Numpy npy files
+lp.save_to_npy(output)
+
+# Save simulation output to a compressed NumPy npz file
+lp.save_to_npzcomp(output)
