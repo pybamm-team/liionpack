@@ -13,12 +13,9 @@ class utilsTest(unittest.TestCase):
         volts = np.array([[3.5, 3.6], [3.54, 3.58]])
         output = {'currents': currents, 'volts': volts}
 
-        lp.save_to_csv(output, path='.')
-        lp.save_to_npy(output, path='.')
-        lp.save_to_npzcomp(output, path='.')
-
         self.currents = currents
         self.volts = volts
+        self.output = output
 
     def test_interp_current(self):
         d = {"Time": [0, 10], "Cells Total Current": [2.0, 4.0]}
@@ -36,30 +33,33 @@ class utilsTest(unittest.TestCase):
                 break
         assert events_in
 
-    def test_currents_csv(self):
+    def test_save_to_csv(self):
+        lp.save_to_csv(self.output, path='.')
+
         with open('currents.csv', 'r') as f:
             current = float(f.readline())
         self.assertEqual(self.currents[0], current)
 
-    def test_volts_csv(self):
         with open('volts.csv', 'r') as f:
             volts = list(map(float, f.readline().split(', ')))
         self.assertEqual(self.volts[0][0], volts[0])
 
-    def test_currents_npy(self):
+    def test_save_to_npy(self):
+        lp.save_to_npy(self.output, path='.')
+
         currents = np.load('currents.npy')
         self.assertEqual(self.currents[0], currents[0])
 
-    def test_volts_npy(self):
         volts = np.load('volts.npy')
         self.assertEqual(self.volts[0, 0], volts[0, 0])
 
-    def test_currents_npz(self):
+    def test_save_to_npz(self):
+        lp.save_to_npzcomp(self.output, path='.')
+
         output = np.load('output.npz')
         currents = output['currents']
         self.assertEqual(self.currents[0], currents[0])
 
-    def test_volts_npz(self):
         output = np.load('output.npz')
         volts = output['volts']
         self.assertEqual(self.volts[0, 0], volts[0, 0])
