@@ -12,7 +12,10 @@ class utilsTest(unittest.TestCase):
         currents = [4, 5.2, 8, 10]
         volts = np.array([[3.5, 3.6], [3.54, 3.58]])
         output = {'currents': currents, 'volts': volts}
+
         lp.save_to_csv(output, path='.')
+        lp.save_to_npy(output, path='.')
+        lp.save_to_npzcomp(output, path='.')
 
         self.currents = currents
         self.volts = volts
@@ -33,21 +36,48 @@ class utilsTest(unittest.TestCase):
                 break
         assert events_in
 
-    def test_currents(self):
+    def test_currents_csv(self):
         with open('currents.csv', 'r') as f:
-            weight = float(f.readline())
-        self.assertEqual(self.currents[0], weight)
+            current = float(f.readline())
+        self.assertEqual(self.currents[0], current)
 
-    def test_volts(self):
+    def test_volts_csv(self):
         with open('volts.csv', 'r') as f:
             volts = list(map(float, f.readline().split(', ')))
         self.assertEqual(self.volts[0][0], volts[0])
+
+    def test_currents_npy(self):
+        currents = np.load('currents.npy')
+        self.assertEqual(self.currents[0], currents[0])
+
+    def test_volts_npy(self):
+        volts = np.load('volts.npy')
+        self.assertEqual(self.volts[0, 0], volts[0, 0])
+
+    def test_currents_npz(self):
+        output = np.load('output.npz')
+        currents = output['currents']
+        self.assertEqual(self.currents[0], currents[0])
+
+    def test_volts_npz(self):
+        output = np.load('output.npz')
+        volts = output['volts']
+        self.assertEqual(self.volts[0, 0], volts[0, 0])
 
     def tearDown(self):
         path = pathlib.Path('currents.csv')
         path.unlink(missing_ok=True)
 
         path = pathlib.Path('volts.csv')
+        path.unlink(missing_ok=True)
+
+        path = pathlib.Path('currents.npy')
+        path.unlink(missing_ok=True)
+
+        path = pathlib.Path('volts.npy')
+        path.unlink(missing_ok=True)
+
+        path = pathlib.Path('output.npz')
         path.unlink(missing_ok=True)
 
 
