@@ -9,6 +9,7 @@ try:
 except ImportError:
     from distutils.core import setup
 
+# Load version
 main_ = {}
 ver_path = convert_path("liionpack/__init__.py")
 with open(ver_path) as f:
@@ -16,10 +17,16 @@ with open(ver_path) as f:
         if line.startswith("__version__"):
             exec(line, main_)
 
+# Load readme for description
+with open("README.md", encoding="utf-8") as f:
+    readme = f.read()
+
 setup(
     name="liionpack",
     description="A battery pack simulator for PyBaMM",
     version=main_["__version__"],
+    long_description=readme,
+    long_description_content_type="text/markdown",
     classifiers=[
         "Development Status :: 4 - Beta",
         "License :: OSI Approved :: MIT License",
