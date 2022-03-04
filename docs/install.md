@@ -53,7 +53,7 @@ To obtain the `liionpack` source code, clone the GitHub repository.
 ```bash
 git clone https://github.com/pybamm-team/liionpack.git
 ```
-From the `liionpack/` directory, you can install `liionpack` using `python setup.py install` or
+From the `liionpack/` directory, you can install `liionpack` using -
 ```bash
 # Install the liionpack package from within the repository
 $ pip install -e .
