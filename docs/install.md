@@ -45,7 +45,7 @@ pip install liionpack
 ```
 
 ## Install from source (developer install)
-This page describes the build and installation of `liionpack` from the source code, available on GitHub. Note that this is not the recommended approach for most users and should be reserved to people wanting to participate in the development of `liionpack`, or people who really need to use bleeding-edge feature(s) not yet available in the latest released version. If you do not fall in the two previous categories, you would be better off installing `liionpack` using pip.
+This section describes the build and installation of `liionpack` from the source code, available on GitHub. Note that this is not the recommended approach for most users and should be reserved to people wanting to participate in the development of `liionpack`, or people who really need to use bleeding-edge feature(s) not yet available in the latest released version. If you do not fall in the two previous categories, you would be better off installing `liionpack` using pip.
 
 Run the following command to install the newest version from the Github repository:
 To obtain the `liionpack` source code, clone the GitHub repository.
