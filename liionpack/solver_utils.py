@@ -298,7 +298,8 @@ def _create_casadi_objects(inputs, sim, dt, Nspm, nproc, variable_names, mapped)
     for inpt in inputs:
         inputs_casadi = casadi.vertcat(*[x for x in inpt.values()])
         initial_solutions.append(init_sol.copy())
-        initial_solutions[-1].y[:] = model.initial_conditions_eval(0, y_zero, inputs_casadi)
+        _init = model.initial_conditions_eval(0, y_zero, inputs_casadi)
+        initial_solutions[-1].y[:] = _init
 
     # Step model forward dt seconds
     t_eval = np.linspace(0, dt, 11)
