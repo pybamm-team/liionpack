@@ -320,7 +320,7 @@ class generic_manager:
         self.Nsteps = len(self.protocol)
         netlist.loc[self.I_map, ("value")] = self.protocol[0]
         # Solve the circuit to initialise the electrochemical models
-        V_node, I_batt = lp.solve_circuit(netlist)
+        V_node, I_batt = lp.solve_circuit_vectorized(netlist)
 
         # The simulation output variables calculated at each step for each battery
         # Must be a 0D variable i.e. battery wide volume average - or X-averaged for
@@ -428,7 +428,7 @@ class generic_manager:
         lp.power_loss(self.netlist)
         # 05 Solve the circuit with updated netlist
         if step <= self.Nsteps:
-            V_node, I_batt = lp.solve_circuit(self.netlist)
+            V_node, I_batt = lp.solve_circuit_vectorized(self.netlist)
             self.record_times[step] = step * self.dt
             self.V_terminal[step] = V_node[self.Terminal_Node][0]
         if step < self.Nsteps - 1:

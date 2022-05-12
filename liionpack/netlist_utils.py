@@ -543,14 +543,20 @@ def solve_circuit_vectorized(netlist):
             n1 = node1[R_map_n2_ground]
             G[n1, n1] = G[n1, n1] + g[R_map_n2_ground]
 
-        # needs unique nodes
+        # No longer needs unique nodes
+        # We can take advantage of the fact that coo style inputs sum
+        # duplicates with converted to csr
         n1 = node1[R_map_ok]
         n2 = node2[R_map_ok]
         g_change = g[R_map_ok]
-        G[n1, n1] = G[n1, n1] + g_change
-        G[n2, n2] = G[n2, n2] + g_change
-        G[n1, n2] = G[n1, n2] - g_change
-        G[n2, n1] = G[n2, n1] - g_change
+        gn1n1 = sp.sparse.csr_matrix((g_change, (n1, n1)), shape=G.shape)
+        gn2n2 = sp.sparse.csr_matrix((g_change, (n2, n2)), shape=G.shape)
+        gn1n2 = sp.sparse.csr_matrix((g_change, (n1, n2)), shape=G.shape)
+        gn2n1 = sp.sparse.csr_matrix((g_change, (n2, n1)), shape=G.shape)
+        G += gn1n1
+        G += gn2n2
+        G -= gn1n2
+        G -= gn2n1
 
     # Assume Voltage sources do not connect directly to ground
     V_map = desc == "V"
@@ -708,7 +714,7 @@ def power_loss(netlist, include_Ri=False):
         None
 
     """
-    V_node, I_batt = lp.solve_circuit(netlist)
+    V_node, I_batt = lp.solve_circuit_vectorized(netlist)
     R_map = netlist["desc"].str.find("R") > -1
     R_map = R_map.values
     if not include_Ri:
