@@ -485,7 +485,6 @@ def solve_circuit_vectorized(netlist):
     timer = pybamm.Timer()
 
     desc = np.array(netlist["desc"]).astype("<U1")  # just take first character
-    desc2 = np.array(netlist["desc"]).astype("<U2")  # take first 2 characters
     node1 = np.array(netlist["node1"])
     node2 = np.array(netlist["node2"])
     value = np.array(netlist["value"])
