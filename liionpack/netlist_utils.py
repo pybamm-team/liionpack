@@ -511,10 +511,7 @@ def solve_circuit_vectorized(netlist):
     e = np.zeros([m, 1])
 
     """
-    % This loop does the bulk of filling in the arrays.  It scans line by line
-    % and fills in the arrays depending on the type of element found on the
-    % current line.
-    % See http://lpsa.swarthmore.edu/Systems/Electrical/mna/MNA3.html
+    % This old loop is now vectorized
     """
 
     node1 = node1 - 1  # get the two node numbers in python index format
@@ -523,40 +520,39 @@ def solve_circuit_vectorized(netlist):
     g = np.ones(len(value)) * np.nan
     n1_ground = node1 == -1
     n2_ground = node2 == -1
-    r_list = [d for d in np.unique(desc2) if d[0] == "R"]
-    for r_string in r_list:
-        R_map = desc2 == r_string
-        g[R_map] = 1 / value[R_map]  # conductance = 1 / R
-        R_map_n1_ground = np.logical_and(R_map, n1_ground)
-        R_map_n2_ground = np.logical_and(R_map, n2_ground)
-        R_map_ok = np.logical_and(R_map, ~np.logical_or(n1_ground, n2_ground))
+    # Resistors
+    R_map = desc == "R"
+    g[R_map] = 1 / value[R_map]  # conductance = 1 / R
+    R_map_n1_ground = np.logical_and(R_map, n1_ground)
+    R_map_n2_ground = np.logical_and(R_map, n2_ground)
+    R_map_ok = np.logical_and(R_map, ~np.logical_or(n1_ground, n2_ground))
 
-        """
-        % Here we fill in G array by adding conductance.
-        % The procedure is slightly different if one of the nodes is
-        % ground, so check for those accordingly.
-        """
-        if np.any(R_map_n1_ground):  # -1 is the ground node
-            n2 = node2[R_map_n1_ground]
-            G[n2, n2] = G[n2, n2] + g[R_map_n1_ground]
-        if np.any(R_map_n2_ground):
-            n1 = node1[R_map_n2_ground]
-            G[n1, n1] = G[n1, n1] + g[R_map_n2_ground]
+    """
+    % Here we fill in G array by adding conductance.
+    % The procedure is slightly different if one of the nodes is
+    % ground, so check for those accordingly.
+    """
+    if np.any(R_map_n1_ground):  # -1 is the ground node
+        n2 = node2[R_map_n1_ground]
+        G[n2, n2] = G[n2, n2] + g[R_map_n1_ground]
+    if np.any(R_map_n2_ground):
+        n1 = node1[R_map_n2_ground]
+        G[n1, n1] = G[n1, n1] + g[R_map_n2_ground]
 
-        # No longer needs unique nodes
-        # We can take advantage of the fact that coo style inputs sum
-        # duplicates with converted to csr
-        n1 = node1[R_map_ok]
-        n2 = node2[R_map_ok]
-        g_change = g[R_map_ok]
-        gn1n1 = sp.sparse.csr_matrix((g_change, (n1, n1)), shape=G.shape)
-        gn2n2 = sp.sparse.csr_matrix((g_change, (n2, n2)), shape=G.shape)
-        gn1n2 = sp.sparse.csr_matrix((g_change, (n1, n2)), shape=G.shape)
-        gn2n1 = sp.sparse.csr_matrix((g_change, (n2, n1)), shape=G.shape)
-        G += gn1n1
-        G += gn2n2
-        G -= gn1n2
-        G -= gn2n1
+    # No longer needs unique nodes
+    # We can take advantage of the fact that coo style inputs sum
+    # duplicates with converted to csr
+    n1 = node1[R_map_ok]
+    n2 = node2[R_map_ok]
+    g_change = g[R_map_ok]
+    gn1n1 = sp.sparse.csr_matrix((g_change, (n1, n1)), shape=G.shape)
+    gn2n2 = sp.sparse.csr_matrix((g_change, (n2, n2)), shape=G.shape)
+    gn1n2 = sp.sparse.csr_matrix((g_change, (n1, n2)), shape=G.shape)
+    gn2n1 = sp.sparse.csr_matrix((g_change, (n2, n1)), shape=G.shape)
+    G += gn1n1
+    G += gn2n2
+    G -= gn1n2
+    G -= gn2n1
 
     # Assume Voltage sources do not connect directly to ground
     V_map = desc == "V"
