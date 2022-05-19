@@ -49,8 +49,10 @@ jobs:
         sudo apt-get install ghostscript
     - name: Install dependencies
       run: |
+        pip install wheel
         python -m pip install --upgrade pip
         python -m pip install -r requirements.txt
+        pybamm_install_jax
     - name: Install liionpack for ray
       run: |
         python setup.py install
