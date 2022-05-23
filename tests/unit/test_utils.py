@@ -4,7 +4,6 @@ import pandas as pd
 import pathlib
 import pybamm
 import unittest
-import numpy as np
 
 
 class utilsTest(unittest.TestCase):
@@ -33,7 +32,6 @@ class utilsTest(unittest.TestCase):
                 events_in = True
                 break
         assert events_in
-
 
     def test_build_inputs_dict(self):
         I_batt = np.array([1.0, 2.0])
