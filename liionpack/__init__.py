@@ -11,6 +11,9 @@ from .simulations import thermal_external
 from .utils import interp_current
 from .utils import build_inputs_dict
 from .utils import add_events_to_model
+from .utils import save_to_csv
+from .utils import save_to_npy
+from .utils import save_to_npzcomp
 from .netlist_utils import read_netlist
 from .netlist_utils import setup_circuit
 from .netlist_utils import solve_circuit
