@@ -30,8 +30,7 @@ def basic_simulation(parameter_values=None):
 
     # Set up parameter values
     if parameter_values is None:
-        chemistry = pybamm.parameter_sets.Chen2020
-        param = pybamm.ParameterValues(chemistry=chemistry)
+        param = pybamm.ParameterValues("Chen2020")
     else:
         param = parameter_values.copy()
 
@@ -72,8 +71,7 @@ def thermal_simulation(parameter_values=None):
 
     # Set up parameter values
     if parameter_values is None:
-        chemistry = pybamm.parameter_sets.Chen2020
-        parameter_values = pybamm.ParameterValues(chemistry=chemistry)
+        parameter_values = pybamm.ParameterValues("Chen2020")
 
     # Change the heat transfer coefficient to be an input controlled by the
     # external circuit
@@ -125,8 +123,7 @@ def thermal_external(parameter_values=None):
 
     # Set up parameter values
     if parameter_values is None:
-        chemistry = pybamm.parameter_sets.Chen2020
-        parameter_values = pybamm.ParameterValues(chemistry=chemistry)
+        parameter_values = pybamm.ParameterValues("Chen2020")
 
     # Set up solver and simulation
     solver = pybamm.CasadiSolver(mode="safe")

@@ -6,8 +6,7 @@ import unittest
 class sim_utilsTest(unittest.TestCase):
     @classmethod
     def setUpClass(self):
-        chemistry = pybamm.parameter_sets.Chen2020
-        self.param = pybamm.ParameterValues(chemistry=chemistry)
+        self.param = pybamm.ParameterValues("Chen2020")
 
     def test_update_init_conc(self):
         a = self.param["Initial concentration in negative electrode [mol.m-3]"]

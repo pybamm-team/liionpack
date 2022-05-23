@@ -14,8 +14,7 @@ class Test1p1s(unittest.TestCase):
             Np=1, Ns=1, Rb=Rsmall, Rc=Rsmall, Ri=5e-2, V=4.0, I=1.0
         )
         # PyBaMM parameters
-        chemistry = pybamm.parameter_sets.Chen2020
-        parameter_values = pybamm.ParameterValues(chemistry=chemistry)
+        parameter_values = pybamm.ParameterValues("Chen2020")
         # Cycling experiment
         experiment = pybamm.Experiment(
             [("Discharge at 1 A for 100 s or until 3.3 V",)] * 1, period="10 s"
@@ -27,7 +26,7 @@ class Test1p1s(unittest.TestCase):
             experiment=experiment
         )
 
-        parameter_values = pybamm.ParameterValues(chemistry=chemistry)
+        parameter_values = pybamm.ParameterValues("Chen2020")
         sim = pybamm.Simulation(model=pybamm.lithium_ion.SPM(),
                                 parameter_values=parameter_values,
                                 experiment=experiment)
@@ -44,8 +43,7 @@ class Test1p1s(unittest.TestCase):
             Np=1, Ns=1, Rb=Rsmall, Rc=Rsmall, Ri=5e-2, V=4.0, I=1.0
         )
         # PyBaMM parameters
-        chemistry = pybamm.parameter_sets.Chen2020
-        parameter_values = pybamm.ParameterValues(chemistry=chemistry)
+        parameter_values = pybamm.ParameterValues("Chen2020")
         # Cycling experiment
         experiment = pybamm.Experiment(
             [
@@ -66,7 +64,7 @@ class Test1p1s(unittest.TestCase):
             initial_soc=SoC
         )
 
-        parameter_values = pybamm.ParameterValues(chemistry=chemistry)
+        parameter_values = pybamm.ParameterValues("Chen2020")
         sim = pybamm.Simulation(model=pybamm.lithium_ion.SPM(),
                                 parameter_values=parameter_values,
                                 experiment=experiment)

@@ -30,8 +30,7 @@ class plotsTest(unittest.TestCase):
             period="10 seconds",
         )
         # PyBaMM parameters
-        chemistry = pybamm.parameter_sets.Chen2020
-        parameter_values = pybamm.ParameterValues(chemistry=chemistry)
+        parameter_values = pybamm.ParameterValues("Chen2020")
         # Solve pack
         output = lp.solve(
             netlist=self.netlist,
@@ -93,8 +92,7 @@ class plotsTest(unittest.TestCase):
             period="10 seconds",
         )
         # Define the PyBaMM parameters
-        chemistry = pybamm.parameter_sets.Chen2020
-        parameter_values = pybamm.ParameterValues(chemistry=chemistry)
+        parameter_values = pybamm.ParameterValues("Chen2020")
         parameter_values.update(
             {"Total heat transfer coefficient [W.m-2.K-1]": "[input]"}
         )
