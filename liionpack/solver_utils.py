@@ -369,6 +369,7 @@ def solve(
     parameter_values=None,
     experiment=None,
     inputs=None,
+    external_variables=None,
     initial_soc=None,
     nproc=1,
     output_variables=None,
@@ -391,6 +392,8 @@ def solve(
             determine the length of each timestep.
         inputs (dict):
             Dictionary for every model input with value for each battery
+        external_variables (dict):
+            Dictionary for every model external variale with value for each battery
         initial_soc (float):
             The initial state of charge for every battery. The default is None
             in which case concentrations set in the parameter_values are used.
@@ -429,7 +432,9 @@ def solve(
         experiment=experiment,
         output_variables=output_variables,
         inputs=inputs,
+        external_variables=external_variables,
         nproc=nproc,
         initial_soc=initial_soc,
+        setup_only=False,
     )
     return output

@@ -33,6 +33,13 @@ class utilsTest(unittest.TestCase):
                 break
         assert events_in
 
+    def test_build_inputs_dict(self):
+        I_batt = np.array([1.0, 2.0])
+        inputs = {"Electrode height [m]": [3.0, 4.0]}
+        external_variables = {"Volume averaged cell temperature": [5.0, 6.0]}
+        in_dict = lp.build_inputs_dict(I_batt, inputs, external_variables)
+        assert len(in_dict) == 2
+
     def test_save_to_csv(self):
         lp.save_to_csv(self.output, path='.')
 

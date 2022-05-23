@@ -2,6 +2,7 @@ import liionpack as lp
 import numpy as np
 import matplotlib.pyplot as plt
 import unittest
+import os
 
 
 class netlist_utilsTest(unittest.TestCase):
@@ -88,6 +89,14 @@ class netlist_utilsTest(unittest.TestCase):
         assert cct_lr.has_dc
         assert cct_rl.has_dc
         assert cct_m.has_dc
+
+    def test_write_netlist(self):
+        net = lp.setup_circuit(Np=1, Ns=2, Rb=1e-4, Rc=1e-2, Ri=1e-3, V=2.0, I=10.0)
+        cwd = os.getcwd()
+        temp = os.path.join(cwd, 'temp.txt')
+        lp.write_netlist(net, temp)
+        assert os.path.isfile(temp)
+        os.remove(temp)
 
 
 if __name__ == "__main__":
