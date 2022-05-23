@@ -485,7 +485,6 @@ def solve_circuit_vectorized(netlist):
     timer = pybamm.Timer()
 
     desc = np.array(netlist["desc"]).astype("<U1")  # just take first character
-    desc2 = np.array(netlist["desc"]).astype("<U2")  # take first 2 characters
     node1 = np.array(netlist["node1"])
     node2 = np.array(netlist["node2"])
     value = np.array(netlist["value"])
@@ -511,10 +510,7 @@ def solve_circuit_vectorized(netlist):
     e = np.zeros([m, 1])
 
     """
-    % This loop does the bulk of filling in the arrays.  It scans line by line
-    % and fills in the arrays depending on the type of element found on the
-    % current line.
-    % See http://lpsa.swarthmore.edu/Systems/Electrical/mna/MNA3.html
+    % This old loop is now vectorized
     """
 
     node1 = node1 - 1  # get the two node numbers in python index format
@@ -523,34 +519,39 @@ def solve_circuit_vectorized(netlist):
     g = np.ones(len(value)) * np.nan
     n1_ground = node1 == -1
     n2_ground = node2 == -1
-    r_list = [d for d in np.unique(desc2) if d[0] == "R"]
-    for r_string in r_list:
-        R_map = desc2 == r_string
-        g[R_map] = 1 / value[R_map]  # conductance = 1 / R
-        R_map_n1_ground = np.logical_and(R_map, n1_ground)
-        R_map_n2_ground = np.logical_and(R_map, n2_ground)
-        R_map_ok = np.logical_and(R_map, ~np.logical_or(n1_ground, n2_ground))
+    # Resistors
+    R_map = desc == "R"
+    g[R_map] = 1 / value[R_map]  # conductance = 1 / R
+    R_map_n1_ground = np.logical_and(R_map, n1_ground)
+    R_map_n2_ground = np.logical_and(R_map, n2_ground)
+    R_map_ok = np.logical_and(R_map, ~np.logical_or(n1_ground, n2_ground))
 
-        """
-        % Here we fill in G array by adding conductance.
-        % The procedure is slightly different if one of the nodes is
-        % ground, so check for those accordingly.
-        """
-        if np.any(R_map_n1_ground):  # -1 is the ground node
-            n2 = node2[R_map_n1_ground]
-            G[n2, n2] = G[n2, n2] + g[R_map_n1_ground]
-        if np.any(R_map_n2_ground):
-            n1 = node1[R_map_n2_ground]
-            G[n1, n1] = G[n1, n1] + g[R_map_n2_ground]
+    """
+    % Here we fill in G array by adding conductance.
+    % The procedure is slightly different if one of the nodes is
+    % ground, so check for those accordingly.
+    """
+    if np.any(R_map_n1_ground):  # -1 is the ground node
+        n2 = node2[R_map_n1_ground]
+        G[n2, n2] = G[n2, n2] + g[R_map_n1_ground]
+    if np.any(R_map_n2_ground):
+        n1 = node1[R_map_n2_ground]
+        G[n1, n1] = G[n1, n1] + g[R_map_n2_ground]
 
-        # needs unique nodes
-        n1 = node1[R_map_ok]
-        n2 = node2[R_map_ok]
-        g_change = g[R_map_ok]
-        G[n1, n1] = G[n1, n1] + g_change
-        G[n2, n2] = G[n2, n2] + g_change
-        G[n1, n2] = G[n1, n2] - g_change
-        G[n2, n1] = G[n2, n1] - g_change
+    # No longer needs unique nodes
+    # We can take advantage of the fact that coo style inputs sum
+    # duplicates with converted to csr
+    n1 = node1[R_map_ok]
+    n2 = node2[R_map_ok]
+    g_change = g[R_map_ok]
+    gn1n1 = sp.sparse.csr_matrix((g_change, (n1, n1)), shape=G.shape)
+    gn2n2 = sp.sparse.csr_matrix((g_change, (n2, n2)), shape=G.shape)
+    gn1n2 = sp.sparse.csr_matrix((g_change, (n1, n2)), shape=G.shape)
+    gn2n1 = sp.sparse.csr_matrix((g_change, (n2, n1)), shape=G.shape)
+    G += gn1n1
+    G += gn2n2
+    G -= gn1n2
+    G -= gn2n1
 
     # Assume Voltage sources do not connect directly to ground
     V_map = desc == "V"
@@ -628,7 +629,7 @@ def make_lcapy_circuit(netlist):
     all_desc = netlist["desc"].values
     for index, row in net2.iterrows():
         color = "black"
-        desc, n1, n2, value, n1x, n1y, n2x, n2y = row
+        desc, n1, n2, value, n1x, n1y, n2x, n2y = row[:8]
         if desc[0] == "V":
             direction = d1
         elif desc[0] == "I":
@@ -690,3 +691,70 @@ def make_lcapy_circuit(netlist):
     # Add ground node
     cct.add("W 0 00; down, sground")
     return cct
+
+
+def power_loss(netlist, include_Ri=False):
+    """
+    Calculate the power loss through joule heating of all the resistors in the
+    circuit
+
+    Args:
+        netlist (pandas.DataFrame):
+            A netlist of circuit elements with format desc, node1, node2, value.
+        include_Ri (bool):
+            Default is False. If True the internal resistance of the batteries
+            is included
+
+    Returns:
+        None
+
+    """
+    V_node, I_batt = lp.solve_circuit_vectorized(netlist)
+    R_map = netlist["desc"].str.find("R") > -1
+    R_map = R_map.values
+    if not include_Ri:
+        Ri_map = netlist["desc"].str.find("Ri") > -1
+        Ri_map = Ri_map.values
+        R_map *= ~Ri_map
+    R_value = netlist[R_map].value.values
+    R_node1 = netlist[R_map].node1.values
+    R_node2 = netlist[R_map].node2.values
+    R_node1_V = V_node[R_node1]
+    R_node2_V = V_node[R_node2]
+    V_diff = np.abs(R_node1_V - R_node2_V)
+    P_loss = V_diff**2 / R_value
+    netlist["power_loss"] = 0
+    netlist.loc[R_map, ("power_loss")] = P_loss
+
+
+def _fn(n):
+    if n == 0:
+        return "0"
+    else:
+        return "N" + str(n).zfill(3)
+
+
+def write_netlist(netlist, filename):
+    """
+    Write netlist to file
+
+    Args:
+        netlist (pandas.DataFrame):
+            A netlist of circuit elements with format desc, node1, node2, value.
+
+    Returns:
+        None
+
+
+    """
+    lines = ["* " + filename]
+    for (i, r) in netlist.iterrows():
+        line = r.desc + " " + _fn(r.node1) + " " + _fn(r.node2) + " " + str(r.value)
+        lines.append(line)
+    lines.append(".op")
+    lines.append(".backanno")
+    lines.append(".end")
+    with open(filename, "w") as f:
+        for line in lines:
+            f.write(line)
+            f.write("\n")

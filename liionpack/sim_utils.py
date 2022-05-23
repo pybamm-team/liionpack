@@ -33,9 +33,17 @@ def get_initial_stoichiometries(initial_soc, parameter_values):
 
     V_min = parameter_values.evaluate(param.voltage_low_cut_dimensional)
     V_max = parameter_values.evaluate(param.voltage_high_cut_dimensional)
-    C_n = parameter_values.evaluate(param.C_n_init)
-    C_p = parameter_values.evaluate(param.C_p_init)
-    n_Li = parameter_values.evaluate(param.n_Li_particles_init)
+    try:
+        C_n = parameter_values.evaluate(param.C_n_init)
+        C_p = parameter_values.evaluate(param.C_p_init)
+        n_Li = parameter_values.evaluate(param.n_Li_particles_init)
+    except ValueError:
+        # The initial concentration is dependent on an input
+        lp.logger.warning(
+            "Initial concentrations are dependent on an input, "
+            + "please also supply initial concentrations as inputs"
+        )
+        return None, None
 
     # Solve the model and check outputs
     sol = sim.solve(
@@ -68,6 +76,8 @@ def update_init_conc(param, SoC=None, update=True):
         SoC (float):
             Target initial SoC. Must be between 0 and 1. Default is -1, in which
             case the initial concentrations are set using the target OCV.
+        update (bool):
+            Update the initial concentrations in place if True
 
     Returns:
         c_s_n_init, c_s_p_init (float):
@@ -76,7 +86,10 @@ def update_init_conc(param, SoC=None, update=True):
     c_n_max = param["Maximum concentration in negative electrode [mol.m-3]"]
     c_p_max = param["Maximum concentration in positive electrode [mol.m-3]"]
     x, y = lp.get_initial_stoichiometries(SoC, param)
-    c_s_n_init, c_s_p_init = x * c_n_max, y * c_p_max
+    if x is not None:
+        c_s_n_init, c_s_p_init = x * c_n_max, y * c_p_max
+    else:
+        return x, y
     if update:
         param.update(
             {

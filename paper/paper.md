@@ -8,37 +8,37 @@ tags:
   - electrochemistry
 
 authors:
-  - name: T. G. Tranter
+  - name: Thomas G. Tranter
     orcid: 0000-0003-4721-5941
     affiliation: "1, 2"
-  - name: R. Timms
+  - name: Robert Timms
     orcid: 0000-0002-8858-4818
     affiliation: "2, 3"
-  - name: V. Sulzer
+  - name: Valentin Sulzer
     orcid: 0000-0002-8687-327X
     affiliation: "4"
-  - name: F. Brosa Planella
+  - name: Ferran Brosa Planella
     orcid: 0000-0001-6363-2812
     affiliation: "2, 5"
-  - name: G. M. Wiggins
+  - name: Gavin M. Wiggins
     orcid: 0000-0002-4737-6596
     affiliation: "6"
-  - name: V. Karra
+  - name: Suryanarayana V. Karra
     orcid: 0000-0002-5671-0998
     affiliation: "6"
-  - name: P. Agarwal
+  - name: Priyanshu Agarwal
     orcid: 0000-0002-5333-1634
     affiliation: "7"
-  - name: S. Chopra
+  - name: Saransh Chopra
     orcid: 0000-0003-3046-7675
     affiliation: "8"
-  - name: S. Allu
+  - name: Srikanth Allu
     orcid: 0000-0003-2841-4398
     affiliation: "6"
-  - name: P. Shearing
+  - name: Paul R. Shearing
     orcid: 0000-0002-1387-9531
     affiliation: "1, 2"
-  - name: D. J. L. Brett
+  - name: Dan J. L. Brett
     orcid: 0000-0002-8545-3126
     affiliation: "1, 2"
 
@@ -68,7 +68,7 @@ bibliography: paper.bib
 
 # Summary
 
-Electrification of transport and other energy intensive activities is of growing importance as it provides an underpinning method to reduce carbon emissions. With an increase in reliance on renewable sources of energy and a reduction in the use of more predictable fossil fuels in both stationary and mobile applications, energy storage will play a pivotal role and batteries are currently the most widely adopted and versatile form. Therefore, understanding how batteries work, how they degrade and how to optimize and manage their operation at large scales is critical to achieving emission reduction targets. The electric vehicle (EV) industry requires a considerable number of batteries even for a single vehicle, sometimes numbering in the thousands if smaller cells are used, and the dynamics and degradation of these systems, as well as large stationary power systems, is not that well understood. As increases in the efficiency of a single battery become diminishing for standard commercially available chemistries, gains made at the system level become more important and can potentially be realised more quickly compared with developing new chemistries. Mathematical models and simulations provide a way to address these challenging questions and can aid the engineer and designers of batteries and battery management systems to provide longer lasting and more efficient energy storage systems.
+Electrification of transport and other energy intensive activities is of growing importance as it provides an underpinning method to reduce carbon emissions. With an increase in reliance on renewable sources of energy and a reduction in the use of more predictable fossil fuels in both stationary and mobile applications, energy storage will play a pivotal role and batteries are currently the most widely adopted and versatile form. Therefore, understanding how batteries work, how they degrade, and how to optimize and manage their operation at large scales is critical to achieving emission reduction targets. The electric vehicle (EV) industry requires a considerable number of batteries even for a single vehicle, sometimes numbering in the thousands if smaller cells are used, and the dynamics and degradation of these systems, as well as large stationary power systems, is not that well understood. As increases in the efficiency of a single battery become diminishing for standard commercially available chemistries, gains made at the system level become more important and can potentially be realised more quickly compared with developing new chemistries. Mathematical models and simulations provide a way to address these challenging questions and can aid the engineer and designers of batteries and battery management systems to provide longer lasting and more efficient energy storage systems.
 
 # Statement of need
 
@@ -76,19 +76,19 @@ Electrification of transport and other energy intensive activities is of growing
 
 The API for `liionpack` was designed to provide a simple and efficient extension to the `PyBaMM` [@pybamm] framework allowing users to scale up simulations from single cells to many thousands with a few extra lines of code. `PyBaMM` provides a number of classic physics-based single battery models with configurable options to investigate thermal effects and degradation, for example. The pack architecture introduced by `liionpack` can be defined as a number of batteries connected in series and parallel to one another using busbars and interconnections with defined resistances. A netlist may also be used to construct the pack which is more flexible and allows for configurable network topology and can be constructed graphically with packages such as `LTSpice` [@ltspice] or simply created manually, specifying nodal connections as either current sources, voltage sources or resistors. Statistical distributions can be easily incorporated into the pack architecture elements through the use of input parameters that allow a single model to be solved with varying inputs.
 
-# Algorithm
-
-The algorithm to solve the coupled system of batteries is shown in \autoref{fig:0}. The nature of the solving process facilitates parallel processing of the electrochemical problem for each battery during each time-step formulated as an integrable 1D DAE. The system is coupled electrically at the global level via the busbars and interconnections in the circuit and solving this linear algebraic system between electrochemical time-steps determines the current balance and boundary conditions for each battery at the next time-step. The combination of a global circuit solve and local electrochemical solve repeatedly iterated over in time in a see-saw fashion provides the most simple and efficient way of coupling the system without repeating time-steps. Results for solving a single battery forming a circuit with negligible busbar resistance deviates by less than 0.01% from a pure `PyBaMM` simulation.
-
 ![Coupled system solution algorithm.\label{fig:0}](./paper_figures/Figure_0.png)
 
-At present, the circuits that are solved may only contain three different types of element: namely current sources, voltage sources and resistors. Resistors are used to represent the busbars and interconnections in the pack as well as the internal resistance of the batteries. The open circuit voltage is used for the voltage sources in the circuit and modified nodal analysis (MNA) [@mna] is used to solve the circuit problem determining the distribution of current in the pack. A typical 4p1s pack architecture is shown below in \autoref{fig:1} which was produced using `Lcapy` [@lcapy].
+# Algorithm
+
+The algorithm to solve the coupled system of batteries is shown in \autoref{fig:0}. The nature of the solving process facilitates parallel processing of the electrochemical problem for each battery during each time-step formulated as an integrable set of 1D differential-algebraic equations (DAEs). The system is coupled electrically at the global level via the busbars and interconnections in the circuit and solving this linear algebraic system between electrochemical time-steps determines the current balance and boundary conditions for each battery at the next time-step. The combination of a global circuit solve and local electrochemical solve repeatedly iterated over in time in a see-saw fashion provides the most simple and efficient way of coupling the system without repeating time-steps. Results for solving a single battery forming a circuit with negligible busbar resistance deviates by less than 0.01% from a pure `PyBaMM` simulation.
+
+At present, the circuits that are solved may only contain three different types of element: namely current sources, voltage sources, and resistors. Resistors are used to represent the busbars and interconnections in the pack as well as the internal resistance of the batteries. The open circuit voltage is used for the voltage sources in the circuit and modified nodal analysis (MNA) [@mna] is used to solve the circuit problem determining the distribution of current in the pack. A typical 4p1s pack architecture is shown below in \autoref{fig:1}, which was produced using `Lcapy` [@lcapy].
 
 ![Typical pack architecture.\label{fig:1}](./paper_figures/Figure_1.png)
 
-Presently, the thermal problem is solved in a non-coupled way with each battery acting as an independent heat source and interacting with it's environment in a "lumped" sense with a volume-averaged heat transfer coefficient. Heat generation and conduction through the busbars and from cell to neighbouring cells is likely to occur in some scenarios and can be accounted for by solving a transient thermal problem on the network architecture [@jellyroll], which will be implemented in future releases. Heat transfer coefficients may also be easily adjusted on a cell-by-cell basis and also throughout the simulation solving process to reflect heterogenous and time-dependent cooling conditions.
+Presently, the thermal problem is solved in a non-coupled way with each battery acting as an independent heat source and interacting with its environment in a "lumped" sense with a volume-averaged heat transfer coefficient. Heat generation and conduction through the busbars and from cell to neighbouring cells is likely to occur in some scenarios and can be accounted for by solving a transient thermal problem on the network architecture [@jellyroll], which will be implemented in future releases. Heat transfer coefficients may also be easily adjusted on a cell-by-cell basis and also throughout the simulation solving process to reflect heterogenous and time-dependent cooling conditions.
 
-Several distributed solvers are provided and can be selected through a common function with a simple function argument. These are `Casadi` [@casadi] which uses multi-threading and works well for single workstations and `ray` [@ray] and `dask` [@dask] which are designed for running on clusters and use multi-processing. Many of the functions and models that can be found in `PyBaMM` should work in exactly the same way in `liionpack` and examples are provided showing how to set up and configure different battery models for running in the pack system. Several visualization tools are also provided for analysis of the results.
+Several distributed solvers are provided and can be selected through a common function with a simple function argument. These are `Casadi` [@casadi], which uses multi-threading and works well for single workstations, and `ray` [@ray] and `dask` [@dask], which are designed for running on clusters and use multi-processing. Many of the functions and models that can be found in `PyBaMM` should work in exactly the same way in `liionpack` and examples are provided showing how to set up and configure different battery models for running in the pack system. Several visualization tools are also provided for analysis of the results.
 
 # Example
 
