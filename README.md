@@ -1,4 +1,4 @@
-![logo](docs/liionpack.png)
+![logo](https://raw.githubusercontent.com/pybamm-team/liionpack/main/docs/liionpack.png)
 
 #
 <div align="center">
@@ -7,6 +7,7 @@
 [![Documentation Status](https://readthedocs.org/projects/liionpack/badge/?version=main)](https://liionpack.readthedocs.io/en/main/?badge=main)
 [![codecov](https://codecov.io/gh/pybamm-team/liionpack/branch/main/graph/badge.svg)](https://codecov.io/gh/pybamm-team/liionpack)
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/pybamm-team/liionpack/blob/main/)
+[![DOI](https://joss.theoj.org/papers/10.21105/joss.04051/status.svg)](https://doi.org/10.21105/joss.04051)
 
 </div>
 
@@ -17,43 +18,16 @@ netlist.
 
 ## Installation
 
-Follow the steps given below to install the `liionpack` Python package. The package must be installed to run the included examples. It is recommended to create a virtual environment for the installation.
+Follow the steps given below to install `liionpack`. The package must be installed to run the included examples. It is recommended to create a virtual environment for the installation, see [the documentation](https://liionpack.readthedocs.io/en/main/install/).
 
+To install `liionpack` using `pip`, run the following command:
 ```bash
-# Clone the repository
-$ git clone https://github.com/pybamm-team/liionpack.git
-
-# Create a virtual environment in the repository directory
-$ cd liionpack
-$ python -m venv .venv
-
-# Activate the virtual environment and upgrade pip if venv installed an old version
-$ source .venv/bin/activate
-$ pip install --upgrade pip
-
-# Install the required packages
-$ pip install -r requirements.txt
-
-# Install the liionpack package from within the repository
-$ pip install -e .
+pip install liionpack
 ```
 
-Alternatively, use Conda to create a virtual environment then install the `liionpack`  package.
+### LaTeX
 
-```bash
-# Clone the repository
-$ git clone https://github.com/pybamm-team/liionpack.git
-
-# Create a Conda virtual environment
-$ cd liionpack
-$ conda env create -f environment.yml
-
-# Activate the conda environment
-$ conda activate liionpack
-
-# Install the liionpack package from within the repository
-$ pip install -e .
-```
+In order to use the `draw_circuit` functionality a version of Latex must be installed on your machine. We use an underlying Python package `Lcapy` for making the drawing and direct you to its installation instructions [here](https://lcapy.readthedocs.io/en/latest/install.html) for operating system specifics.
 
 ## Example Usage
 

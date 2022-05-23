@@ -289,9 +289,17 @@ def _create_casadi_objects(inputs, sim, dt, Nspm, nproc, variable_names, mapped)
     init_sol = sim.step(
         dt=1e-6, save=False, starting_solution=None, inputs=inputs[0]
     ).last_state
+    # evaluate initial condition
+    model = sim.built_model
+    y0_total_size = (
+        model.len_rhs + model.len_rhs_sens + model.len_alg + model.len_alg_sens
+    )
+    y_zero = np.zeros((y0_total_size, 1))
     for inpt in inputs:
+        inputs_casadi = casadi.vertcat(*[x for x in inpt.values()])
         initial_solutions.append(init_sol.copy())
-        initial_solutions[-1].y[:] = sim.built_model.init_eval(inpt)
+        _init = model.initial_conditions_eval(0, y_zero, inputs_casadi)
+        initial_solutions[-1].y[:] = _init
 
     # Step model forward dt seconds
     t_eval = np.linspace(0, dt, 11)
@@ -361,6 +369,7 @@ def solve(
     parameter_values=None,
     experiment=None,
     inputs=None,
+    external_variables=None,
     initial_soc=None,
     nproc=1,
     output_variables=None,
@@ -383,6 +392,8 @@ def solve(
             determine the length of each timestep.
         inputs (dict):
             Dictionary for every model input with value for each battery
+        external_variables (dict):
+            Dictionary for every model external variale with value for each battery
         initial_soc (float):
             The initial state of charge for every battery. The default is None
             in which case concentrations set in the parameter_values are used.
@@ -421,7 +432,9 @@ def solve(
         experiment=experiment,
         output_variables=output_variables,
         inputs=inputs,
+        external_variables=external_variables,
         nproc=nproc,
         initial_soc=initial_soc,
+        setup_only=False,
     )
     return output

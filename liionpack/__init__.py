@@ -7,14 +7,20 @@ read a netlist.
 """
 from .simulations import basic_simulation
 from .simulations import thermal_simulation
+from .simulations import thermal_external
 from .utils import interp_current
 from .utils import build_inputs_dict
 from .utils import add_events_to_model
+from .utils import save_to_csv
+from .utils import save_to_npy
+from .utils import save_to_npzcomp
 from .netlist_utils import read_netlist
 from .netlist_utils import setup_circuit
 from .netlist_utils import solve_circuit
 from .netlist_utils import solve_circuit_vectorized
 from .netlist_utils import make_lcapy_circuit
+from .netlist_utils import power_loss
+from .netlist_utils import write_netlist
 from .sim_utils import get_initial_stoichiometries
 from .sim_utils import update_init_conc
 from .solver_utils import solve
@@ -39,4 +45,4 @@ from .solvers import DaskManager
 from .solvers import GenericActor
 from .solvers import RayActor
 
-__version__ = "0.2.1"
+__version__ = "0.3"
