@@ -45,4 +45,4 @@ from .solvers import DaskManager
 from .solvers import GenericActor
 from .solvers import RayActor
 
-__version__ = "0.3"
+__version__ = "0.3.1"
