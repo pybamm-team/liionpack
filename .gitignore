@@ -109,3 +109,5 @@ dask-worker-space/
 
 # Generated documentation directory
 site/
+examples/csv-results/
+examples/npy-results/
