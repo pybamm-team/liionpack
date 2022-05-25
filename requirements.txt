@@ -13,3 +13,4 @@ networkx
 textwrapper
 dask[complete]
 ray
+redis
