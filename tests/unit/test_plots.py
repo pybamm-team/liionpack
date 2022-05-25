@@ -65,7 +65,7 @@ class plotsTest(unittest.TestCase):
     def test_plot_output(self):
         lp.plot_output(self.output)
         plt.close("all")
-        lp.plot_output(self.output, context="white")
+        lp.plot_output(self.output, color="white")
         plt.close("all")
 
     def test_compare_plots(self):
