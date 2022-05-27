@@ -31,7 +31,7 @@ class solversTest(unittest.TestCase):
         )
         # PyBaMM parameters
         self.parameter_values = pybamm.ParameterValues("Chen2020")
-        self.managers = ["casadi", "ray", "dask"]
+        self.managers = ["casadi", "ray"]
 
     def test_multiprocessing(self):
         for manager in self.managers:

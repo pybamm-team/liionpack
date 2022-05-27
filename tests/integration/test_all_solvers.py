@@ -29,17 +29,8 @@ class TestSolvers(unittest.TestCase):
             nproc=1,
             manager="casadi"
         )
-        # Solve pack with dask
-        b = lp.solve(
-            netlist=netlist,
-            parameter_values=parameter_values,
-            experiment=experiment,
-            inputs=None,
-            nproc=1,
-            manager="dask"
-        )
         # Solve pack with ray
-        c = lp.solve(
+        b = lp.solve(
             netlist=netlist,
             parameter_values=parameter_values,
             experiment=experiment,
@@ -50,10 +41,8 @@ class TestSolvers(unittest.TestCase):
 
         v_a = a["Terminal voltage [V]"]
         v_b = b["Terminal voltage [V]"]
-        v_c = c["Terminal voltage [V]"]
 
         assert np.allclose(v_a, v_b)
-        assert np.allclose(v_b, v_c)
 
 
 if __name__ == "__main__":

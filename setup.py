@@ -49,7 +49,6 @@ setup(
         "scikit-spatial",
         "networkx",
         "textwrapper",
-        "dask[complete]",
         "ray",
     ],
     author="Tom Tranter",
