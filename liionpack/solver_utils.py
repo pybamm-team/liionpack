@@ -402,7 +402,7 @@ def solve(
         output_variables (list):
             Variables to evaluate during solve. Must be a valid key in the
             model.variables
-        manager (string, can be - ["casadi", "ray", "dask"]):
+        manager (string, can be - ["casadi", "ray"]):
             The solver manager to use for solving the electrochemical problem.
 
     Returns:
@@ -419,8 +419,6 @@ def solve(
         rm = lp.CasadiManager()
     elif manager == "ray":
         rm = lp.RayManager()
-    elif manager == "dask":
-        rm = lp.DaskManager()
     else:
         rm = lp.CasadiManager()
         lp.logger.notice("manager instruction not supported, using default")

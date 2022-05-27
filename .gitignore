@@ -104,9 +104,6 @@ ENV/
 env.bak/
 venv.bak/
 
-# Dask files
-dask-worker-space/
-
 # Generated documentation directory
 site/
 examples/csv-results/
