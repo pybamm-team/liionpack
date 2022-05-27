@@ -41,7 +41,6 @@ from .definitions import MODULE_DIR
 from .definitions import CIRCUIT_DIR
 from .solvers import CasadiManager
 from .solvers import RayManager
-from .solvers import DaskManager
 from .solvers import GenericActor
 from .solvers import RayActor
 
