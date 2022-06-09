@@ -144,13 +144,15 @@ def draw_circuit(
     cct.draw(**kwargs)
 
 
-def plot_pack(output, context="dark"):
+def plot_pack(output, color="dark"):
     """
     Plot the battery pack voltage and current.
 
     Args:
         output (dict):
             Output from liionpack.solve which contains pack and cell variables.
+        color (string):
+            The color-scheme for plotting, default="dark"
     """
 
     # Get pack level results
@@ -158,7 +160,7 @@ def plot_pack(output, context="dark"):
     v_pack = output["Pack terminal voltage [V]"]
     i_pack = output["Pack current [A]"]
 
-    context = lp_context(context)
+    context = lp_context(color)
     cmap = lp_cmap(context)
 
     colors = cmap(np.linspace(0, 1, 2))
@@ -175,20 +177,22 @@ def plot_pack(output, context="dark"):
         ax2.set_title("Pack Summary")
 
 
-def plot_cells(output, context="dark"):
+def plot_cells(output, color="dark"):
     """
     Plot results for the battery cells.
 
     Args:
         output (dict):
             Output from liionpack.solve which contains pack and cell variables.
+        color (string):
+            The color-scheme for plotting, default="dark"
     """
 
     # Get time and results for battery cells
     time = output["Time [s]"]
     cell_vars = [k for k in output.keys() if len(output[k].shape) > 1]
 
-    context = lp_context(context)
+    context = lp_context(color)
     cmap = lp_cmap(context)
 
     # Get number of cells and setup colormap
@@ -206,17 +210,19 @@ def plot_cells(output, context="dark"):
             ax.ticklabel_format(axis="y", scilimits=[-5, 5])
 
 
-def plot_output(output, context="black"):
+def plot_output(output, color="dark"):
     """
     Plot all results for pack and cells
 
     Args:
         output (dict):
             Output from liionpack.solve which contains pack and cell variables.
+        color (string):
+            The color-scheme for plotting, default="dark"
 
     """
-    plot_pack(output, context)
-    plot_cells(output, context)
+    plot_pack(output, color)
+    plot_cells(output, color)
 
 
 def show_plots():  # pragma: no cover

@@ -13,3 +13,5 @@ networkx
 textwrapper
 dask[complete]
 ray
+redis
+protobuf==3.20.*

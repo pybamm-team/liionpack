@@ -51,6 +51,7 @@ setup(
         "textwrapper",
         "dask[complete]",
         "ray",
+        "redis",
     ],
     author="Tom Tranter",
     author_email="t.g.tranter@gmail.com",
