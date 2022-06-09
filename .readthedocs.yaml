@@ -15,7 +15,7 @@ mkdocs:
 build:
   jobs:
     post_create_environment:
-      - python -m pip install --no-cache-dir .[extras]
+      - python -m pip install --no-cache-dir .[docs]
 
 # Optionally set the version of Python and requirements required to build your docs
 python:
