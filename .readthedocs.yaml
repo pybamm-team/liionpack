@@ -11,16 +11,11 @@ mkdocs:
   configuration: mkdocs.yml
   fail_on_warning: true
 
-
-build:
-  jobs:
-    post_create_environment:
-      - python -m pip install --no-cache-dir .[docs]
-
 # Optionally set the version of Python and requirements required to build your docs
 python:
    version: "3.8"
    install:
+   - requirements: requirements.txt
    - requirements: docs/requirements.txt
    - method: pip
      path: .
