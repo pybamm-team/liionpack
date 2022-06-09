@@ -35,7 +35,6 @@ def _log_to_console():
     rootLogger.addHandler(consoleHandler)
 
 
-
 # Additional levels inspired by verboselogs
 SPAM_LEVEL_NUM = 5
 logging.addLevelName(SPAM_LEVEL_NUM, "SPAM")
