@@ -9,16 +9,7 @@ formats: all
 
 conda:
   environment: environment.yml
-
-# Add the docs requirements required to build your docs
-python:
-   install:
-   - requirements: docs/requirements.txt
-   - method: pip
-     path: .
-     extra_requirements:
-       - docs
  
 mkdocs:
   configuration: mkdocs.yml
-  fail_on_warning: true
+  fail_on_warning: false
