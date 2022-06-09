@@ -1,3 +1,4 @@
 mkdocstrings-python-legacy
 mkdocs-material
 mkdocs-jupyter
+protobuf==3.20.*
