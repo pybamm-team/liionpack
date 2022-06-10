@@ -9,7 +9,6 @@ formats: all
 
 conda:
   environment: environment.yml
-  environment: environment.docs.yml
  
 mkdocs:
   configuration: mkdocs.yml
