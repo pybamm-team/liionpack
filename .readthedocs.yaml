@@ -14,7 +14,8 @@ mkdocs:
   configuration: mkdocs.yml
   fail_on_warning: false
 
-jobs:
-  post_install:
-    # install docs dependencies
-    - python -m pip install docs/requirements.txt
+build:
+  jobs:
+    post_install:
+      # install docs dependencies
+      - python -m pip install docs/requirements.txt
