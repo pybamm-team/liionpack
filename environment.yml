@@ -34,6 +34,3 @@ dependencies:
     - lcapy
     - scikit-spatial
     - ray
-    - mkdocstrings-python-legacy
-    - mkdocs-material
-    - mkdocs-jupyter
