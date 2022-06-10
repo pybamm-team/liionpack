@@ -12,3 +12,5 @@ scikit-spatial
 networkx
 textwrapper
 ray
+redis
+protobuf==3.20.*
