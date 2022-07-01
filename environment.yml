@@ -17,7 +17,7 @@ dependencies:
   - sympy
   - redis
   - pyyaml
-  - protobuf
+  - protobuf >=3.8.0,<4.0.0
   - imageio
   - grpcio
   - future
@@ -34,3 +34,6 @@ dependencies:
     - lcapy
     - scikit-spatial
     - ray
+    - mkdocstrings-python-legacy
+    - mkdocs-material
+    - mkdocs-jupyter
