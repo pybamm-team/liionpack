@@ -1,5 +1,17 @@
 # [Unreleased](https://github.com/pybamm-team/liionpack/)
 
+# [v0.3.2](https://github.com/pybamm-team/PyBaMM/tree/v0.3.2) - 2022-07-01
+
+## Bug fixes
+
+-   Fix logger message duplication ([#156](https://github.com/pybamm-team/liionpack/pull/156))
+-   Fix build after changes to variable names in PyBaMM concerning initial stoich ([#159](https://github.com/pybamm-team/liionpack/pull/159))
+-   Pin version of protobuf to fix docs ([#163](https://github.com/pybamm-team/liionpack/pull/163))
+
+## Breaking changes
+
+-   Remove support for dask as it reduces dependencies and does not perform as well as ray for our use case ([#160](https://github.com/pybamm-team/liionpack/pull/160))
+
 # [v0.3.1](https://github.com/pybamm-team/PyBaMM/tree/v0.3.1) - 2022-05-24
 
 ## Features
