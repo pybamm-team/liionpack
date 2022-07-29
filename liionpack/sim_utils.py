@@ -26,10 +26,8 @@ def get_initial_stoichiometries(initial_soc, parameter_values):
     if np.any(initial_soc < 0) or np.any(initial_soc > 1):
         raise ValueError("Initial SOC should be between 0 and 1")
 
-    model = pybamm.lithium_ion.ElectrodeSOH()
-
     param = pybamm.LithiumIonParameters()
-    sim = pybamm.Simulation(model, parameter_values=parameter_values)
+    esoh_solver = pybamm.lithium_ion.ElectrodeSOHSolver(parameter_values, param)
 
     V_min = parameter_values.evaluate(param.voltage_low_cut_dimensional)
     V_max = parameter_values.evaluate(param.voltage_high_cut_dimensional)
@@ -46,8 +44,7 @@ def get_initial_stoichiometries(initial_soc, parameter_values):
         return None, None
 
     # Solve the model and check outputs
-    sol = sim.solve(
-        [0],
+    sol = esoh_solver.solve(
         inputs={
             "V_min": V_min,
             "V_max": V_max,
