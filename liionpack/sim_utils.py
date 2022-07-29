@@ -26,7 +26,7 @@ def get_initial_stoichiometries(initial_soc, parameter_values):
     if np.any(initial_soc < 0) or np.any(initial_soc > 1):
         raise ValueError("Initial SOC should be between 0 and 1")
 
-    model = pybamm.lithium_ion.ElectrodeSOH()
+    model = pybamm.lithium_ion.ElectrodeSOHFull()
 
     param = pybamm.LithiumIonParameters()
     sim = pybamm.Simulation(model, parameter_values=parameter_values)
