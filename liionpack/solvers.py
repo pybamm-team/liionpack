@@ -336,16 +336,16 @@ class GenericManager:
         self.Nvar = len(self.variable_names)
 
         # Storage variables for simulation data
-        self.shm_i_app = np.zeros([self.Nsteps, self.Nspm], dtype=float)
-        self.shm_Ri = np.zeros([self.Nsteps, self.Nspm], dtype=float)
-        self.output = np.zeros([self.Nvar, self.Nsteps, self.Nspm], dtype=float)
+        self.shm_i_app = np.zeros([self.Nsteps, self.Nspm], dtype=np.float32)
+        self.shm_Ri = np.zeros([self.Nsteps, self.Nspm], dtype=np.float32)
+        self.output = np.zeros([self.Nvar, self.Nsteps, self.Nspm], dtype=np.float32)
 
         # Initialize currents in battery models
         self.shm_i_app[0, :] = I_batt * -1
 
         # Step forward in time
-        self.V_terminal = np.zeros(self.Nsteps)
-        self.record_times = np.zeros(self.Nsteps)
+        self.V_terminal = np.zeros(self.Nsteps, dtype=np.float32)
+        self.record_times = np.zeros(self.Nsteps, dtype=np.float32)
 
         self.v_cut_lower = parameter_values["Lower voltage cut-off [V]"]
         self.v_cut_higher = parameter_values["Upper voltage cut-off [V]"]
