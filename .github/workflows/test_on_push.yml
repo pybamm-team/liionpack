@@ -16,9 +16,9 @@ jobs:
     runs-on: ubuntu-latest
   
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Setup python
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
       with:
         python-version: 3.9
 
@@ -34,9 +34,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Set up Python 3.9
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
       with:
         python-version: 3.9
     - name: Install latex
@@ -47,19 +47,12 @@ jobs:
           texlive-latex-extra \
           texlive-pictures
         sudo apt-get install ghostscript
-    - name: Install specific version of PyBaMM and liionpack
+    - name: Install liionpack
       run: |
-        python -m pip install wheel
-        python -m pip install git+https://github.com/pybamm-team/PyBaMM@develop
-    - name: Install dependencies
-      run: |
-        python -m pip install wheel
         python -m pip install --upgrade pip
-        python -m pip install -r requirements.txt
-        pybamm_install_jax
-    - name: Install liionpack for ray
-      run: |
+        python -m pip install wheel
         python -m pip install .
+        pybamm_install_jax
     - name: Run tests and generate coverage report
       run: |
         python -m pip install coverage
