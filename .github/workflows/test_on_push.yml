@@ -57,30 +57,30 @@ jobs:
         pybamm_install_jax
 
     - name: Run tests on main on a push or on schedule
-      if: ${{ github.event_name == 'push' }} || ${{ github.event_name == 'schedule' }} && ${{ github.event_name != 'pull_request' }} && ${{ github.ref_name == 'main' }}
+      if: github.event_name == 'push' || github.event_name == 'schedule' && github.event_name != 'pull_request' && github.ref_name == 'main'
       run: |
         echo ${{ github.ref_name }}
         echo ${{ github.event_name }}
         echo ${{ github.head_ref }}
-        echo ${{ github.event_name == 'push' }} || ${{ github.event_name == 'schedule' }} && ${{ github.event_name != 'pull_request' }} && ${{ github.ref_name == 'main' }}
+        echo ${{github.event_name == 'push'}} || ${{github.event_name == 'schedule'}} && ${{github.event_name != 'pull_request'}} && ${{github.ref_name == 'main'}}
         coverage run -m unittest -v
 
     - name: Run tests on develop on a push or on schedule
-      if: ${{ github.event_name == 'push' }} || ${{ github.event_name == 'schedule' }} && ${{ github.event_name != 'pull_request' }} && ${{ github.ref_name == 'develop' }}
+      if: github.event_name == 'push' || github.event_name == 'schedule' && github.event_name != 'pull_request' && github.ref_name == 'develop'
       run: |
-        echo ${{ github.ref_name }}
+        echo ${{github.ref_name}}
         python -m pip install git+https://github.com/pybamm-team/PyBaMM@develop --no-cache --force-reinstall
         pybamm_install_jax
         coverage run -m unittest -v
 
     - name: Run tests for pull requests made to main
-      if: ${{ github.event_name != 'schedule' }} && ${{ github.event_name != 'push' }} && ${{ github.event_name == 'pull_request' }} && ${{ github.event.pull_request.base.ref == 'main' }}
+      if: github.event_name != 'schedule' && github.event_name != 'push' && github.event_name == 'pull_request' && github.event.pull_request.base.ref == 'main'
       run: |
         python -m pip install pybamm>=22.6 --no-cache --force-reinstall
         coverage run -m unittest -v
 
     - name: Run tests for pull requests made to develop
-      if: ${{ github.event_name != 'schedule' }} && ${{ github.event_name != 'push' }} && ${{ github.event_name == 'pull_request' }} && ${{ github.event.pull_request.base.ref == 'develop' }}
+      if: github.event_name != 'schedule' && github.event_name != 'push' && github.event_name == 'pull_request' && github.event.pull_request.base.ref == 'develop'
       run: |
         python -m pip install git+https://github.com/pybamm-team/PyBaMM@develop --no-cache --force-reinstall
         pybamm_install_jax
