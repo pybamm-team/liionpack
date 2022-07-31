@@ -34,6 +34,9 @@ def current_branch():
             return line.partition("refs/heads/")[2]
 
 
+print(f"======================\n{current_branch()}\n======================")
+
+
 setup(
     name="liionpack",
     description="A battery pack simulator for PyBaMM",
