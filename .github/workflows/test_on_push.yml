@@ -59,16 +59,11 @@ jobs:
     - name: Run tests on main on a push or on schedule
       if: github.event_name == 'push' || github.event_name == 'schedule' && github.event_name != 'pull_request' && github.ref_name == 'main'
       run: |
-        echo ${{ github.ref_name }}
-        echo ${{ github.event_name }}
-        echo ${{ github.head_ref }}
-        echo ${{github.event_name == 'push'}} || ${{github.event_name == 'schedule'}} && ${{github.event_name != 'pull_request'}} && ${{github.ref_name == 'main'}}
         coverage run -m unittest -v
 
     - name: Run tests on develop on a push or on schedule
       if: github.event_name == 'push' || github.event_name == 'schedule' && github.event_name != 'pull_request' && github.ref_name == 'develop'
       run: |
-        echo ${{github.ref_name}}
         python -m pip install git+https://github.com/pybamm-team/PyBaMM@develop --no-cache --force-reinstall
         pybamm_install_jax
         coverage run -m unittest -v
