@@ -23,20 +23,6 @@ with open(ver_path) as f:
 with open("README.md", encoding="utf-8") as f:
     readme = f.read()
 
-
-# https://stackoverflow.com/a/62724213/14746647
-def current_branch():
-    head_dir = Path(".") / ".git" / "HEAD"
-    with head_dir.open("r") as f:
-        content = f.read().splitlines()
-    for line in content:
-        if line[0:4] == "ref:":
-            return line.partition("refs/heads/")[2]
-
-
-print(f"======================\n{current_branch()}\n======================")
-
-
 setup(
     name="liionpack",
     description="A battery pack simulator for PyBaMM",
@@ -55,10 +41,7 @@ setup(
         "numpy",
         "scipy",
         "matplotlib",
-        # see https://github.com/pypa/setuptools/issues/2568
-        "PyBaMM @ git+https://github.com/pybamm-team/PyBaMM@develop#egg=PyBaMM"
-        if current_branch() == "develop"
-        else "pybamm>=22.6",
+        "pybamm>=22.6",
         "pandas",
         "plotly",
         "openpyxl",
