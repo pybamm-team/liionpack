@@ -60,6 +60,9 @@ jobs:
       if: ${{ github.event_name == 'push' }} || ${{ github.event_name == 'schedule' }} && ${{ github.event_name != 'pull_request' }} && ${{ github.ref_name == 'main' }}
       run: |
         echo ${{ github.ref_name }}
+        echo ${{ github.event_name }}
+        echo ${{ github.head_ref }}
+        echo ${{ github.event_name == 'push' }} || ${{ github.event_name == 'schedule' }} && ${{ github.event_name != 'pull_request' }} && ${{ github.ref_name == 'main' }}
         coverage run -m unittest -v
 
     - name: Run tests on develop on a push or on schedule
