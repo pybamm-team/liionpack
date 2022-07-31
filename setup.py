@@ -1,7 +1,6 @@
 import os
 import sys
 from distutils.util import convert_path
-from pathlib import Path
 
 
 sys.path.append(os.getcwd())
