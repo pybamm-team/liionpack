@@ -2,6 +2,7 @@ import os
 import sys
 from distutils.util import convert_path
 
+
 sys.path.append(os.getcwd())
 
 try:
@@ -39,7 +40,7 @@ setup(
         "numpy",
         "scipy",
         "matplotlib",
-        "pybamm",
+        "pybamm>=22.6",
         "pandas",
         "plotly",
         "openpyxl",
