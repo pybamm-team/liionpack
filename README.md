@@ -25,6 +25,25 @@ To install `liionpack` using `pip`, run the following command:
 pip install liionpack
 ```
 
+### Conda
+
+The following terminal commands are for setting up a conda development environment for liionpack. This requires the [Anaconda](https://www.anaconda.com) or [Miniconda](https://docs.conda.io/en/latest/miniconda.html) Python distribution. This environment installs liionpack in editable mode which is useful for development of the liionpack source code. General users should install liionpack with pip.
+
+```bash
+# Create a conda environment named lipack
+cd liionpack
+conda env create --file environment.yml
+
+# Activate the environment
+conda activate lipack
+
+# Exit the environment
+conda deactivate
+
+# Delete the environment
+conda env remove --name lipack
+```
+
 ### LaTeX
 
 In order to use the `draw_circuit` functionality a version of Latex must be installed on your machine. We use an underlying Python package `Lcapy` for making the drawing and direct you to its installation instructions [here](https://lcapy.readthedocs.io/en/latest/install.html) for operating system specifics.
