@@ -1,0 +1,57 @@
+[build-system]
+requires = [
+    "hatchling",
+]
+build-backend = "hatchling.build"
+
+[project]
+name = "liionpack"
+description = "A battery pack simulator for PyBaMM"
+readme = "README.md"
+license = "MIT"
+authors = [
+    { name = "Tom Tranter", email = "t.g.tranter@gmail.com" },
+]
+requires-python = ">=3.7"
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Topic :: Scientific/Engineering",
+]
+dependencies = [
+    "Ipython",
+    "lcapy",
+    "matplotlib",
+    "networkx",
+    "numpy",
+    "openpyxl",
+    "pandas",
+    "plotly",
+    "pybamm>=22.6",
+    "ray",
+    "redis",
+    "scikit-spatial",
+    "scipy",
+    "textwrapper",
+    "tqdm",
+]
+dynamic = [
+    "version",
+]
+
+[project.urls]
+"Bug Tracker" = "https://github.com/pybamm-team/liionpack/issues"
+Changelog = "https://github.com/pybamm-team/liionpack/blob/develop/CHANGELOG.md"
+Documentation = "https://liionpack.readthedocs.io/en/latest/"
+Homepage = "https://github.com/pybamm-team/liionpack"
+
+[tool.hatch.version]
+path = "liionpack/__init__.py"
