@@ -14,7 +14,7 @@ on:
         default: 'be96186a91400ed7943378d68229ca65d2177c9c'
       commit_end:
         description: 'Identifier of commit at which to end'
-        default: 'main'
+        default: 'develop'
       ncommits:
         description: 'Number of commits to benchmark between commit_start and commit_end'
         default: '100'
@@ -79,9 +79,7 @@ jobs:
           git commit -am "Add new results"
           git push
       - name: Publish results
-        run:
-          |
-            asv publish
-            git fetch origin gh-pages:gh-pages
-            asv gh-pages
-      
+        run: |
+          asv publish
+          git fetch origin gh-pages:gh-pages
+          asv gh-pages
