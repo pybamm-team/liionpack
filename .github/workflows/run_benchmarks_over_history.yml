@@ -14,7 +14,7 @@ on:
         default: 'be96186a91400ed7943378d68229ca65d2177c9c'
       commit_end:
         description: 'Identifier of commit at which to end'
-        default: 'main'
+        default: 'develop'
       ncommits:
         description: 'Number of commits to benchmark between commit_start and commit_end'
         default: '100'
@@ -29,12 +29,13 @@ jobs:
           python-version: 3.8
       - name: Install tox and asv
         run: pip install -U pip tox asv
-      - name: Fetch main branch
+      - name: Fetch develop branch
         # Not required when worklow trigerred
-        # on main, but useful when
+        # on develop, but useful when
         # experimenting/developing on another branch.
+        if: github.ref != 'refs/heads/develop'
         run: |
-          git fetch origin main:main
+          git fetch origin develop:develop
       - name: Run benchmarks
         run: |
           asv machine --machine "GitHubRunner"
@@ -79,9 +80,7 @@ jobs:
           git commit -am "Add new results"
           git push
       - name: Publish results
-        run:
-          |
-            asv publish
-            git fetch origin gh-pages:gh-pages
-            asv gh-pages
-      
+        run: |
+          asv publish
+          git fetch origin gh-pages:gh-pages
+          asv gh-pages

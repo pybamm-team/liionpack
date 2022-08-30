@@ -108,3 +108,6 @@ venv.bak/
 site/
 examples/csv-results/
 examples/npy-results/
+
+# Benchmarks
+results/
