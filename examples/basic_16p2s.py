@@ -43,7 +43,7 @@ output = lp.solve(netlist=netlist,
                   initial_soc=0.5,
                   inputs=inputs,
                   nproc=os.cpu_count(),
-                  manager='ray')
+                  manager='casadi')
 
 # Plot the pack and individual cell results
 lp.plot_pack(output)
