@@ -48,7 +48,7 @@ jobs:
 
       - name: Publish on PyPI
         if: github.event.inputs.target == 'pypi'
-        uses: pypa/gh-action-pypi-publish@master
+        uses: pypa/gh-action-pypi-publish@release/v1
         with:
           user: __token__
           password: ${{ secrets.PYPI_TOKEN }}
@@ -56,7 +56,7 @@ jobs:
 
       - name: Publish on TestPyPI
         if: github.event.inputs.target == 'testpypi'
-        uses: pypa/gh-action-pypi-publish@master
+        uses: pypa/gh-action-pypi-publish@release/v1
         with:
           user: __token__
           password: ${{ secrets.TESTPYPI_TOKEN }}
