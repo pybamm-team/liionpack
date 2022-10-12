@@ -22,7 +22,7 @@ class sim_utilsTest(unittest.TestCase):
             lp.update_init_conc(self.param, SoC=10.0)
 
     def test_input_logger_warning(self):
-        param = pybamm.ParameterValues(chemistry="Chen2020")
+        param = pybamm.ParameterValues("Chen2020")
         neg_conc = 0.0
         param.update(
             {
