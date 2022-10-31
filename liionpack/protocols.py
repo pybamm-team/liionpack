@@ -28,7 +28,7 @@ def generate_protocol_from_experiment(experiment, flatten=True):
         if t % dt != 0:
             raise ValueError("Time must be an integer multiple of the period")
         typ = op["type"]
-        if typ not in  ["current"]:
+        if typ not in ["current"]:
             raise ValueError("Only constant current operations are supported")
         else:
             if typ == "current":
@@ -36,7 +36,7 @@ def generate_protocol_from_experiment(experiment, flatten=True):
                     I = op["Current input [A]"]
                     proto.extend([I] * int(t / dt))
                     if i == 0:
-                        # Include initial state when not a drive cycle for first op
+                        # Include initial state when not drive cycle, first op
                         proto = [proto[0]] + proto
                 elif "dc_data" in op.keys():
                     dc_data = op["dc_data"]
