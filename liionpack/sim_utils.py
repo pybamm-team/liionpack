@@ -30,6 +30,7 @@ def get_initial_stoichiometries(initial_soc, parameter_values):
     esoh_solver = pybamm.lithium_ion.ElectrodeSOHSolver(parameter_values, param)
     return esoh_solver.get_initial_stoichiometries(initial_soc)
 
+
 def update_init_conc(param, SoC=None, update=True):
     """
     Update initial concentration parameters
