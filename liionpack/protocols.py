@@ -27,21 +27,21 @@ def generate_protocol_from_experiment(experiment, flatten=True):
         dt = op["period"]
         if t % dt != 0:
             raise ValueError("Time must be an integer multiple of the period")
-        I, typ = op["electric"]
-        if typ != "A":
+        typ = op["type"]
+        if typ not in ["current"]:
             raise ValueError("Only constant current operations are supported")
-        if I.__class__ is str:
-            # drive cycle
-            dc_data = op["dc_data"]
-            proto.extend(dc_data[:, 1].tolist())
-        elif I.__class__ is np.ndarray:
-            # drive cycle old
-            proto.extend(I[:, 1].tolist())
         else:
-            proto.extend([I] * int(t / dt))
-            if i == 0:
-                # Include initial state when not a drive cycle for first op
-                proto = [proto[0]] + proto
+            if typ == "current":
+                if "Current input [A]" in op.keys():
+                    I = op["Current input [A]"]
+                    proto.extend([I] * int(t / dt))
+                    if i == 0:
+                        # Include initial state when not drive cycle, first op
+                        proto = [proto[0]] + proto
+                elif "dc_data" in op.keys():
+                    dc_data = op["dc_data"]
+                    proto.extend(dc_data[:, 1].tolist())
+
         if flatten:
             protocol.extend(proto)
         else:
