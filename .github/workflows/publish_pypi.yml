@@ -15,18 +15,18 @@ jobs:
         python-version: [3.8]
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
 
       - name: Install dependencies
-        run: pip install wheel
+        run: python -m pip install wheel
 
       - name: Build package
-        run: python setup.py sdist --formats=gztar bdist_wheel
+        run: python -m build
 
       - name: Upload package
         uses: actions/upload-artifact@v2
@@ -47,7 +47,7 @@ jobs:
           path: dist
 
       - name: Publish on PyPI
-        if: github.event.inputs.target == 'pypi'
+        if: github.event.inputs.target == 'pypi' && github.ref == 'refs/heads/main'
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           user: __token__
@@ -55,7 +55,7 @@ jobs:
           packages_dir: dist/
 
       - name: Publish on TestPyPI
-        if: github.event.inputs.target == 'testpypi'
+        if: github.event.inputs.target == 'testpypi' && github.ref == 'refs/heads/main'
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           user: __token__
