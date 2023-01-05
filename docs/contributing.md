@@ -36,6 +36,7 @@ You now have everything you need to start making changes!
 11. If you added a major new feature, perhaps it should be showcased in an [example notebook](#example-notebooks).
 12. When you feel your code is finished, or at least warrants serious discussion, run the [pre-commit checks](#pre-commit-checks) and then create a [pull request](https://help.github.com/articles/about-pull-requests/) (PR) on [liionpack's GitHub page](https://github.com/pybamm-team/liionpack).
 13. Once a PR has been created, it will be reviewed by any member of the community. Changes might be suggested which you can make by simply adding new commits to the branch. When everything's finished, someone with the right GitHub permissions will merge your changes into liionpack main repository.
+14. The default branch is the `develop` branch and this is linked to the PyBaMM `develop` branch. We endeavour to make concurrent releases so that no breaking changes are introduced between the packages and at this point `develop` is merged into the `main` branch and this is pushed to PyPi.
 
 
 

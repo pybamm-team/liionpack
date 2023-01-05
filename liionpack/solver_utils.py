@@ -317,9 +317,12 @@ def _create_casadi_objects(inputs, sim, dt, Nspm, nproc, variable_names, mapped)
     )
     if mapped:
         integrator = integrator.map(Nspm, "thread", nproc)
-
+    # Get the input parameter order
+    ip_order = inputs[0].keys()
     # Variables function for parallel evaluation
-    casadi_objs = sim.built_model.export_casadi_objects(variable_names=variable_names)
+    casadi_objs = sim.built_model.export_casadi_objects(
+        variable_names=variable_names, input_parameter_order=ip_order
+    )
     variables = casadi_objs["variables"]
     t, x, z, p = (
         casadi_objs["t"],
@@ -337,7 +340,9 @@ def _create_casadi_objects(inputs, sim, dt, Nspm, nproc, variable_names, mapped)
     event_vars = [v for v in all_vars if "Event" in v]
     if len(event_vars) > 0:
         # Variables function for parallel evaluation
-        casadi_objs = sim.built_model.export_casadi_objects(variable_names=event_vars)
+        casadi_objs = sim.built_model.export_casadi_objects(
+            variable_names=variable_names, input_parameter_order=ip_order
+        )
         events = casadi_objs["variables"]
         t, x, z, p = (
             casadi_objs["t"],

@@ -28,39 +28,7 @@ def get_initial_stoichiometries(initial_soc, parameter_values):
 
     param = pybamm.LithiumIonParameters()
     esoh_solver = pybamm.lithium_ion.ElectrodeSOHSolver(parameter_values, param)
-
-    V_min = parameter_values.evaluate(param.voltage_low_cut_dimensional)
-    V_max = parameter_values.evaluate(param.voltage_high_cut_dimensional)
-    try:
-        C_n = parameter_values.evaluate(param.n.cap_init)
-        C_p = parameter_values.evaluate(param.p.cap_init)
-        n_Li = parameter_values.evaluate(param.n_Li_particles_init)
-    except ValueError:
-        # The initial concentration is dependent on an input
-        lp.logger.warning(
-            "Initial concentrations are dependent on an input, "
-            + "please also supply initial concentrations as inputs"
-        )
-        return None, None
-
-    # Solve the model and check outputs
-    sol = esoh_solver.solve(
-        inputs={
-            "V_min": V_min,
-            "V_max": V_max,
-            "C_n": C_n,
-            "C_p": C_p,
-            "n_Li": n_Li,
-        },
-    )
-
-    x_0 = sol["x_0"].data[0]
-    y_0 = sol["y_0"].data[0]
-    C = sol["C"].data[0]
-    x = x_0 + np.asarray(initial_soc) * C / C_n
-    y = y_0 - np.asarray(initial_soc) * C / C_p
-
-    return x, y
+    return esoh_solver.get_initial_stoichiometries(initial_soc)
 
 
 def update_init_conc(param, SoC=None, update=True):
