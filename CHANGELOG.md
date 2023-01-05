@@ -1,5 +1,26 @@
 # [Unreleased](https://github.com/pybamm-team/liionpack/)
 
+# [v0.3.3](https://github.com/pybamm-team/PyBaMM/tree/v0.3.3) - 2023-01-05
+## Bug fixes
+
+-   Update the codecov.yaml with develop branch ([#180](https://github.com/pybamm-team/liionpack/pull/180))
+-   Update conda environment to pin minimum versions of PyBaMM and Python ([#169](https://github.com/pybamm-team/liionpack/pull/169))
+-   Fix benchmarking again ([#187](https://github.com/pybamm-team/liionpack/pull/187))
+-   Fix inconsistent results with Ray manager ([#189](https://github.com/pybamm-team/liionpack/pull/189))
+-   Deal with removal of external variables ([#192](https://github.com/pybamm-team/liionpack/pull/192))
+-   Update ParameterValues syntax ([#194](https://github.com/pybamm-team/liionpack/pull/194))
+-   Fix experiment after change in PyBaMM operating conditions ([#196](https://github.com/pybamm-team/liionpack/pull/196))
+-   Fix more external variable references ([#207](https://github.com/pybamm-team/liionpack/pull/207))
+
+## Breaking changes
+
+## Features
+
+-   Update the contributing docs about branches ([#179](https://github.com/pybamm-team/liionpack/pull/179))
+-   Update push to pypi following master sunset ([#193](https://github.com/pybamm-team/liionpack/pull/193))
+-   Change default branch on github to develop to fix benchmarking issues ([#184](https://github.com/pybamm-team/liionpack/pull/184))
+-   Migrate to hatch packaging ([#182](https://github.com/pybamm-team/liionpack/pull/182))
+
 # [v0.3.2](https://github.com/pybamm-team/PyBaMM/tree/v0.3.2) - 2022-07-01
 
 ## Bug fixes
