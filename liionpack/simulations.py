@@ -112,8 +112,10 @@ def thermal_external(parameter_values=None):
     # Create the pybamm model
     model = pybamm.lithium_ion.SPMe(
         options={
-            "thermal": "lumped",
-            "external submodels": ["thermal"],
+            "calculate heat source for isothermal models": "true",
+            "cell geometry": "arbitrary",
+            "dimensionality": 0,
+            "thermal": "isothermal",
             "timescale": tscale,
         }
     )
@@ -124,6 +126,15 @@ def thermal_external(parameter_values=None):
     # Set up parameter values
     if parameter_values is None:
         parameter_values = pybamm.ParameterValues("Chen2020")
+
+    # Change the ambient temperature to be an input controlled by the
+    # external circuit
+    parameter_values["Ambient temperature [K]"] = pybamm.InputParameter(
+        "Input temperature [K]"
+    )
+    parameter_values["Initial temperature [K]"] = pybamm.InputParameter(
+        "Input temperature [K]"
+    )
 
     # Set up solver and simulation
     solver = pybamm.CasadiSolver(mode="safe")
