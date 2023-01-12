@@ -127,12 +127,12 @@ def thermal_external(parameter_values=None):
     # Change the ambient temperature to be an input controlled by the
     # external circuit
     parameter_values["Ambient temperature [K]"] = pybamm.InputParameter(
-            "Input temperature [K]"
-        )
+        "Input temperature [K]"
+    )
     parameter_values["Initial temperature [K]"] = pybamm.InputParameter(
-            "Input temperature [K]"
-        )
-    
+        "Input temperature [K]"
+    )
+
     # Set up solver and simulation
     solver = pybamm.CasadiSolver(mode="safe")
     sim = pybamm.Simulation(

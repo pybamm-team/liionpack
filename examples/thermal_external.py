@@ -27,8 +27,8 @@ experiment = pybamm.Experiment([
 parameter_values = pybamm.ParameterValues("Chen2020")
 
 # Solve the pack problem
-temps = np.ones(4)*293.15 + np.arange(4)*10
-inputs={"Input temperature [K]": temps}
+temps = np.ones(4) * 293.15 + np.arange(4) * 10
+inputs = {"Input temperature [K]": temps}
 output = lp.solve(netlist=netlist,
                   sim_func=lp.thermal_external,
                   inputs=inputs,
