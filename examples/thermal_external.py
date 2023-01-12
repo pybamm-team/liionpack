@@ -20,14 +20,14 @@ output_variables = [
 
 # Cycling experiment, using PyBaMM
 experiment = pybamm.Experiment([
-    "Charge at 5 A for 30 minutes"],
+    "Discharge at 5 A for 5 minutes"],
     period="10 seconds")
 
 # PyBaMM battery parameters
 parameter_values = pybamm.ParameterValues("Chen2020")
 
 # Solve the pack problem
-temps = np.ones(4) * 293.15 + np.arange(4) * 10
+temps = np.ones(4) * 300 + np.arange(4) * 10
 inputs = {"Input temperature [K]": temps}
 output = lp.solve(netlist=netlist,
                   sim_func=lp.thermal_external,

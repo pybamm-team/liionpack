@@ -293,7 +293,6 @@ class GenericManager:
         parameter_values,
         experiment,
         inputs,
-        external_variables,
         output_variables,
         initial_soc,
         nproc,
@@ -353,17 +352,17 @@ class GenericManager:
         # Handle the inputs
         self.inputs = inputs
         self.inputs_dict = lp.build_inputs_dict(
-            self.shm_i_app[0, :], self.inputs, external_variables
+            self.shm_i_app[0, :], self.inputs, None
         )
         # Solver specific setup
         self.setup_actors(nproc, self.inputs_dict, initial_soc)
         # Get the initial state of the system
         self.evaluate_actors()
         if not setup_only:
-            self._step_solve_step(external_variables)
+            self._step_solve_step(None)
             return self.step_output()
 
-    def _step_solve_step(self, external_variables):
+    def _step_solve_step(self, updated_inputs):
         tic = ticker.time()
         # Do stepping
         lp.logger.notice("Starting step solve")
@@ -371,7 +370,7 @@ class GenericManager:
         with tqdm(total=self.Nsteps, desc="Stepping simulation") as pbar:
             step = 0
             while step < self.Nsteps and vlims_ok:
-                vlims_ok = self._step(step, external_variables)
+                vlims_ok = self._step(step, updated_inputs)
                 if vlims_ok:
                     step += 1
                     pbar.update(1)
@@ -399,7 +398,7 @@ class GenericManager:
             self.all_output[self.variable_names[j]] = self.output[j, : self.step + 1, :]
         return self.all_output
 
-    def _step(self, step, external_variables):
+    def _step(self, step, updated_inputs):
         vlims_ok = True
         # 01 Calculate whether resting or restarting
         self.resting = (
@@ -436,7 +435,7 @@ class GenericManager:
             I_app = I_batt[:] * -1
             self.shm_i_app[step + 1, :] = I_app
             self.inputs_dict = lp.build_inputs_dict(
-                I_app, self.inputs, external_variables
+                I_app, self.inputs, updated_inputs
             )
         # 06 Check if voltage limits are reached and terminate
         if np.any(temp_v < self.v_cut_lower):

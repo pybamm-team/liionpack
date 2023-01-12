@@ -112,7 +112,10 @@ def thermal_external(parameter_values=None):
     # Create the pybamm model
     model = pybamm.lithium_ion.SPMe(
         options={
-            # "thermal": "lumped",
+            "calculate heat source for isothermal models": "true",
+            "cell geometry": "arbitrary",
+            "dimensionality": 0,
+            "thermal": "isothermal",
             "timescale": tscale,
         }
     )
