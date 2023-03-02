@@ -303,7 +303,6 @@ def _create_casadi_objects(inputs, sim, dt, Nspm, nproc, variable_names, mapped)
 
     # Step model forward dt seconds
     t_eval = np.linspace(0, dt, 11)
-    t_eval_ndim = t_eval / sim.model.timescale.evaluate()
 
     # No external variables - Temperature solved as lumped model in pybamm
     # External variables could (and should) be used if battery thermal problem
@@ -313,7 +312,7 @@ def _create_casadi_objects(inputs, sim, dt, Nspm, nproc, variable_names, mapped)
 
     # Code to create mapped integrator
     integrator = solver.create_integrator(
-        sim.built_model, inputs=inp_and_ext, t_eval=t_eval_ndim
+        sim.built_model, inputs=inp_and_ext, t_eval=t_eval
     )
     if mapped:
         integrator = integrator.map(Nspm, "thread", nproc)
