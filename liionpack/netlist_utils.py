@@ -114,7 +114,7 @@ def setup_circuit(
     V=4.2,
     plot=False,
     terminals="left",
-    configuration = "parallel-strings"
+    configuration="parallel-strings"
 ):
     """
     Define a netlist from a number of batteries in parallel and series
@@ -235,7 +235,7 @@ def setup_circuit(
         bus_nodes = grid[3::3, :]
     else:
         raise AssertionError("configuration must be parallel-strings or series-groups")
-    
+
     for nodes in bus_nodes:
         for i in range(len(nodes) - 1):
             # netline = []
