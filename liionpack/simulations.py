@@ -5,8 +5,6 @@
 import pybamm
 import liionpack as lp
 
-# tscale = 10
-
 
 def basic_simulation(parameter_values=None):
     """
@@ -62,7 +60,6 @@ def thermal_simulation(parameter_values=None):
     model = pybamm.lithium_ion.SPMe(
         options={
             "thermal": "lumped",
-            "timescale": tscale,
         }
     )
 
@@ -116,7 +113,6 @@ def thermal_external(parameter_values=None):
             "cell geometry": "arbitrary",
             "dimensionality": 0,
             "thermal": "isothermal",
-            "timescale": tscale,
         }
     )
 
