@@ -27,9 +27,9 @@ class TestNotebooks(unittest.TestCase):
 
         #         # Make sure the notebook has pip install command, for using Google Colab
         #         self.assertIn(
-        #             "pip install -q git+https://github.com/pybamm-team/liionpack.git@main",  # noqa: E501
+        #             "pip install -q git+https://github.com/pybamm-team/liionpack.git@main",
         #             code,
-        #             "Installation command '!pip install -q git+https://github.com/pybamm-team/liionpack.git@main' not found in notebook",  # noqa: E501
+        #             "Installation command '!pip install -q git+https://github.com/pybamm-team/liionpack.git@main' not found in notebook",
         #         )
 
         #         # Comment out the pip install command to avoid reinstalling
