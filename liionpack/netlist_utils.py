@@ -234,7 +234,7 @@ def setup_circuit(
     elif configuration == "series-groups":
         bus_nodes = grid[3::3, :]
     else:
-        raise AssertionError("configuration must be parallel-strings or series-groups")
+        raise ValueError("configuration must be parallel-strings or series-groups")
 
     for nodes in bus_nodes:
         for i in range(len(nodes) - 1):
