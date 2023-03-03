@@ -114,6 +114,7 @@ def setup_circuit(
     V=4.2,
     plot=False,
     terminals="left",
+    configuration="parallel-strings"
 ):
     """
     Define a netlist from a number of batteries in parallel and series
@@ -130,6 +131,8 @@ def setup_circuit(
         plot (bool): Plot the circuit.
         terminals (string): The location of the terminals. Can be "left", "right",
             "left-right", "right-left" or a list or array of node integers.
+        configuration (string): The pack circuit configuration to use. Can be
+            "parallel-strings" (default) or "series-groups"
 
     Returns:
         pandas.DataFrame:
@@ -226,7 +229,13 @@ def setup_circuit(
             # netlist.append(netline)
 
     # +ve busbar (top row of the grid)
-    bus_nodes = [grid[-1, :]]
+    if configuration == "parallel-strings":
+        bus_nodes = [grid[-1, :]]
+    elif configuration == "series-groups":
+        bus_nodes = grid[3::3, :]
+    else:
+        raise ValueError("configuration must be parallel-strings or series-groups")
+
     for nodes in bus_nodes:
         for i in range(len(nodes) - 1):
             # netline = []

@@ -27,6 +27,36 @@ class netlist_utilsTest(unittest.TestCase):
         V_map = netlist["desc"].str.find("V") > -1
         assert np.all(netlist[V_map]["value"] == 2)
 
+    def test_circuit_configuration(self):
+        netlist = lp.setup_circuit(
+            Np=2,
+            Ns=3,
+            Rb=1e-4,
+            Rc=1e-2,
+            Ri=1e-3,
+            V=2.0,
+            I=10.0,
+            configuration="parallel-strings",
+        )
+        assert sum(netlist["desc"].str.find("Rb") > -1) == 2
+        netlist = lp.setup_circuit(
+            Np=2,
+            Ns=3,
+            Rb=1e-4,
+            Rc=1e-2,
+            Ri=1e-3,
+            V=2.0,
+            I=10.0,
+            configuration="series-groups",
+        )
+        assert sum(netlist["desc"].str.find("Rb") > -1) == 4
+
+        def bad_configuration():
+            _ = lp.setup_circuit(Np=2, Ns=1, Rb=1e-4, configuration="bad")
+
+        with self.assertRaises(ValueError):
+            bad_configuration()
+
     def test_setup_circuit_plot(self):
         netlist = lp.setup_circuit(
             Np=1, Ns=2, Rb=1e-4, Rc=1e-2, Ri=1e-3, V=2.0, I=10.0, plot=True
@@ -37,6 +67,20 @@ class netlist_utilsTest(unittest.TestCase):
 
     def test_solve_circuit(self):
         netlist = lp.setup_circuit(Np=1, Ns=2, Rb=1e-4, Rc=1e-2, Ri=1e-3, V=2.0, I=1.0)
+        V_node, I_batt = lp.solve_circuit(netlist)
+        assert np.all(I_batt) == 1.0
+
+    def test_solve_circuit_seriesgroups(self):
+        netlist = lp.setup_circuit(
+            Np=1,
+            Ns=2,
+            Rb=1e-4,
+            Rc=1e-2,
+            Ri=1e-3,
+            V=2.0,
+            I=1.0,
+            configuration="series-groups",
+        )
         V_node, I_batt = lp.solve_circuit(netlist)
         assert np.all(I_batt) == 1.0
 
