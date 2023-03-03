@@ -5,8 +5,6 @@
 import pybamm
 import liionpack as lp
 
-tscale = 10
-
 
 def basic_simulation(parameter_values=None):
     """
@@ -23,7 +21,7 @@ def basic_simulation(parameter_values=None):
 
     """
     # Create the pybamm model
-    model = pybamm.lithium_ion.SPM({"timescale": tscale})
+    model = pybamm.lithium_ion.SPM()
 
     # Add events to the model
     model = lp.add_events_to_model(model)
@@ -62,7 +60,6 @@ def thermal_simulation(parameter_values=None):
     model = pybamm.lithium_ion.SPMe(
         options={
             "thermal": "lumped",
-            "timescale": tscale,
         }
     )
 
@@ -112,9 +109,10 @@ def thermal_external(parameter_values=None):
     # Create the pybamm model
     model = pybamm.lithium_ion.SPMe(
         options={
-            "thermal": "lumped",
-            "external submodels": ["thermal"],
-            "timescale": tscale,
+            "calculate heat source for isothermal models": "true",
+            "cell geometry": "arbitrary",
+            "dimensionality": 0,
+            "thermal": "isothermal",
         }
     )
 
@@ -124,6 +122,15 @@ def thermal_external(parameter_values=None):
     # Set up parameter values
     if parameter_values is None:
         parameter_values = pybamm.ParameterValues("Chen2020")
+
+    # Change the ambient temperature to be an input controlled by the
+    # external circuit
+    parameter_values["Ambient temperature [K]"] = pybamm.InputParameter(
+        "Input temperature [K]"
+    )
+    parameter_values["Initial temperature [K]"] = pybamm.InputParameter(
+        "Input temperature [K]"
+    )
 
     # Set up solver and simulation
     solver = pybamm.CasadiSolver(mode="safe")

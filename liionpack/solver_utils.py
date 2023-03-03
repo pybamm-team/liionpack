@@ -303,7 +303,6 @@ def _create_casadi_objects(inputs, sim, dt, Nspm, nproc, variable_names, mapped)
 
     # Step model forward dt seconds
     t_eval = np.linspace(0, dt, 11)
-    t_eval_ndim = t_eval / sim.model.timescale.evaluate()
 
     # No external variables - Temperature solved as lumped model in pybamm
     # External variables could (and should) be used if battery thermal problem
@@ -313,7 +312,7 @@ def _create_casadi_objects(inputs, sim, dt, Nspm, nproc, variable_names, mapped)
 
     # Code to create mapped integrator
     integrator = solver.create_integrator(
-        sim.built_model, inputs=inp_and_ext, t_eval=t_eval_ndim
+        sim.built_model, inputs=inp_and_ext, t_eval=t_eval
     )
     if mapped:
         integrator = integrator.map(Nspm, "thread", nproc)
@@ -374,7 +373,6 @@ def solve(
     parameter_values=None,
     experiment=None,
     inputs=None,
-    external_variables=None,
     initial_soc=None,
     nproc=1,
     output_variables=None,
@@ -397,8 +395,6 @@ def solve(
             determine the length of each timestep.
         inputs (dict):
             Dictionary for every model input with value for each battery
-        external_variables (dict):
-            Dictionary for every model external variale with value for each battery
         initial_soc (float):
             The initial state of charge for every battery. The default is None
             in which case concentrations set in the parameter_values are used.
@@ -435,7 +431,6 @@ def solve(
         experiment=experiment,
         output_variables=output_variables,
         inputs=inputs,
-        external_variables=external_variables,
         nproc=nproc,
         initial_soc=initial_soc,
         setup_only=False,
