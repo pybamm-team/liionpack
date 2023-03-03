@@ -30,6 +30,6 @@ dependencies:
   - flake8
   - pip
   - pip:
-    - pybamm>=22.6
+    - pybamm>=23.2
     - ipdb
     - -e .

@@ -1,5 +1,20 @@
 # [Unreleased](https://github.com/pybamm-team/liionpack/)
 
+# [v0.3.4](https://github.com/pybamm-team/PyBaMM/tree/v0.3.4) - 2023-03-03
+
+## Features
+
+-   Option to specify parallel-strings or series-groups when creating netlist ([#221](https://github.com/pybamm-team/liionpack/pull/221))
+
+## Bug fixes
+
+-   Compatibility with PyBaMM version 23.2: remove timescale from model options and change a notebook so that particle radius is no longer an input. This is temporarily unavailable in PyBaMM for geometry parameters. ([#222](https://github.com/pybamm-team/liionpack/pull/221))
+
+## Breaking changes
+
+-   Drop support for Python 3.7 ([#216](https://github.com/pybamm-team/liionpack/pull/216))
+
+
 # [v0.3.3](https://github.com/pybamm-team/PyBaMM/tree/v0.3.3) - 2023-01-05
 ## Bug fixes
 
