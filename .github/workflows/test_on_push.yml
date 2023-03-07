@@ -5,7 +5,7 @@ name: liionpack
 
 on:
   push:
-    branches: ["main"]
+    branches: ["develop"]
   pull_request:
   schedule:
     - cron:  '0 3 * * *'
