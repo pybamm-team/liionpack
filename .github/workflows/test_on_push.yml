@@ -62,7 +62,7 @@ jobs:
         python -m pip install .
         pybamm_install_jax
 
-    - name: Run tests on main on a push or on schedule
+    - name: Run tests and generate coverage report
       run: |
         coverage run -m unittest -v
 
