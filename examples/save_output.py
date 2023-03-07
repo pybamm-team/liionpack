@@ -17,15 +17,18 @@ Iapp = 20
 netlist = lp.setup_circuit(Np=Np, Ns=Ns)
 
 # Define additional output variables
-output_variables = ['Volume-averaged cell temperature [K]']
+output_variables = ["Volume-averaged cell temperature [K]"]
 
 # Define a cycling experiment using PyBaMM
-experiment = pybamm.Experiment([
-    f'Charge at {Iapp} A for 30 minutes',
-    'Rest for 15 minutes',
-    f'Discharge at {Iapp} A for 30 minutes',
-    'Rest for 30 minutes'],
-    period='10 seconds')
+experiment = pybamm.Experiment(
+    [
+        f"Charge at {Iapp} A for 30 minutes",
+        "Rest for 15 minutes",
+        f"Discharge at {Iapp} A for 30 minutes",
+        "Rest for 30 minutes",
+    ],
+    period="10 seconds",
+)
 
 # Define the PyBaMM parameters
 chemistry = pybamm.parameter_sets.Chen2020
@@ -33,15 +36,17 @@ parameter_values = pybamm.ParameterValues(chemistry=chemistry)
 inputs = {"Total heat transfer coefficient [W.m-2.K-1]": np.ones(Np * Ns) * 10}
 
 # Solve the pack
-output = lp.solve(netlist=netlist,
-                  sim_func=lp.thermal_simulation,
-                  parameter_values=parameter_values,
-                  experiment=experiment,
-                  output_variables=output_variables,
-                  initial_soc=0.5,
-                  inputs=inputs,
-                  nproc=os.cpu_count(),
-                  manager='casadi')
+output = lp.solve(
+    netlist=netlist,
+    sim_func=lp.thermal_simulation,
+    parameter_values=parameter_values,
+    experiment=experiment,
+    output_variables=output_variables,
+    initial_soc=0.5,
+    inputs=inputs,
+    nproc=os.cpu_count(),
+    manager="casadi",
+)
 
 # Save simulation output to CSV files
 lp.save_to_csv(output)

@@ -27,7 +27,7 @@ class TestSolvers(unittest.TestCase):
             experiment=experiment,
             inputs=None,
             nproc=1,
-            manager="casadi"
+            manager="casadi",
         )
         # Solve pack with ray
         b = lp.solve(
@@ -36,7 +36,7 @@ class TestSolvers(unittest.TestCase):
             experiment=experiment,
             inputs=None,
             nproc=1,
-            manager="ray"
+            manager="ray",
         )
 
         v_a = a["Terminal voltage [V]"]

@@ -11,8 +11,9 @@ class simulationsTest(unittest.TestCase):
 
     def test_thermal_simulation(self):
         sim = lp.thermal_simulation()
-        sim.solve([0, 1800],
-                  inputs={"Total heat transfer coefficient [W.m-2.K-1]": 1.0})
+        sim.solve(
+            [0, 1800], inputs={"Total heat transfer coefficient [W.m-2.K-1]": 1.0}
+        )
         assert sim.__class__ == pybamm.Simulation
 
     # def test_thermal_external(self):

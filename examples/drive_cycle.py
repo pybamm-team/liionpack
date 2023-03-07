@@ -27,7 +27,8 @@ drive_cycle = pd.read_csv(
 experiment = pybamm.Experiment(
     operating_conditions=["Run US06 (A)"],
     period="1 minute",
-    drive_cycles={"US06": drive_cycle})
+    drive_cycles={"US06": drive_cycle},
+)
 
 # PyBaMM parameters
 parameter_values = pybamm.ParameterValues("Chen2020")
@@ -37,7 +38,8 @@ output = lp.solve(
     netlist=netlist,
     parameter_values=parameter_values,
     experiment=experiment,
-    initial_soc=0.5)
+    initial_soc=0.5,
+)
 
 # Plot results
 lp.plot_output(output)

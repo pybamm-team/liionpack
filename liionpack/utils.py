@@ -102,7 +102,7 @@ def add_events_to_model(model):
     return model
 
 
-def save_to_csv(output, path='./csv-results'):
+def save_to_csv(output, path="./csv-results"):
     """
     Save simulation output to a CSV file for each output variable.
 
@@ -126,11 +126,11 @@ def save_to_csv(output, path='./csv-results'):
 
     # Save simulation output to CSV files
     for k, v in output.items():
-        filename = k.replace(' ', '_') + '.csv'
-        np.savetxt(path / filename, v, delimiter=', ')
+        filename = k.replace(" ", "_") + ".csv"
+        np.savetxt(path / filename, v, delimiter=", ")
 
 
-def save_to_npy(output, path='./npy-results'):
+def save_to_npy(output, path="./npy-results"):
     """
     Save simulation output to NumPy `.npy` files where each file represents an
     output variable.
@@ -155,11 +155,11 @@ def save_to_npy(output, path='./npy-results'):
 
     # Save simulation output to npy files
     for k, v in output.items():
-        filename = k.replace(' ', '_') + '.npy'
+        filename = k.replace(" ", "_") + ".npy"
         np.save(path / filename, v)
 
 
-def save_to_npzcomp(output, path='.'):
+def save_to_npzcomp(output, path="."):
     """
     Save simulation output to a compressed NumPy `output.npz` file. The saved
     file is a dictionary-like object where each key represents a simulation
@@ -185,5 +185,5 @@ def save_to_npzcomp(output, path='.'):
     path.mkdir(exist_ok=True)
 
     # Save simulation output to a compressed npz file
-    filename = 'output.npz'
+    filename = "output.npz"
     np.savez_compressed(path / filename, **output)

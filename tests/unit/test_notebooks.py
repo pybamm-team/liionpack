@@ -14,7 +14,6 @@ class TestNotebooks(unittest.TestCase):
     def test_notebooks(self):
         examples_folder = os.path.join(lp.ROOT_DIR, "docs", "examples")
         for filename in os.listdir(examples_folder):
-
             if os.path.splitext(filename)[1] == ".ipynb":
                 print("-" * 80)
                 print("Testing notebook:", filename)

@@ -7,7 +7,7 @@ import pybamm
 import os
 import pickle
 
-lp.log_to_file('logger_info')
+lp.log_to_file("logger_info")
 
 
 if __name__ == "__main__":
@@ -41,5 +41,5 @@ if __name__ == "__main__":
         nproc=os.cpu_count(),
     )
 
-    with open('output.pickle', 'wb') as handle:
+    with open("output.pickle", "wb") as handle:
         pickle.dump(output, handle, protocol=pickle.HIGHEST_PROTOCOL)

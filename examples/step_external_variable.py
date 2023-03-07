@@ -53,7 +53,7 @@ rm.solve(
     inputs=inputs,
     nproc=2,
     initial_soc=0.5,
-    setup_only=True
+    setup_only=True,
 )
 
 

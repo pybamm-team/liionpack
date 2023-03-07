@@ -1,3 +1,0 @@
-[flake8]
-max-line-length = 89
-ignore = F403 F401 W503 E741 E203 W605
