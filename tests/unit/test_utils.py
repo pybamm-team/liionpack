@@ -7,11 +7,10 @@ import unittest
 
 
 class utilsTest(unittest.TestCase):
-
     def setUp(self):
         currents = [4, 5.2, 8, 10]
         volts = np.array([[3.5, 3.6], [3.54, 3.58]])
-        output = {'currents': currents, 'volts': volts}
+        output = {"currents": currents, "volts": volts}
 
         self.currents = currents
         self.volts = volts
@@ -41,50 +40,50 @@ class utilsTest(unittest.TestCase):
         assert len(in_dict) == 2
 
     def test_save_to_csv(self):
-        lp.save_to_csv(self.output, path='.')
+        lp.save_to_csv(self.output, path=".")
 
-        with open('currents.csv', 'r') as f:
+        with open("currents.csv", "r") as f:
             current = float(f.readline())
         self.assertEqual(self.currents[0], current)
 
-        with open('volts.csv', 'r') as f:
-            volts = list(map(float, f.readline().split(', ')))
+        with open("volts.csv", "r") as f:
+            volts = list(map(float, f.readline().split(", ")))
         self.assertEqual(self.volts[0][0], volts[0])
 
     def test_save_to_npy(self):
-        lp.save_to_npy(self.output, path='.')
+        lp.save_to_npy(self.output, path=".")
 
-        currents = np.load('currents.npy')
+        currents = np.load("currents.npy")
         self.assertEqual(self.currents[0], currents[0])
 
-        volts = np.load('volts.npy')
+        volts = np.load("volts.npy")
         self.assertEqual(self.volts[0, 0], volts[0, 0])
 
     def test_save_to_npz(self):
-        lp.save_to_npzcomp(self.output, path='.')
+        lp.save_to_npzcomp(self.output, path=".")
 
-        output = np.load('output.npz')
-        currents = output['currents']
+        output = np.load("output.npz")
+        currents = output["currents"]
         self.assertEqual(self.currents[0], currents[0])
 
-        output = np.load('output.npz')
-        volts = output['volts']
+        output = np.load("output.npz")
+        volts = output["volts"]
         self.assertEqual(self.volts[0, 0], volts[0, 0])
 
     def tearDown(self):
-        path = pathlib.Path('currents.csv')
+        path = pathlib.Path("currents.csv")
         path.unlink(missing_ok=True)
 
-        path = pathlib.Path('volts.csv')
+        path = pathlib.Path("volts.csv")
         path.unlink(missing_ok=True)
 
-        path = pathlib.Path('currents.npy')
+        path = pathlib.Path("currents.npy")
         path.unlink(missing_ok=True)
 
-        path = pathlib.Path('volts.npy')
+        path = pathlib.Path("volts.npy")
         path.unlink(missing_ok=True)
 
-        path = pathlib.Path('output.npz')
+        path = pathlib.Path("output.npz")
         path.unlink(missing_ok=True)
 
 

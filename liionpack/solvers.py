@@ -196,9 +196,7 @@ class GenericManager:
 
         # Handle the inputs
         self.inputs = inputs
-        self.inputs_dict = lp.build_inputs_dict(
-            self.shm_i_app[0, :], self.inputs, None
-        )
+        self.inputs_dict = lp.build_inputs_dict(self.shm_i_app[0, :], self.inputs, None)
         # Solver specific setup
         self.setup_actors(nproc, self.inputs_dict, initial_soc)
         # Get the initial state of the system
@@ -280,9 +278,7 @@ class GenericManager:
             I_app = I_batt[:] * -1
             self.shm_i_app[step, :] = I_app
             self.shm_i_app[step + 1, :] = I_app
-            self.inputs_dict = lp.build_inputs_dict(
-                I_app, self.inputs, updated_inputs
-            )
+            self.inputs_dict = lp.build_inputs_dict(I_app, self.inputs, updated_inputs)
         # 06 Check if voltage limits are reached and terminate
         if np.any(temp_v < self.v_cut_lower):
             lp.logger.warning("Low voltage limit reached")
