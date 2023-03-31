@@ -169,7 +169,7 @@ class GenericManager:
         # Must be a 0D variable i.e. battery wide volume average - or X-averaged for
         # 1D model
         self.variable_names = [
-            "Voltage [V]",
+            "Terminal voltage [V]",
             "Surface open-circuit voltage [V]",
         ]
         if output_variables is not None:
