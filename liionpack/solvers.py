@@ -278,6 +278,7 @@ class GenericManager:
             # igore last step save the new currents and build inputs
             # for the next step
             I_app = I_batt[:] * -1
+            self.shm_i_app[step, :] = I_app
             self.shm_i_app[step + 1, :] = I_app
             self.inputs_dict = lp.build_inputs_dict(
                 I_app, self.inputs, updated_inputs
