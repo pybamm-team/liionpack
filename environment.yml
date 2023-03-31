@@ -27,7 +27,7 @@ dependencies:
   - ipython
   - jupyter
   - sympy
-  - flake8
+  - ruff
   - pip
   - pip:
     - pybamm>=23.2
