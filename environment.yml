@@ -27,9 +27,12 @@ dependencies:
   - ipython
   - jupyter
   - sympy
-  - ruff
   - pip
   - pip:
-    - pybamm>=23.2
+    - pybamm>=23.3
     - ipdb
+    - ruff
+    - mkdocstrings-python-legacy
+    - mkdocs-material
+    - mkdocs-jupyter
     - -e .
