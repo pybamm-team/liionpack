@@ -32,4 +32,7 @@ dependencies:
     - pybamm>=23.3
     - ipdb
     - ruff
+    - mkdocstrings-python-legacy
+    - mkdocs-material
+    - mkdocs-jupyter
     - -e .
