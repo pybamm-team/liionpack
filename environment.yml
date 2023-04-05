@@ -27,7 +27,7 @@ dependencies:
   - ipython
   - jupyter
   - sympy
-  - ruff
+  - conda-forge::ruff
   - pip
   - pip:
     - pybamm>=23.3
