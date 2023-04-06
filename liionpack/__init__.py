@@ -44,4 +44,4 @@ from .solvers import RayManager
 from .solvers import GenericActor
 from .solvers import RayActor
 
-__version__ = "0.3.4"
+from .version import version as __version__
