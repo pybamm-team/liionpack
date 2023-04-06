@@ -14,7 +14,6 @@ class BasicBenchmark:
 
 
 class SmallPack:
-
     timeout = 60
 
     def setup(self):
@@ -47,7 +46,6 @@ class SmallPack:
 
 
 class MediumPack:
-
     timeout = 120
 
     def setup(self):
@@ -80,7 +78,6 @@ class MediumPack:
 
 
 class LargePack:
-
     timeout = 600
 
     def setup(self):
