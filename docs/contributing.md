@@ -8,6 +8,23 @@ If you're already familiar with our workflow, maybe have a quick look at the [pr
 
 Fork the repository and create a pull request. Github actions should check that tests are passing.
 
+### Installing and using pre-commit
+
+`liionpack` uses a set of `pre-commit` hooks and the `pre-commit` bot to format and prettify the codebase. The hooks can be installed locally using -
+
+```bash
+pip install pre-commit
+pre-commit install
+```
+
+This would run the checks every time a commit is created locally. The checks will only run on the files modified by that commit, but the checks can be triggered for all the files using -
+
+```bash
+pre-commit run --all-files
+```
+
+If you would like to skip the failing checks and push the code for further discussion, use the `--no-verify` option with `git commit`.
+
 ## Workflow
 
 We use [GIT](https://en.wikipedia.org/wiki/Git) and [GitHub](https://en.wikipedia.org/wiki/GitHub) to coordinate our work. When making any kind of update, we try to follow the procedure below.
@@ -44,14 +61,18 @@ You now have everything you need to start making changes!
 
 liionpack follows the [PEP8 recommendations](https://www.python.org/dev/peps/pep-0008/) for coding style. These are very common guidelines, and community tools have been developed to check how well projects implement them.
 
-### Flake8
+### Ruff
 
-We use [flake8](http://flake8.pycqa.org/en/latest/) to check our PEP8 adherence. To try this on your system, navigate to the liionpack directory in a console and type
+We use [ruff](https://github.com/charliermarsh/ruff) to check our PEP8 adherence. To try this on your system, navigate to the liionpack directory in a console and type
 
 ```bash
-flake8
+python -m pip install pre-commit
+pre-commit run ruff
 ```
 
+ruff is configured inside the file `pre-commit-config.yaml`, allowing us to ignore some errors. If you think this should be added or removed, please submit an [issue](#issues)
+
+When you commit your changes they will be checked against ruff automatically (see [infrastructure](#infrastructure)).
 
 ### Black
 
@@ -67,7 +88,7 @@ black {source_file_or_directory}
 
 If you want to use black in your editor, you may need to change the max line length in your editor settings.
 
-Even when code has been formatted by black, you should still make sure that it adheres to the PEP8 standard set by [Flake8](#flake8).
+Even when code has been formatted by black, you should still make sure that it adheres to the PEP8 standard set by [Ruff](#ruff).
 
 ### Naming
 
@@ -173,7 +194,7 @@ wherever code is called that uses that citation (for example, in functions or in
 
 ## Benchmarks
 
-A benchmark suite is located in the `benchmarks` directory at the root of the PyBaMM project. These benchmarks can be run using [airspeed velocity](https://asv.readthedocs.io/en/stable/) (`asv`).
+A benchmark suite is located in the `benchmarks` directory at the root of the liionpack project. These benchmarks can be run using [airspeed velocity](https://asv.readthedocs.io/en/stable/) (`asv`).
 
 ### Running the benchmarks
 First of all, you'll need `asv` installed:
@@ -198,7 +219,7 @@ asv run commit_ID..develop
 ```
 Further information on how to run benchmarks with `asv` can be found in the documentation at [Using airspeed velocity](https://asv.readthedocs.io/en/stable/using.html).
 
-`asv` is configured using a file `asv.conf.json` located at the root of the PyBaMM repository. See the [asv reference](https://asv.readthedocs.io/en/stable/reference.html) for details on available settings and options.
+`asv` is configured using a file `asv.conf.json` located at the root of the liionpack repository. See the [asv reference](https://asv.readthedocs.io/en/stable/reference.html) for details on available settings and options.
 
 Benchmark results are stored in a directory `results/` at the location of the configuration file. There is one result file per commit, per machine.
 
@@ -214,7 +235,7 @@ then, to view the website:
 asv preview
 ```
 
-Current benchmarks over PyBaMM's history can be viewed at https://pybamm-team.github.io/liionpack-bench/
+Current benchmarks over liionpack's history can be viewed at https://pybamm-team.github.io/liionpack-bench/
 
 ### Adding benchmarks
 

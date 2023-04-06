@@ -114,7 +114,7 @@ def setup_circuit(
     V=4.2,
     plot=False,
     terminals="left",
-    configuration="parallel-strings"
+    configuration="parallel-strings",
 ):
     """
     Define a netlist from a number of batteries in parallel and series
@@ -757,7 +757,7 @@ def write_netlist(netlist, filename):
 
     """
     lines = ["* " + filename]
-    for (i, r) in netlist.iterrows():
+    for i, r in netlist.iterrows():
         line = r.desc + " " + _fn(r.node1) + " " + _fn(r.node2) + " " + str(r.value)
         lines.append(line)
     lines.append(".op")

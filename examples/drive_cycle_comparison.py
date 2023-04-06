@@ -48,15 +48,17 @@ if __name__ == "__main__":
         experiment=experiment,
         output_variables=output_variables,
         initial_soc=init_SoC,
-        manager='casadi',
-        nproc=8)
+        manager="casadi",
+        nproc=8,
+    )
 
     parameter_values = pybamm.ParameterValues("Chen2020")
 
     sim = pybamm.Simulation(
         model=pybamm.lithium_ion.SPM(),
         experiment=experiment,
-        parameter_values=parameter_values)
+        parameter_values=parameter_values,
+    )
 
     sol = sim.solve(initial_soc=init_SoC)
 
