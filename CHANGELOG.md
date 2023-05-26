@@ -12,6 +12,14 @@
 
 - ([#PR](link))
 
+# [v0.3.6](https://github.com/pybamm-team/liionpack/)
+
+
+## Bug fixes
+
+- Fix a RunTimeError introduced by change to latest version of casadi that PyBaMM now supports. Solution returned by casadi no longer contains initial state. ([#259](https://github.com/pybamm-team/liionpack/pull/259))
+
+
 # [v0.3.5](https://github.com/pybamm-team/liionpack/) - 2023-04-05
 
 ## Features
