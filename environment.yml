@@ -35,4 +35,5 @@ dependencies:
     - mkdocstrings-python-legacy
     - mkdocs-material
     - mkdocs-jupyter
+    - nbconvert
     - -e .

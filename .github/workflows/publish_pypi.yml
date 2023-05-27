@@ -47,7 +47,7 @@ jobs:
           path: dist
 
       - name: Publish on PyPI
-        if: github.event.inputs.target == 'pypi' && github.ref == 'refs/heads/main'
+        if: github.event.inputs.target == 'pypi' && github.ref == 'refs/heads/develop'
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           user: __token__
@@ -55,7 +55,7 @@ jobs:
           packages_dir: dist/
 
       - name: Publish on TestPyPI
-        if: github.event.inputs.target == 'testpypi' && github.ref == 'refs/heads/main'
+        if: github.event.inputs.target == 'testpypi' && github.ref == 'refs/heads/develop'
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           user: __token__
