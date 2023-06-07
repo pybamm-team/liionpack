@@ -642,11 +642,11 @@ def solve_circuit_vectorized(netlist, power=None):
             current_adjustment = (power - power_guess) / V_Terminal
             current_guess += current_adjustment
             iteration += 1
+        netlist.loc[I_map, ("value")] = current_guess
 
     toc = timer.time()
     lp.logger.debug(f"Circuit solved in {toc - toc_setup}")
     lp.logger.info(f"Circuit set up and solved in {toc}")
-
     return V_node, I_batt
 
 
