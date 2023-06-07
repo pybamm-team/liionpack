@@ -5,7 +5,8 @@
 import liionpack as lp
 import numpy as np
 import matplotlib.pyplot as plt
-plt.close('all')
+
+plt.close("all")
 
 
 # Define parameters

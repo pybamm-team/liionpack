@@ -585,33 +585,33 @@ def solve_circuit_vectorized(netlist, power=None):
     # Convert a to csr sparse format for more efficient solving of the linear system
     # csr works slighhtly more robustly than csc
     A_csr = sp.sparse.csr_matrix(A)
-    
+
     # Current Sources
     I_map = desc == "I"
     n1 = node1[I_map]
     n2 = node2[I_map]
-    
+
     toc_setup = timer.time()
     lp.logger.debug(f"Circuit set up in {toc_setup}")
-    
+
     def _solve(A_csr, z, n):
         # Scipy
         X = sp.sparse.linalg.spsolve(A_csr, z).flatten()
-    
+
         # include ground node (0V)
         # it is counter-intuitive that z is [i,e] while X is [V,I], but this is correct
         V_node = np.zeros(n + 1)
         V_node[1:] = X[:n]
         I_batt = X[n:]
         return V_node, I_batt
-    
+
     if power is None:
         # Current elements: fill the i vector only
         if n1 >= 0:
             i[n1] = i[n1] - value[I_map]
         if n2 >= 0:
             i[n2] = i[n2] + value[I_map]
-    
+
         z = np.vstack((i, e))
         V_node, I_batt = _solve(A_csr, z, n)
 
@@ -630,7 +630,7 @@ def solve_circuit_vectorized(netlist, power=None):
                 i[n1] = i[n1] - current_guess
             if n2 >= 0:
                 i[n2] = i[n2] + current_guess
-        
+
             z = np.vstack((i, e))
             V_node, I_batt = _solve(A_csr, z, n)
             V_Terminal = V_node[Terminal_Node]
