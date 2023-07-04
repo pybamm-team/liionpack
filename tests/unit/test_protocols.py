@@ -41,8 +41,7 @@ class protocolsTest(unittest.TestCase):
         ).to_numpy()
 
         experiment = pybamm.Experiment(
-           [pybamm.step.current(drive_cycle)],
-           period="1 second"
+            [pybamm.step.current(drive_cycle)], period="1 second"
         )
         p = lp.generate_protocol_from_experiment(experiment)
         assert len(p) == 601
