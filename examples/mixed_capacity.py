@@ -14,14 +14,16 @@ Ns = 3
 Iapp = 10
 
 # Generate the netlist and output variables
-netlist = lp.setup_circuit(Np=Np,
-                           Ns=Ns,
-                           Rb=1.5e-3,
-                           Rc=1e-2,
-                           Ri=5e-2,
-                           V=4.0,
-                           I=Iapp,
-                           configuration="series-groups")
+netlist = lp.setup_circuit(
+    Np=Np,
+    Ns=Ns,
+    Rb=1.5e-3,
+    Rc=1e-2,
+    Ri=5e-2,
+    V=4.0,
+    I=Iapp,
+    configuration="series-groups",
+)
 
 lp.draw_circuit(netlist)
 
