@@ -29,7 +29,7 @@ dependencies:
   - sympy
   - pip
   - pip:
-    - pybamm>=23.3
+    - pybamm>=23.5
     - ipdb
     - ruff
     - mkdocstrings-python-legacy
