@@ -45,8 +45,10 @@ def update_init_conc(param, SoC=None, update=True):
             Update the initial concentrations in place if True
 
     Returns:
-        c_s_n_init, c_s_p_init (float):
-            initial concentrations in negative and positive particles
+        c_s_n_init (float):
+            initial concentrations in negative particles.
+        c_s_p_init (float):
+            initial concentrations in positive particles.
     """
     c_n_max = param["Maximum concentration in negative electrode [mol.m-3]"]
     c_p_max = param["Maximum concentration in positive electrode [mol.m-3]"]
