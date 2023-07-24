@@ -101,7 +101,7 @@ def _serial_step(model, solutions, inputs_dict, integrator, variables, t_eval, e
         ninputs = len(temp.values())
         # Call the integrator once, with the grid
         casadi_sol = integrator(x0=x0, z0=z0, p=inputs)
-        xf = casadi_sol["xf"]
+        xf = casadi.horzcat(x0, casadi_sol["xf"])
         zf = casadi_sol["zf"]
         if zf.is_empty():
             y_sol = xf
@@ -215,7 +215,7 @@ def _mapped_step(model, solutions, inputs_dict, integrator, variables, t_eval, e
     tic = timer.time()
     casadi_sol = integrator(x0=x0, z0=z0, p=inputs)
     integration_time = timer.time()
-    nt = len(t_eval)
+    nt = len(t_eval[1:])
     xf = casadi_sol["xf"]
     zf = casadi_sol["zf"]
     sol = []
@@ -223,7 +223,7 @@ def _mapped_step(model, solutions, inputs_dict, integrator, variables, t_eval, e
     events_eval = []
     for i in range(N):
         start = i * nt
-        y_diff = xf[:, start : start + nt]
+        y_diff = casadi.horzcat(x0[:, i], xf[:, start : start + nt])
         if zf.is_empty():
             y_sol = y_diff
         else:

@@ -12,7 +12,23 @@
 
 - ([#PR](link))
 
-# [v0.3.5](https://github.com/pybamm-team/liionpack/) - 2023-04-05
+# [v0.3.7](https://github.com/pybamm-team/liionpack/tree/v0.3.7) - 2023-07-05
+
+
+## Bug fixes
+
+- Update to PyBaMM 23.5 with small chages to protocols ([#265](https://github.com/pybamm-team/liionpack/pull/265))
+
+
+# [v0.3.6](https://github.com/pybamm-team/liionpack/tree/v0.3.6) - 2023-05-26
+
+
+## Bug fixes
+
+- Fix a RunTimeError introduced by change to latest version of casadi that PyBaMM now supports. Solution returned by casadi no longer contains initial state. ([#259](https://github.com/pybamm-team/liionpack/pull/259))
+
+
+# [v0.3.5](https://github.com/pybamm-team/liionpack/tree/v0.3.5) - 2023-04-05
 
 ## Features
 
