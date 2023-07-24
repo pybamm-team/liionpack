@@ -111,3 +111,6 @@ examples/npy-results/
 
 # Benchmarks
 results/
+
+# VCS versioning
+_version.py

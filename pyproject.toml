@@ -56,4 +56,4 @@ Homepage = "https://github.com/pybamm-team/liionpack"
 
 [tool.hatch]
 version.source = "vcs"
-build.hooks.vcs.version-file = "src/vector/version.py"
+build.hooks.vcs.version-file = "liionpack/_version.py"
