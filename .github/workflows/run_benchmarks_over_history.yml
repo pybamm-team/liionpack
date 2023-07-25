@@ -22,9 +22,11 @@ jobs:
   benchmarks:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
       - name: Set up Python 3.8
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: 3.8
       - name: Install tox and asv
@@ -53,13 +55,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Set up Python 3.8
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: 3.8
       - name: Install asv
         run: pip install asv
       - name: Checkout liionpack-bench repo
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           repository: pybamm-team/liionpack-bench
           token: ${{ secrets.BENCH_PAT }}
