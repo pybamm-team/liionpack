@@ -11,4 +11,7 @@ repos:
     rev: "v0.1.13"
     hooks:
       - id: ruff
-        args: [--fix, --ignore=E741, --exclude=__init__.py]
+        args: [--fix, --show-fixes, --ignore=E741, --exclude=__init__.py]
+        types_or: [python, pyi, jupyter]
+      - id: ruff-format
+        types_or: [python, pyi, jupyter]
