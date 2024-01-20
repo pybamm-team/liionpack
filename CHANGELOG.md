@@ -47,7 +47,7 @@
 
 - Update pre-commit hooks ([#247](https://github.com/pybamm-team/liionpack/pull/247))
 
-# [v.0.3.4](https://github.com/pybamm-team/liionpack/tree/v.0.3.4) - 2023-03-03
+# [v0.3.4](https://github.com/pybamm-team/liionpack/tree/v.0.3.4) - 2023-03-03
 
 ## This version was yanked from PyPi due to an accidental early release that addressed changes coming into PyBaMM in version 23.3.
 
