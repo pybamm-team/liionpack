@@ -1,5 +1,6 @@
 [build-system]
 requires = [
+    "hatch-vcs",
     "hatchling",
 ]
 build-backend = "hatchling.build"
@@ -53,5 +54,6 @@ Changelog = "https://github.com/pybamm-team/liionpack/blob/develop/CHANGELOG.md"
 Documentation = "https://liionpack.readthedocs.io/en/latest/"
 Homepage = "https://github.com/pybamm-team/liionpack"
 
-[tool.hatch.version]
-path = "liionpack/__init__.py"
+[tool.hatch]
+version.source = "vcs"
+build.hooks.vcs.version-file = "liionpack/_version.py"

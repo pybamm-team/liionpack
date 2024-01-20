@@ -4,12 +4,11 @@ ci:
 
 repos:
   - repo: https://github.com/psf/black
-    rev: 23.3.0
+    rev: 23.12.1
     hooks:
       - id: black
-
-  - repo: https://github.com/charliermarsh/ruff-pre-commit
-    rev: "v0.0.270"
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: "v0.1.13"
     hooks:
       - id: ruff
-        args: [--ignore=E741, --exclude=__init__.py]
+        args: [--fix, --ignore=E741, --exclude=__init__.py]

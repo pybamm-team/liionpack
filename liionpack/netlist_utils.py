@@ -39,7 +39,7 @@ def read_netlist(
         V (float): Initial battery voltage (V).
 
     Returns:
-        pandas.DataFrame:
+        netlist (pandas.DataFrame):
             A netlist of circuit elements with format desc, node1, node2, value.
     """
 
@@ -135,7 +135,7 @@ def setup_circuit(
             "parallel-strings" (default) or "series-groups"
 
     Returns:
-        pandas.DataFrame:
+        netlist (pandas.DataFrame):
             A netlist of circuit elements with format desc, node1, node2, value.
 
     """
@@ -354,9 +354,10 @@ def solve_circuit(netlist):
             A netlist of circuit elements with format desc, node1, node2, value.
 
     Returns:
-        (np.ndarray, np.ndarray):
-        - V_node: Voltages of the voltage elements
-        - I_batt: Currents of the current elements
+        V_node (np.ndarray):
+            Voltages of the voltage elements
+        I_batt (np.ndarray):
+            Currents of the current elements
 
     """
     timer = pybamm.Timer()
@@ -490,9 +491,10 @@ def solve_circuit_vectorized(netlist, power=None):
             current value in the netlist and solves for power iteratively.
 
     Returns:
-        (np.ndarray, np.ndarray):
-        - V_node: Voltages of the voltage elements
-        - I_batt: Currents of the current elements
+        V_node (np.ndarray):
+            Voltages of the voltage elements
+        I_batt (np.ndarray):
+            Currents of the current elements
     """
     timer = pybamm.Timer()
 
@@ -659,7 +661,7 @@ def make_lcapy_circuit(netlist):
             A netlist of circuit elements with format. desc, node1, node2, value.
 
     Returns:
-        lcapy.Circuit:
+        cct (lcapy.Circuit):
             The Circuit class is used for describing networks using netlists.
             Despite the name, it does not require a closed path.
 
@@ -752,9 +754,6 @@ def power_loss(netlist, include_Ri=False):
             Default is False. If True the internal resistance of the batteries
             is included
 
-    Returns:
-        None
-
     """
     V_node, I_batt = lp.solve_circuit_vectorized(netlist)
     R_map = netlist["desc"].str.find("R") > -1
@@ -788,10 +787,6 @@ def write_netlist(netlist, filename):
     Args:
         netlist (pandas.DataFrame):
             A netlist of circuit elements with format desc, node1, node2, value.
-
-    Returns:
-        None
-
 
     """
     lines = ["* " + filename]

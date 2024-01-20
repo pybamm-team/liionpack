@@ -161,7 +161,13 @@ class GenericManager:
         self.protocol = lp.generate_protocol_from_experiment(experiment, flatten=True)
         self.dt = experiment.period
         self.Nsteps = len(self.protocol)
-        netlist.loc[self.I_map, ("value")] = self.protocol[0]
+        # If the step is starting with a rest the current will be zero and
+        # this messes up the internal resistance calc. Add a very small current
+        # for init.
+        if self.protocol[0] == 0.0:
+            netlist.loc[self.I_map, ("value")] = 1e-3
+        else:
+            netlist.loc[self.I_map, ("value")] = self.protocol[0]
         # Solve the circuit to initialise the electrochemical models
         V_node, I_batt = lp.solve_circuit_vectorized(netlist)
 
@@ -317,6 +323,7 @@ class GenericManager:
         temp_ocv = self.output[1, step, :]
         temp_I = self.shm_i_app[step, :]
         temp_Ri = np.abs((temp_ocv - temp_v) / temp_I)
+        temp_Ri[temp_Ri == 0.0] = 1e-6
         return temp_Ri
 
     def update_external_variables(self):
