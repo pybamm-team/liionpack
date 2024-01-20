@@ -731,7 +731,7 @@ def power_loss(netlist, include_Ri=False):
     R_node2_V = V_node[R_node2]
     V_diff = np.abs(R_node1_V - R_node2_V)
     P_loss = V_diff**2 / R_value
-    netlist["power_loss"] = 0
+    netlist["power_loss"] = 0.0
     netlist.loc[R_map, ("power_loss")] = P_loss
 
 
