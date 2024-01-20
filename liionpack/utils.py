@@ -17,7 +17,7 @@ def interp_current(df):
             construct an interpolant function
 
     Returns:
-        function:
+        f (function):
             interpolant function of total cell current with time.
 
     """
@@ -38,7 +38,7 @@ def _convert_dict_to_list_of_dict(inputs_dict):
             arrays of input values for each battery.
 
     Returns:
-        list:
+        dicts (list):
             individual dictionaries containing one element for each key
 
     """
@@ -67,7 +67,7 @@ def build_inputs_dict(I_batt, inputs, updated_inputs):
             of variable values for each battery.
 
     Returns:
-        list:
+        inputs_dict (list):
             each element of the list is an inputs dictionary corresponding to each
             battery.
 
@@ -93,7 +93,7 @@ def add_events_to_model(model):
             The PyBaMM model to solve.
 
     Returns:
-        pybamm.lithium_ion.BaseModel:
+        model (pybamm.lithium_ion.BaseModel):
             The PyBaMM model to solve with events added as variables.
 
     """
@@ -106,16 +106,14 @@ def save_to_csv(output, path="./csv-results"):
     """
     Save simulation output to a CSV file for each output variable.
 
-    Parameters
-    ----------
-    output : dict
-        Simulation output dictionary.
-    path : str
-        Folder path for saving the CSV files. Default path is a folder named
-        `csv-results` in the current directory.
+    Args:
+        output (dict):
+            Simulation output dictionary.
+        path (str):
+            Folder path for saving the CSV files. Default path is a folder named
+            `csv-results` in the current directory.
 
-    Returns
-    -------
+    Returns:
         CSV files written to the specified path. Each file represents a single
         output variable.
     """
@@ -135,16 +133,14 @@ def save_to_npy(output, path="./npy-results"):
     Save simulation output to NumPy `.npy` files where each file represents an
     output variable.
 
-    Parameters
-    ----------
-    output : dict
-        Simulation output dictionary.
-    path : str
-        Folder path where the `.npy` files are saved. Default path is a folder
-        named `npy-results` located in the current directory.
+    Args:
+        output (dict):
+            Simulation output dictionary.
+        path (str):
+            Folder path where the `.npy` files are saved. Default path is a folder
+            named `npy-results` located in the current directory.
 
-    Returns
-    -------
+    Returns:
         NumPy `.npy` files written to the specified path. Each file represents
         a single output variable.
     """
@@ -165,16 +161,14 @@ def save_to_npzcomp(output, path="."):
     file is a dictionary-like object where each key represents a simulation
     output variable.
 
-    Parameters
-    ----------
-    output : dict
-        Simulation output dictionary.
-    path : str
-        Path where the `output.npz` file is saved. Default path is the current
-        directory.
+    Args:
+        output (dict):
+            Simulation output dictionary.
+        path (str):
+            Path where the `output.npz` file is saved. Default path is the current
+            directory.
 
-    Returns
-    -------
+    Returns:
         A compressed NumPy `.npz` file named `output.npz` written to the
         specified path. The file is a dictionary-like object where each key
         has the same name as the simulation output variable.

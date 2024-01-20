@@ -14,7 +14,7 @@ def generate_protocol_from_experiment(experiment, flatten=True):
             list of lists for each operating command.
 
     Returns:
-        list:
+        protocol (list):
             a sequence of terminal currents to apply at each timestep
 
     """
