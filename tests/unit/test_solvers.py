@@ -128,6 +128,32 @@ class solversTest(unittest.TestCase):
         )
         assert True
 
+    def test_rest_step_first(self):
+        I_app = 5.0
+        netlist = lp.setup_circuit(
+            Np=1, Ns=1, Rb=1e-4, Rc=1e-2, Ri=3e-2, V=3.6, I=I_app
+        )
+        parameter_values = pybamm.ParameterValues("Chen2020")
+        # Cycling experiment
+        experiment = pybamm.Experiment(
+            [
+                "Rest for 1 minutes",
+                f"Charge at {I_app} A for 1 minutes",
+            ],
+            period="10 seconds",
+        )
+        _ = lp.solve(
+            netlist=netlist.copy(),
+            parameter_values=parameter_values,
+            experiment=experiment,
+            output_variables=None,
+            inputs=None,
+            initial_soc=0.5,
+            nproc=1,
+            manager="casadi",
+        )
+        assert True
+
     # def test_external_variable(self):
     #     T_non_dim = np.zeros(self.Nspm)  # Ref temperature
     #     external_variables = {"Volume-averaged cell temperature": T_non_dim}
