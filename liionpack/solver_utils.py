@@ -340,7 +340,7 @@ def _create_casadi_objects(inputs, sim, dt, Nspm, nproc, variable_names, mapped)
     if len(event_vars) > 0:
         # Variables function for parallel evaluation
         casadi_objs = sim.built_model.export_casadi_objects(
-            variable_names=variable_names, input_parameter_order=ip_order
+            variable_names=event_vars, input_parameter_order=ip_order
         )
         events = casadi_objs["variables"]
         t, x, z, p = (
