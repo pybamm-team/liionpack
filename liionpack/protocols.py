@@ -2,6 +2,8 @@
 # Experimental protocol
 #
 
+import numpy as np
+
 
 def generate_protocol_from_experiment(experiment, flatten=True):
     """
@@ -23,8 +25,6 @@ def generate_protocol_from_experiment(experiment, flatten=True):
         proto = []
         t = step.duration
         dt = step.period
-        if t % dt != 0:
-            raise ValueError("Time must be an integer multiple of the period")
         typ = step.type
         if typ not in ["current"]:
             raise ValueError("Only constant current operations are supported")
@@ -32,7 +32,7 @@ def generate_protocol_from_experiment(experiment, flatten=True):
             if typ == "current":
                 if not step.is_drive_cycle:
                     I = step.value
-                    proto.extend([I] * int(t / dt))
+                    proto.extend([I] * int(np.round(t, 5) / np.round(dt, 5)))
                     if i == 0:
                         # Include initial state when not drive cycle, first op
                         proto = [proto[0]] + proto
