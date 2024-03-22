@@ -32,7 +32,7 @@ def generate_protocol_from_experiment(experiment, flatten=True):
             if typ == "current":
                 if not step.is_drive_cycle:
                     I = step.value
-                    proto.extend([I] * int(np.round(t,5) / np.round(dt,5)))
+                    proto.extend([I] * int(np.round(t, 5) / np.round(dt, 5)))
                     if i == 0:
                         # Include initial state when not drive cycle, first op
                         proto = [proto[0]] + proto
