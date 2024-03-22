@@ -99,6 +99,7 @@ def add_events_to_model(model):
     """
     for event in model.events:
         model.variables.update({"Event: " + event.name: event.expression})
+        model.event_names.append("Event: " + event.name)
     return model
 
 
