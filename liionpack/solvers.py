@@ -521,15 +521,12 @@ class CasadiManager(GenericManager):
         Nr, Nc = event_change.shape
         event_names = self.actors[0].get_event_names()
         for r in range(Nr):
-            try:
-                if np.any(event_change[r, :]):
-                    lp.logger.warning(
-                        event_names[r]
-                        + ", Batteries: "
-                        + str(np.where(event_change[r, :])[0].tolist())
-                    )
-            except Exception as e:
-                lp.logger.warning("Event logging failed: " + str(e))
+            if np.any(event_change[r, :]):
+                lp.logger.warning(
+                    event_names[r]
+                    + ", Batteries: "
+                    + str(np.where(event_change[r, :])[0].tolist())
+                )
 
     def cleanup(self):
         pass
