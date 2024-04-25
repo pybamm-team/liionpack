@@ -40,8 +40,8 @@ class GenericActor:
         if initial_soc is not None:
             if (
                 (type(initial_soc) in [float, int])
-                or (type(initial_soc) is list and len(initial_soc) == 1)
-                or (type(initial_soc) is np.ndarray and len(initial_soc) == 1)
+                or (isinstance(initial_soc, list) and len(initial_soc) == 1)
+                or (isinstance(initial_soc, np.ndarray) and len(initial_soc) == 1)
             ):
                 _, _ = lp.update_init_conc(parameter_values, initial_soc, update=True)
             else:
