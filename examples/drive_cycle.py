@@ -24,11 +24,7 @@ drive_cycle = pd.read_csv(
     "pybamm/input/drive_cycles/US06.csv", comment="#", header=None
 ).to_numpy()
 
-experiment = pybamm.Experiment(
-    operating_conditions=["Run US06 (A)"],
-    period="1 minute",
-    drive_cycles={"US06": drive_cycle},
-)
+experiment = pybamm.Experiment([pybamm.step.current(drive_cycle)])
 
 # PyBaMM parameters
 parameter_values = pybamm.ParameterValues("Chen2020")

@@ -12,6 +12,12 @@
 
 - ([#PR](link))
 
+# [v0.3.8](https://github.com/pybamm-team/liionpack/tree/v0.3.8) - 2024-01-20
+
+## Bug fixes
+
+- Update to PyBaMM 23.9
+
 # [v0.3.7](https://github.com/pybamm-team/liionpack/tree/v0.3.7) - 2023-07-05
 
 

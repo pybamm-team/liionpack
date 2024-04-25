@@ -4,11 +4,14 @@ ci:
 
 repos:
   - repo: https://github.com/psf/black
-    rev: 23.12.1
+    rev: 24.4.0
     hooks:
       - id: black
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: "v0.1.13"
+    rev: "v0.4.1"
     hooks:
       - id: ruff
-        args: [--fix, --ignore=E741, --exclude=__init__.py]
+        args: [--fix, --show-fixes, --ignore=E741, --exclude=__init__.py]
+        types_or: [python, pyi, jupyter]
+      - id: ruff-format
+        types_or: [python, pyi, jupyter]

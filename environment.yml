@@ -19,7 +19,6 @@
 name: lipack
 
 dependencies:
-  - python=3.9.*
   - numpy
   - scipy
   - matplotlib
@@ -29,7 +28,7 @@ dependencies:
   - sympy
   - pip
   - pip:
-    - pybamm>=23.5
+    - pybamm==23.9
     - ipdb
     - ruff
     - mkdocstrings-python-legacy

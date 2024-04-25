@@ -23,7 +23,6 @@ classifiers = [
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3 :: Only",
     "Programming Language :: Python :: 3.8",
-    "Programming Language :: Python :: 3.9",
     "Topic :: Scientific/Engineering",
 ]
 dependencies = [
@@ -35,7 +34,7 @@ dependencies = [
     "openpyxl",
     "pandas",
     "plotly",
-    "pybamm>=23.5",
+    "pybamm==23.9",
     "ray",
     "redis",
     "scikit-spatial",
