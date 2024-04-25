@@ -4,6 +4,7 @@
 
 import numpy as np
 
+
 def generate_protocol_from_experiment(experiment, flatten=True):
     """
 
