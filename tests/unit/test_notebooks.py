@@ -4,10 +4,11 @@
 import os
 import subprocess
 import unittest
-
 import nbconvert
-
 import liionpack as lp
+import matplotlib
+
+matplotlib.use("Agg")  # Switch to a non-GUI backend
 
 
 class TestNotebooks(unittest.TestCase):

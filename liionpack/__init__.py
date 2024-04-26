@@ -5,6 +5,7 @@ liionpack is a tool for simulating battery packs with pybamm. It can design the
 pack with a combination of batteries connected in series and parallel or can
 read a netlist.
 """
+
 from .simulations import basic_simulation
 from .simulations import thermal_simulation
 from .simulations import thermal_external
@@ -44,4 +45,4 @@ from .solvers import RayManager
 from .solvers import GenericActor
 from .solvers import RayActor
 
-__version__ = "0.3.6"
+from ._version import __version__

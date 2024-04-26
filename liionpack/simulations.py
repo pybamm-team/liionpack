@@ -15,7 +15,7 @@ def basic_simulation(parameter_values=None):
             The default is None.
 
     Returns:
-        pybamm.Simulation:
+        sim (pybamm.Simulation):
             A simulation that can be solved individually or passed into the
             liionpack solve method
 
@@ -51,7 +51,7 @@ def thermal_simulation(parameter_values=None):
             The default is None.
 
     Returns:
-        pybamm.Simulation:
+        sim (pybamm.Simulation):
             A simulation that can be solved individually or passed into the
             liionpack solve method
 
@@ -101,7 +101,7 @@ def thermal_external(parameter_values=None):
             The default is None.
 
     Returns:
-        pybamm.Simulation:
+        sim (pybamm.Simulation):
             A simulation that can be solved individually or passed into the
             liionpack solve method
 

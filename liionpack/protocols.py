@@ -2,6 +2,8 @@
 # Experimental protocol
 #
 
+import numpy as np
+
 
 def generate_protocol_from_experiment(experiment, flatten=True):
     """
@@ -14,31 +16,28 @@ def generate_protocol_from_experiment(experiment, flatten=True):
             list of lists for each operating command.
 
     Returns:
-        list:
+        protocol (list):
             a sequence of terminal currents to apply at each timestep
 
     """
     protocol = []
-    for i, op in enumerate(experiment.operating_conditions):
+    for i, step in enumerate(experiment.operating_conditions_steps):
         proto = []
-        t = op["time"]
-        dt = op["period"]
-        if t % dt != 0:
-            raise ValueError("Time must be an integer multiple of the period")
-        typ = op["type"]
+        t = step.duration
+        dt = step.period
+        typ = step.type
         if typ not in ["current"]:
             raise ValueError("Only constant current operations are supported")
         else:
             if typ == "current":
-                if "Current input [A]" in op.keys():
-                    I = op["Current input [A]"]
-                    proto.extend([I] * int(t / dt))
+                if not step.is_drive_cycle:
+                    I = step.value
+                    proto.extend([I] * int(np.round(t, 5) / np.round(dt, 5)))
                     if i == 0:
                         # Include initial state when not drive cycle, first op
                         proto = [proto[0]] + proto
-                elif "dc_data" in op.keys():
-                    dc_data = op["dc_data"]
-                    proto.extend(dc_data[:, 1].tolist())
+                else:
+                    proto.extend(step.value.y.tolist())
 
         if flatten:
             protocol.extend(proto)
