@@ -12,6 +12,20 @@
 
 - ([#PR](link))
 
+# [v0.3.9](https://github.com/pybamm-team/liionpack/tree/v0.3.9) - 2024-04-26
+
+## Features
+
+- Update PyBaMM to 24.1 ([#293](https://github.com/pybamm-team/liionpack/pull/293))
+
+## Bug fixes
+
+- Fix event reporting ([#288](https://github.com/pybamm-team/liionpack/pull/288))
+- Fix experiments with small time steps ([#289](https://github.com/pybamm-team/liionpack/pull/289))
+- Remove the Jax install from CI ([#287](https://github.com/pybamm-team/liionpack/pull/287))
+- ([#PR](link))
+
+
 # [v0.3.8](https://github.com/pybamm-team/liionpack/tree/v0.3.8) - 2024-01-20
 
 ## Bug fixes
