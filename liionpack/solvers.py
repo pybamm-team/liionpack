@@ -158,8 +158,12 @@ class GenericManager:
         self.split_models(self.Nspm, nproc)
 
         # Generate the protocol from the supplied experiment
-        self.protocol_steps, self.terminations = lp.generate_protocol_from_experiment(experiment)
-        self.flattened_protocol = [item for sublist in self.protocol_steps for item in sublist]
+        self.protocol_steps, self.terminations = lp.generate_protocol_from_experiment(
+            experiment
+        )
+        self.flattened_protocol = [
+            item for sublist in self.protocol_steps for item in sublist
+        ]
         self.dt = experiment.period
         self.Nsteps = len(self.flattened_protocol)
         # If the step is starting with a rest the current will be zero and
@@ -221,7 +225,7 @@ class GenericManager:
 
     def _step_solve_step(self, protocol, termination, updated_inputs):
         tic = ticker.time()
-        
+
         # Do stepping
         lp.logger.notice("Starting step solve")
         vlims_ok = True
@@ -229,7 +233,9 @@ class GenericManager:
         with tqdm(total=len(protocol), desc="Stepping simulation") as pbar:
             step = 0
             while step < len(protocol):
-                vlims_ok = self._step(step, protocol, termination, updated_inputs, skip_vcheck)
+                vlims_ok = self._step(
+                    step, protocol, termination, updated_inputs, skip_vcheck
+                )
                 skip_vcheck = False
                 if vlims_ok:
                     # all good - keep going
@@ -253,23 +259,21 @@ class GenericManager:
         # Collect outputs
         report_steps = min(len(self.flattened_protocol), self.global_step)
         self.all_output = {}
-        self.all_output["Time [s]"] = self.record_times[: report_steps]
-        self.all_output["Pack current [A]"] = self.I_terminal[: report_steps]
-        self.all_output["Pack terminal voltage [V]"] = self.V_terminal[: report_steps]
-        self.all_output["Cell current [A]"] = self.shm_i_app[: report_steps, :]
+        self.all_output["Time [s]"] = self.record_times[:report_steps]
+        self.all_output["Pack current [A]"] = self.I_terminal[:report_steps]
+        self.all_output["Pack terminal voltage [V]"] = self.V_terminal[:report_steps]
+        self.all_output["Cell current [A]"] = self.shm_i_app[:report_steps, :]
         self.all_output["Cell internal resistance [Ohm]"] = self.shm_Ri[
-            : report_steps, :
+            :report_steps, :
         ]
         for j in range(self.Nvar):
-            self.all_output[self.variable_names[j]] = self.output[j, : report_steps, :]
+            self.all_output[self.variable_names[j]] = self.output[j, :report_steps, :]
         return self.all_output
 
     def _step(self, step, protocol, termination, updated_inputs, skip_vcheck):
         vlims_ok = True
         # 01 Calculate whether resting or restarting
-        self.resting = (
-            step > 0 and protocol[step] == 0.0 and protocol[step - 1] == 0.0
-        )
+        self.resting = step > 0 and protocol[step] == 0.0 and protocol[step - 1] == 0.0
         self.restarting = (
             step > 0 and protocol[step] != 0.0 and protocol[step - 1] == 0.0
         )
@@ -289,7 +293,7 @@ class GenericManager:
         self.netlist.loc[self.V_map, ("value")] = temp_ocv
         self.netlist.loc[self.Ri_map, ("value")] = self.temp_Ri
         self.netlist.loc[self.I_map, ("value")] = protocol[step]
-        self.I_terminal[self.global_step] = protocol[step] 
+        self.I_terminal[self.global_step] = protocol[step]
         lp.power_loss(self.netlist)
         # 05 Solve the circuit with updated netlist
         if step <= self.Nsteps:

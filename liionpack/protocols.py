@@ -41,7 +41,9 @@ def generate_protocol_from_experiment(experiment):
                 proto.extend(step.value.y.tolist())
             if len(termination) > 0:
                 for term in termination:
-                    if isinstance(term, pybamm.experiment.step.step_termination.VoltageTermination):
+                    if isinstance(
+                        term, pybamm.experiment.step.step_termination.VoltageTermination
+                    ):
                         terminations.append(term.value)
             else:
                 terminations.append([])

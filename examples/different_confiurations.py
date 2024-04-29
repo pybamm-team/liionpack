@@ -4,7 +4,7 @@ import numpy as np
 import os
 import matplotlib.pyplot as plt
 
-plt.close('all')
+plt.close("all")
 lp.set_logging_level("NOTICE")
 
 names = ["8P-1S", "4P-2S", "2S-4P", "2P-4S", "4S-2P", "8S-1P"]
@@ -14,15 +14,15 @@ C = 5.0
 
 _Np = [8, 4, 4, 2, 2, 1]
 _Ns = [1, 2, 2, 4, 4, 8]
-_I = C*np.array(_Np)
+_I = C * np.array(_Np)
 configurations = [
     "parallel-strings",
     "parallel-strings",
     "series-groups",
     "parallel-strings",
     "series-groups",
-    "parallel-strings"
-    ]
+    "parallel-strings",
+]
 
 Iapp = _I[case]
 Np = _Np[case]
@@ -51,15 +51,19 @@ experiment = pybamm.Experiment(
 
 # Define the PyBaMM parameters
 parameter_values = pybamm.ParameterValues("Chen2020")
-parameter_values.update({
-    "Negative electrode active material volume fraction": "[input]",
-    "Positive electrode active material volume fraction": "[input]",
-    })
+parameter_values.update(
+    {
+        "Negative electrode active material volume fraction": "[input]",
+        "Positive electrode active material volume fraction": "[input]",
+    }
+)
 inputs = {
     "Total heat transfer coefficient [W.m-2.K-1]": 10 + (np.random.random(Nb) * 1.0),
-    "Negative electrode active material volume fraction": 0.75 + (np.random.random(Nb) * 0.01),
-    "Positive electrode active material volume fraction": 0.66 + (np.random.random(Nb) * 0.01),
-    }
+    "Negative electrode active material volume fraction": 0.75
+    + (np.random.random(Nb) * 0.01),
+    "Positive electrode active material volume fraction": 0.66
+    + (np.random.random(Nb) * 0.01),
+}
 
 # Solve the pack
 output = lp.solve(
@@ -79,5 +83,3 @@ lp.plot_pack(output)
 lp.plot_cells(output)
 
 lp.show_plots()
-
-
