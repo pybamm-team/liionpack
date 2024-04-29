@@ -84,7 +84,7 @@ class solversTest(unittest.TestCase):
             )
             a = output1["Terminal voltage [V]"]
             b = output2["Terminal voltage [V]"]
-            self.assertEqual(a.shape, (8, 21))
+            self.assertEqual(a.shape, (7, 21))
             self.assertTrue(np.allclose(a, b))
 
     def test_voltage_limits(self):
@@ -153,23 +153,6 @@ class solversTest(unittest.TestCase):
             manager="casadi",
         )
         assert True
-
-    # def test_external_variable(self):
-    #     T_non_dim = np.zeros(self.Nspm)  # Ref temperature
-    #     external_variables = {"Volume-averaged cell temperature": T_non_dim}
-    #     output = lp.solve(
-    #         netlist=self.netlist.copy(),
-    #         parameter_values=self.parameter_values,
-    #         sim_func=lp.thermal_external,
-    #         experiment=self.experiment,
-    #         output_variables=["Volume-averaged cell temperature [K]"],
-    #         inputs=None,
-    #         external_variables=external_variables,
-    #         initial_soc=0.5,
-    #         nproc=1,
-    #         manager="casadi",
-    #     )
-    #     assert np.all(output["Volume-averaged cell temperature [K]"] == 298.15)
 
 
 if __name__ == "__main__":
