@@ -12,6 +12,13 @@
 
 - ([#PR](link))
 
+# [v0.3.10](https://github.com/pybamm-team/liionpack/) - 2024-05-09
+
+## Features
+
+- Update protocol and solvers to return experiment steps with terminations and skip to next step if termination reached ([#296](https://github.com/pybamm-team/liionpack/pull/296))
+
+
 # [v0.3.9](https://github.com/pybamm-team/liionpack/tree/v0.3.9) - 2024-04-26
 
 ## Features
