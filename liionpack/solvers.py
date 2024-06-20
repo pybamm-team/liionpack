@@ -195,9 +195,13 @@ class GenericManager:
         self.shm_i_app = np.zeros([self.Nsteps, self.Nspm], dtype=np.float32)
         self.shm_Ri = np.zeros([self.Nsteps, self.Nspm], dtype=np.float32)
         self.output = np.zeros([self.Nvar, self.Nsteps, self.Nspm], dtype=np.float32)
+        self.node_voltages = np.zeros([self.Nsteps, len(V_node)], dtype=np.float32)
 
         # Initialize currents in battery models
         self.shm_i_app[0, :] = I_batt * -1
+
+        # Initialize the node voltages
+        self.node_voltages[0, :] = V_node
 
         # Step forward in time
         self.V_terminal = np.zeros(self.Nsteps, dtype=np.float32)
@@ -263,6 +267,7 @@ class GenericManager:
         self.all_output["Pack current [A]"] = self.I_terminal[:report_steps]
         self.all_output["Pack terminal voltage [V]"] = self.V_terminal[:report_steps]
         self.all_output["Cell current [A]"] = self.shm_i_app[:report_steps, :]
+        self.all_output["Node voltage [V]"] = self.node_voltages[:report_steps, :]
         self.all_output["Cell internal resistance [Ohm]"] = self.shm_Ri[
             :report_steps, :
         ]
@@ -306,6 +311,7 @@ class GenericManager:
             I_app = I_batt[:] * -1
             self.shm_i_app[self.global_step, :] = I_app
             self.shm_i_app[self.global_step + 1, :] = I_app
+            self.node_voltages[self.global_step, :] = V_node
             self.inputs_dict = lp.build_inputs_dict(I_app, self.inputs, updated_inputs)
         # 06 Check if voltage limits are reached and terminate
         if np.any(temp_v < self.v_cut_lower):

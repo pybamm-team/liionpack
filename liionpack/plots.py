@@ -190,7 +190,9 @@ def plot_cells(output, color="dark"):
 
     # Get time and results for battery cells
     time = output["Time [s]"]
-    cell_vars = [k for k in output.keys() if len(output[k].shape) > 1]
+    cell_vars = [
+        k for k in output.keys() if len(output[k].shape) > 1 and k != "Node voltage [V]"
+    ]
 
     context = lp_context(color)
     cmap = lp_cmap(context)
