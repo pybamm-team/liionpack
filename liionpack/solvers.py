@@ -141,11 +141,12 @@ class GenericManager:
         output_variables,
         initial_soc,
         nproc,
+        node_termination_func=None,
         setup_only=False,
     ):
         self.netlist = netlist
         self.sim_func = sim_func
-
+        self.node_termination_func = node_termination_func
         self.parameter_values = parameter_values
         self.check_current_function()
         # Get netlist indices for resistors, voltage sources, current sources
@@ -324,6 +325,10 @@ class GenericManager:
         if np.any(v_thresh < 0) and np.any(v_thresh > 0):
             # some have crossed the stopping condition
             vlims_ok = False
+        if self.node_termination_func is not None:
+            if self.node_termination_func(V_node):
+                lp.logger.warning("Node voltage limit reached")
+                vlims_ok = False
         if skip_vcheck:
             vlims_ok = True
         # 07 Step the electrochemical system

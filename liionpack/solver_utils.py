@@ -377,6 +377,7 @@ def solve(
     nproc=1,
     output_variables=None,
     manager="casadi",
+    node_termination_func=None,
 ):
     """
     Solves a pack simulation
@@ -434,5 +435,6 @@ def solve(
         nproc=nproc,
         initial_soc=initial_soc,
         setup_only=False,
+        node_termination_func=node_termination_func,
     )
     return output
