@@ -159,8 +159,8 @@ class GenericManager:
         self.split_models(self.Nspm, nproc)
 
         # Generate the protocol from the supplied experiment
-        self.protocol_steps, self.terminations = lp.generate_protocol_from_experiment(
-            experiment
+        self.protocol_steps, self.terminations, self.step_types = (
+            lp.generate_protocol_from_experiment(experiment)
         )
         self.flattened_protocol = [
             item for sublist in self.protocol_steps for item in sublist
@@ -176,7 +176,16 @@ class GenericManager:
         else:
             netlist.loc[self.I_map, ("value")] = first_value
         # Solve the circuit to initialise the electrochemical models
-        V_node, I_batt = lp.solve_circuit_vectorized(netlist)
+        if self.step_types[0] == "power":
+            current = None
+            power = first_value
+        else:
+            current = first_value
+            power = None
+
+        V_node, I_batt, terminal_current, terminal_voltage, terminal_power = (
+            lp.solve_circuit_vectorized(netlist, current=current, power=power)
+        )
 
         # The simulation output variables calculated at each step for each battery
         # Must be a 0D variable i.e. battery wide volume average - or X-averaged for
@@ -207,6 +216,7 @@ class GenericManager:
         # Step forward in time
         self.V_terminal = np.zeros(self.Nsteps, dtype=np.float32)
         self.I_terminal = np.zeros(self.Nsteps, dtype=np.float32)
+        self.P_terminal = np.zeros(self.Nsteps, dtype=np.float32)
         self.record_times = np.zeros(self.Nsteps, dtype=np.float32)
 
         self.v_cut_lower = parameter_values["Lower voltage cut-off [V]"]
@@ -223,12 +233,13 @@ class GenericManager:
             self.global_step = 0
             for ps, step_protocol in enumerate(self.protocol_steps):
                 step_termination = self.terminations[ps]
+                step_type = self.step_types[ps]
                 if step_termination == []:
                     step_termination = 0.0
-                self._step_solve_step(step_protocol, step_termination, None)
+                self._step_solve_step(step_protocol, step_termination, step_type, None)
             return self.step_output()
 
-    def _step_solve_step(self, protocol, termination, updated_inputs):
+    def _step_solve_step(self, protocol, termination, step_type, updated_inputs):
         tic = ticker.time()
 
         # Do stepping
@@ -239,7 +250,7 @@ class GenericManager:
             step = 0
             while step < len(protocol):
                 vlims_ok = self._step(
-                    step, protocol, termination, updated_inputs, skip_vcheck
+                    step, protocol, termination, step_type, updated_inputs, skip_vcheck
                 )
                 skip_vcheck = False
                 if vlims_ok:
@@ -267,6 +278,7 @@ class GenericManager:
         self.all_output["Time [s]"] = self.record_times[:report_steps]
         self.all_output["Pack current [A]"] = self.I_terminal[:report_steps]
         self.all_output["Pack terminal voltage [V]"] = self.V_terminal[:report_steps]
+        self.all_output["Pack power [W]"] = self.P_terminal[:report_steps]
         self.all_output["Cell current [A]"] = self.shm_i_app[:report_steps, :]
         self.all_output["Node voltage [V]"] = self.node_voltages[:report_steps, :]
         self.all_output["Cell internal resistance [Ohm]"] = self.shm_Ri[
@@ -276,7 +288,15 @@ class GenericManager:
             self.all_output[self.variable_names[j]] = self.output[j, :report_steps, :]
         return self.all_output
 
-    def _step(self, step, protocol, termination, updated_inputs, skip_vcheck):
+    def _pack_voltage(self, step):
+        current_nodes = self.netlist.loc[
+            self.I_map, (["node2", "node1"])
+        ].values.flatten()
+        return np.diff(self.node_voltages[step, current_nodes])[0]
+
+    def _step(
+        self, step, protocol, termination, step_type, updated_inputs, skip_vcheck
+    ):
         vlims_ok = True
         # 01 Calculate whether resting or restarting
         self.resting = step > 0 and protocol[step] == 0.0 and protocol[step - 1] == 0.0
@@ -298,14 +318,24 @@ class GenericManager:
         # 04 Update netlist
         self.netlist.loc[self.V_map, ("value")] = temp_ocv
         self.netlist.loc[self.Ri_map, ("value")] = self.temp_Ri
-        self.netlist.loc[self.I_map, ("value")] = protocol[step]
-        self.I_terminal[self.global_step] = protocol[step]
-        lp.power_loss(self.netlist)
+        
         # 05 Solve the circuit with updated netlist
         if step <= self.Nsteps:
-            V_node, I_batt = lp.solve_circuit_vectorized(self.netlist)
+            if step_type == "power":
+                power = protocol[step]
+                current = None
+            else:
+                current = protocol[step]
+                power = None
+            V_node, I_batt, terminal_current, terminal_voltage, terminal_power = (
+                lp.solve_circuit_vectorized(self.netlist, current=current, power=power)
+            )
+            lp.power_loss(self.netlist)
             self.record_times[self.global_step] = self.global_step * self.dt
-            self.V_terminal[self.global_step] = V_node[self.Terminal_Node][0]
+            self.netlist.loc[self.I_map, ("value")] = terminal_current
+            self.I_terminal[self.global_step] = terminal_current
+            self.V_terminal[self.global_step] = terminal_voltage
+            self.P_terminal[self.global_step] = terminal_power
         if self.global_step < self.Nsteps - 1:
             # igore last step save the new currents and build inputs
             # for the next step

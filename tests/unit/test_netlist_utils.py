@@ -65,11 +65,6 @@ class netlist_utilsTest(unittest.TestCase):
         assert np.all(netlist[V_map]["value"] == 2)
         plt.close("all")
 
-    def test_solve_circuit(self):
-        netlist = lp.setup_circuit(Np=1, Ns=2, Rb=1e-4, Rc=1e-2, Ri=1e-3, V=2.0, I=1.0)
-        V_node, I_batt = lp.solve_circuit(netlist)
-        assert np.all(I_batt) == 1.0
-
     def test_solve_circuit_seriesgroups(self):
         netlist = lp.setup_circuit(
             Np=1,
@@ -81,16 +76,8 @@ class netlist_utilsTest(unittest.TestCase):
             I=1.0,
             configuration="series-groups",
         )
-        V_node, I_batt = lp.solve_circuit(netlist)
+        V_node, I_batt = lp.solve_circuit_vectorized(netlist)
         assert np.all(I_batt) == 1.0
-
-    def test_solve_circuit_vectorized(self):
-        netlist = lp.setup_circuit(
-            Np=1, Ns=100, Rb=1e-4, Rc=1e-2, Ri=1e-3, V=2.0, I=1.0
-        )
-        V_node, I_batt = lp.solve_circuit(netlist)
-        V_node_v, I_batt_v = lp.solve_circuit_vectorized(netlist)
-        assert np.allclose(V_node, V_node_v)
 
     def test_setup_circuit_terminals(self):
         combos = [
