@@ -504,7 +504,7 @@ def solve_circuit_vectorized(netlist, current=None, power=None):
             Power at the terminal.
     """
 
-    control_args = sum(arg is not None for arg in [current, power])    
+    control_args = sum(arg is not None for arg in [current, power])
     if control_args == 2:
         raise ValueError("Only specify one of current or power arguments.")
 
@@ -535,7 +535,7 @@ def solve_circuit_vectorized(netlist, current=None, power=None):
     n1_ground = node1 == -1
     n2_ground = node2 == -1
     # Resistors
-    
+
     g[R_map] = 1 / value[R_map]  # conductance = 1 / R
     R_map_n1_ground = np.logical_and(R_map, n1_ground)
     R_map_n2_ground = np.logical_and(R_map, n2_ground)
@@ -560,7 +560,6 @@ def solve_circuit_vectorized(netlist, current=None, power=None):
     G -= gn1n2
     G -= gn2n1
 
-    
     V_map_not_n1_ground = np.logical_and(V_map, ~n1_ground)
     V_map_not_n2_ground = np.logical_and(V_map, ~n2_ground)
     n1 = node1[V_map_not_n1_ground]
@@ -576,7 +575,6 @@ def solve_circuit_vectorized(netlist, current=None, power=None):
     A = sp.sparse.vstack((upper, lower))
     A_csr = sp.sparse.csr_matrix(A)
 
-    
     n1 = node1[I_map]
     n2 = node2[I_map]
 
@@ -589,7 +587,7 @@ def solve_circuit_vectorized(netlist, current=None, power=None):
         V_node[1:] = X[:n]
         I_batt = X[n:]
         return V_node, I_batt
-    
+
     Terminal_Node = np.array(netlist[I_map].node1)
 
     # If no control arguments are specified, solve the circuit with the current values
@@ -634,7 +632,6 @@ def solve_circuit_vectorized(netlist, current=None, power=None):
     lp.logger.debug(f"Circuit solved in {toc - toc_setup}")
     lp.logger.info(f"Circuit set up and solved in {toc}")
     return V_node, I_batt, terminal_current, terminal_voltage, terminal_power
-
 
 
 def solve_circuit_vectorized_old(netlist, power=None):

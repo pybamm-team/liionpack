@@ -18,7 +18,7 @@ Ns = 3
 netlist = lp.setup_circuit(Np=Np, Ns=Ns, Rb=1.5e-4, Rc=2e-2, Ri=5e-2, V=4.0, I=2.2)
 
 current = 2.0
-power=10.0
+power = 10.0
 
 
 I_map = netlist["desc"].str.find("I") > -1
@@ -36,13 +36,11 @@ p = np.random.randint(5.0, 15.0, 100)
 t = np.arange(len(p))
 
 power_step = pybamm.experiment.step.power(50.0, duration="1000 s", period=10)
-random_power_step =  pybamm.experiment.step.power(np.vstack((t, p)).T)
+random_power_step = pybamm.experiment.step.power(np.vstack((t, p)).T)
 
 # Cycling experiment
 experiment = pybamm.Experiment(
-    [
-     power_step
-    ],
+    [power_step],
     period="1 s",
 )
 parameter_values = pybamm.ParameterValues("Chen2020")

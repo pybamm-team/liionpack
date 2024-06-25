@@ -318,7 +318,7 @@ class GenericManager:
         # 04 Update netlist
         self.netlist.loc[self.V_map, ("value")] = temp_ocv
         self.netlist.loc[self.Ri_map, ("value")] = self.temp_Ri
-        
+
         # 05 Solve the circuit with updated netlist
         if step <= self.Nsteps:
             if step_type == "power":
