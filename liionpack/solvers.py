@@ -333,9 +333,9 @@ class GenericManager:
             lp.power_loss(self.netlist)
             self.record_times[self.global_step] = self.global_step * self.dt
             self.netlist.loc[self.I_map, ("value")] = terminal_current
-            self.I_terminal[self.global_step] = terminal_current
-            self.V_terminal[self.global_step] = terminal_voltage
-            self.P_terminal[self.global_step] = terminal_power
+            self.I_terminal[self.global_step] = terminal_current[0]
+            self.V_terminal[self.global_step] = terminal_voltage[0]
+            self.P_terminal[self.global_step] = terminal_power[0]
         if self.global_step < self.Nsteps - 1:
             # igore last step save the new currents and build inputs
             # for the next step
