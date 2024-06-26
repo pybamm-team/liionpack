@@ -18,7 +18,7 @@ from .utils import save_to_npzcomp
 from .netlist_utils import read_netlist
 from .netlist_utils import setup_circuit
 from .netlist_utils import solve_circuit
-from .netlist_utils import solve_circuit_vectorized
+from .netlist_utils import solve_circuit
 from .netlist_utils import make_lcapy_circuit
 from .netlist_utils import power_loss
 from .netlist_utils import write_netlist

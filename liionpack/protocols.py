@@ -22,13 +22,14 @@ def generate_protocol_from_experiment(experiment):
     """
     protocol = []
     terminations = []
+    step_types = []
     for i, step in enumerate(experiment.operating_conditions_steps):
         proto = []
         t = step.duration
         dt = step.period
         typ = step.type
         termination = step.termination
-        if typ not in ["current"]:
+        if typ not in ["current", "power"]:
             raise ValueError("Only current operations are supported")
         else:
             if not step.is_drive_cycle:
@@ -49,5 +50,6 @@ def generate_protocol_from_experiment(experiment):
                 terminations.append([])
 
         protocol.append(proto)
+        step_types.append(typ)
 
-    return protocol, terminations
+    return protocol, terminations, step_types

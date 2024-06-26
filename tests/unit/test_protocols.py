@@ -17,7 +17,7 @@ class protocolsTest(unittest.TestCase):
             ],
             period="10 seconds",
         )
-        p, t = lp.generate_protocol_from_experiment(experiment)
+        p, t, s = lp.generate_protocol_from_experiment(experiment)
         self.assertEqual(np.sign(p[0][0]), -1)
 
         experiment = pybamm.Experiment(
@@ -29,7 +29,7 @@ class protocolsTest(unittest.TestCase):
             ],
             period="10 seconds",
         )
-        p, t = lp.generate_protocol_from_experiment(experiment)
+        p, t, s = lp.generate_protocol_from_experiment(experiment)
         self.assertEqual(len(p), 4)
         self.assertEqual(np.sign(p[0][0]), 1)
 
@@ -42,7 +42,7 @@ class protocolsTest(unittest.TestCase):
         experiment = pybamm.Experiment(
             [pybamm.step.current(drive_cycle)], period="1 second"
         )
-        p, t = lp.generate_protocol_from_experiment(experiment)
+        p, t, s = lp.generate_protocol_from_experiment(experiment)
         assert len(p[0]) == 601
         assert np.allclose(np.mean(p), 0.8404807891846922)
 
@@ -66,7 +66,7 @@ class protocolsTest(unittest.TestCase):
             ],
             period="10 seconds",
         )
-        p, t = lp.generate_protocol_from_experiment(experiment)
+        p, t, s = lp.generate_protocol_from_experiment(experiment)
         assert t[0] == 3.0
 
 

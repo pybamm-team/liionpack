@@ -343,7 +343,7 @@ def setup_circuit(
     return netlist
 
 
-def solve_circuit(netlist):
+def solve_circuit(netlist, current=None, power=None):
     """
     Generate and solve the Modified Nodal Analysis (MNA) equations for the circuit.
     The MNA equations are a linear system Ax = z.
@@ -352,150 +352,34 @@ def solve_circuit(netlist):
     Args:
         netlist (pandas.DataFrame):
             A netlist of circuit elements with format desc, node1, node2, value.
+        current (float):
+            The current value for the current source. Overrides the netlist value.
+        power (float):
+            The power value for the power source. Overrides the netlist value.
 
     Returns:
         V_node (np.ndarray):
-            Voltages of the voltage elements
+            Voltages of the voltage elements.
         I_batt (np.ndarray):
-            Currents of the current elements
-
-    """
-    timer = pybamm.Timer()
-
-    desc = np.array(netlist["desc"]).astype("<U16")
-    node1 = np.array(netlist["node1"])
-    node2 = np.array(netlist["node2"])
-    value = np.array(netlist["value"])
-    nLines = netlist.shape[0]
-
-    n = np.concatenate((node1, node2)).max()  # Number of nodes (highest node number)
-
-    m = 0  # "m" is the number of voltage sources, determined below.
-    V_elem = ["V", "O", "E", "H"]
-    for nm in desc:
-        if nm[0] in V_elem:
-            m += 1
-
-    # Construct the A matrix, which will be a (n+m) x (n+m) matrix
-    # A = [G    B]
-    #     [B.T  D]
-    # G matrix tracks the conductance between nodes (consists of floats)
-    # B matrix tracks voltage sources between nodes (consists of -1, 0, 1)
-    # D matrix is always zero for non-dependent sources
-    # Construct the z vector with length (n+m)
-    # z = [i]
-    #     [e]
-    # i is currents and e is voltages
-    # Use lil matrices to construct the A array
-    G = sp.sparse.lil_matrix((n, n))
-    B = sp.sparse.lil_matrix((n, m))
-    D = sp.sparse.lil_matrix((m, m))
-    i = np.zeros([n, 1])
-    e = np.zeros([m, 1])
-
-    """
-    % We need to keep track of the number of voltage sources we've parsed
-    % so far as we go through file.  We start with zero.
-    """
-    vsCnt = 0
-    """
-    % This loop does the bulk of filling in the arrays.  It scans line by line
-    % and fills in the arrays depending on the type of element found on the
-    % current line.
-    % See http://lpsa.swarthmore.edu/Systems/Electrical/mna/MNA3.html
+            Currents of the current elements.
+        terminal_voltage (float):
+            Voltage at the terminal.
+        terminal_current (float):
+            Current at the terminal.
+        terminal_power (float):
+            Power at the terminal.
     """
 
-    for k1 in range(nLines):
-        n1 = node1[k1] - 1  # get the two node numbers in python index format
-        n2 = node2[k1] - 1
-        elem = desc[k1][0]
-        if elem == "R":
-            # Resistance elements: fill the G matrix only
-            g = 1 / value[k1]  # conductance = 1 / R
-            """
-            % Here we fill in G array by adding conductance.
-            % The procedure is slightly different if one of the nodes is
-            % ground, so check for those accordingly.
-            """
-            if n1 == -1:  # -1 is the ground node
-                G[n2, n2] = G[n2, n2] + g
-            elif n2 == -1:
-                G[n1, n1] = G[n1, n1] + g
-            else:
-                G[n1, n1] = G[n1, n1] + g
-                G[n2, n2] = G[n2, n2] + g
-                G[n1, n2] = G[n1, n2] - g
-                G[n2, n1] = G[n2, n1] - g
-        elif elem == "V":
-            # Voltage elements: fill the B matrix and the e vector
-            if n1 >= 0:
-                B[n1, vsCnt] = B[n1, vsCnt] + 1
-            if n2 >= 0:
-                B[n2, vsCnt] = B[n2, vsCnt] - 1
-            e[vsCnt] = value[k1]
-            vsCnt += 1
+    control_args = sum(arg is not None for arg in [current, power])
+    if control_args == 2:
+        raise ValueError("Only specify one of current or power arguments.")
 
-        elif elem == "I":
-            # Current elements: fill the i vector only
-            if n1 >= 0:
-                i[n1] = i[n1] - value[k1]
-            if n2 >= 0:
-                i[n2] = i[n2] + value[k1]
-
-    # Construct final matrices from sub-matrices
-    upper = sp.sparse.hstack((G, B))
-    lower = sp.sparse.hstack((B.T, D))
-    A = sp.sparse.vstack((upper, lower))
-    # Convert a to csr sparse format for more efficient solving of the linear system
-    # csr works slighhtly more robustly than csc
-    A_csr = sp.sparse.csr_matrix(A)
-    z = np.vstack((i, e))
-
-    toc_setup = timer.time()
-    lp.logger.debug(f"Circuit set up in {toc_setup}")
-
-    # Scipy
-    # X = solve(A, z).flatten()
-    X = sp.sparse.linalg.spsolve(A_csr, z).flatten()
-    # Pypardiso
-    # X = pypardiso.spsolve(Aspr, z).flatten()
-
-    # amg
-    # ml = pyamg.smoothed_aggregation_solver(Aspr)
-    # X = ml.solve(b=z, tol=1e-6, maxiter=10, accel="bicgstab")
-
-    # include ground node (0V)
-    # it is counter-intuitive that z is [i,e] while X is [V,I], but this is correct
-    V_node = np.zeros(n + 1)
-    V_node[1:] = X[:n]
-    I_batt = X[n:]
-
-    toc = timer.time()
-    lp.logger.debug(f"Circuit solved in {toc - toc_setup}")
-    lp.logger.info(f"Circuit set up and solved in {toc}")
-
-    return V_node, I_batt
-
-
-def solve_circuit_vectorized(netlist):
-    """
-    Generate and solve the Modified Nodal Analysis (MNA) equations for the circuit.
-    The MNA equations are a linear system Ax = z.
-    See http://lpsa.swarthmore.edu/Systems/Electrical/mna/MNA3.html
-
-    Args:
-        netlist (pandas.DataFrame):
-            A netlist of circuit elements with format desc, node1, node2, value.
-
-    Returns:
-        V_node (np.ndarray):
-            Voltages of the voltage elements
-        I_batt (np.ndarray):
-            Currents of the current elements
-    """
     timer = pybamm.Timer()
 
     desc = np.array(netlist["desc"]).astype("<U1")  # just take first character
+    I_map = desc == "I"
+    R_map = desc == "R"
+    V_map = desc == "V"
     node1 = np.array(netlist["node1"])
     node2 = np.array(netlist["node2"])
     value = np.array(netlist["value"])
@@ -504,25 +388,11 @@ def solve_circuit_vectorized(netlist):
     m = np.sum(desc == "V")  # we only use V in liionpack
 
     # Construct the A matrix, which will be a (n+m) x (n+m) matrix
-    # A = [G    B]
-    #     [B.T  D]
-    # G matrix tracks the conductance between nodes (consists of floats)
-    # B matrix tracks voltage sources between nodes (consists of -1, 0, 1)
-    # D matrix is always zero for non-dependent sources
-    # Construct the z vector with length (n+m)
-    # z = [i]
-    #     [e]
-    # i is currents and e is voltages
-    # Use lil matrices to construct the A array
     G = sp.sparse.lil_matrix((n, n))
     B = sp.sparse.lil_matrix((n, m))
     D = sp.sparse.lil_matrix((m, m))
     i = np.zeros([n, 1])
     e = np.zeros([m, 1])
-
-    """
-    % This old loop is now vectorized
-    """
 
     node1 = node1 - 1  # get the two node numbers in python index format
     node2 = node2 - 1
@@ -531,17 +401,12 @@ def solve_circuit_vectorized(netlist):
     n1_ground = node1 == -1
     n2_ground = node2 == -1
     # Resistors
-    R_map = desc == "R"
+
     g[R_map] = 1 / value[R_map]  # conductance = 1 / R
     R_map_n1_ground = np.logical_and(R_map, n1_ground)
     R_map_n2_ground = np.logical_and(R_map, n2_ground)
     R_map_ok = np.logical_and(R_map, ~np.logical_or(n1_ground, n2_ground))
 
-    """
-    % Here we fill in G array by adding conductance.
-    % The procedure is slightly different if one of the nodes is
-    % ground, so check for those accordingly.
-    """
     if np.any(R_map_n1_ground):  # -1 is the ground node
         n2 = node2[R_map_n1_ground]
         G[n2, n2] = G[n2, n2] + g[R_map_n1_ground]
@@ -549,9 +414,6 @@ def solve_circuit_vectorized(netlist):
         n1 = node1[R_map_n2_ground]
         G[n1, n1] = G[n1, n1] + g[R_map_n2_ground]
 
-    # No longer needs unique nodes
-    # We can take advantage of the fact that coo style inputs sum
-    # duplicates with converted to csr
     n1 = node1[R_map_ok]
     n2 = node2[R_map_ok]
     g_change = g[R_map_ok]
@@ -564,54 +426,78 @@ def solve_circuit_vectorized(netlist):
     G -= gn1n2
     G -= gn2n1
 
-    # Assume Voltage sources do not connect directly to ground
-    V_map = desc == "V"
     V_map_not_n1_ground = np.logical_and(V_map, ~n1_ground)
     V_map_not_n2_ground = np.logical_and(V_map, ~n2_ground)
     n1 = node1[V_map_not_n1_ground]
     n2 = node2[V_map_not_n2_ground]
     vsCnt = np.ones(len(V_map)) * -1
     vsCnt[V_map] = np.arange(m)
-    # Voltage elements: fill the B matrix and the e vector
     B[n1, vsCnt[V_map_not_n1_ground]] = 1
     B[n2, vsCnt[V_map_not_n2_ground]] = -1
     e[np.arange(m), 0] = value[V_map]
-    # Current Sources
-    I_map = desc == "I"
-    n1 = node1[I_map]
-    n2 = node2[I_map]
-    # Current elements: fill the i vector only
-    if n1 >= 0:
-        i[n1] = i[n1] - value[I_map]
-    if n2 >= 0:
-        i[n2] = i[n2] + value[I_map]
 
-    # Construct final matrices from sub-matrices
     upper = sp.sparse.hstack((G, B))
     lower = sp.sparse.hstack((B.T, D))
     A = sp.sparse.vstack((upper, lower))
-    # Convert a to csr sparse format for more efficient solving of the linear system
-    # csr works slighhtly more robustly than csc
     A_csr = sp.sparse.csr_matrix(A)
-    z = np.vstack((i, e))
+
+    n1 = node1[I_map]
+    n2 = node2[I_map]
 
     toc_setup = timer.time()
     lp.logger.debug(f"Circuit set up in {toc_setup}")
 
-    # Scipy
-    X = sp.sparse.linalg.spsolve(A_csr, z).flatten()
+    def _solve(A_csr, z, n):
+        X = sp.sparse.linalg.spsolve(A_csr, z).flatten()
+        V_node = np.zeros(n + 1)
+        V_node[1:] = X[:n]
+        I_batt = X[n:]
+        return V_node, I_batt
 
-    # include ground node (0V)
-    # it is counter-intuitive that z is [i,e] while X is [V,I], but this is correct
-    V_node = np.zeros(n + 1)
-    V_node[1:] = X[:n]
-    I_batt = X[n:]
+    Terminal_Node = np.array(netlist[I_map].node1)
+
+    # If no control arguments are specified, solve the circuit with the current values
+    if control_args == 0:
+        current = value[I_map]
+    if current is not None:
+        if n1 >= 0:
+            i[n1] = i[n1] - current
+        if n2 >= 0:
+            i[n2] = i[n2] + current
+        z = np.vstack((i, e))
+        V_node, I_batt = _solve(A_csr, z, n)
+        netlist.loc[I_map, ("value")] = current
+
+    elif power is not None:
+        current_guess = value[I_map]
+        max_iterations = 100
+        iteration = 0
+        tolerance = 0.001
+        while iteration < max_iterations:
+            i = np.zeros([n, 1])
+            if n1 >= 0:
+                i[n1] = i[n1] - current_guess
+            if n2 >= 0:
+                i[n2] = i[n2] + current_guess
+            z = np.vstack((i, e))
+            V_node, I_batt = _solve(A_csr, z, n)
+            V_Terminal = V_node[Terminal_Node]
+            power_guess = V_Terminal * current_guess
+            if abs(power_guess - power) < tolerance:
+                break
+            current_adjustment = (power - power_guess) / V_Terminal
+            current_guess += current_adjustment
+            iteration += 1
+        netlist.loc[I_map, ("value")] = current_guess
+
+    terminal_voltage = V_node[Terminal_Node]
+    terminal_current = netlist.loc[I_map].value.to_numpy()
+    terminal_power = terminal_voltage * terminal_current
 
     toc = timer.time()
     lp.logger.debug(f"Circuit solved in {toc - toc_setup}")
     lp.logger.info(f"Circuit set up and solved in {toc}")
-
-    return V_node, I_batt
+    return V_node, I_batt, terminal_current, terminal_voltage, terminal_power
 
 
 def make_lcapy_circuit(netlist):
@@ -717,7 +603,7 @@ def power_loss(netlist, include_Ri=False):
             is included
 
     """
-    V_node, I_batt = lp.solve_circuit_vectorized(netlist)
+    V_node, I_batt, t_c, t_v, t_p = lp.solve_circuit(netlist)
     R_map = netlist["desc"].str.find("R") > -1
     R_map = R_map.values
     if not include_Ri:
