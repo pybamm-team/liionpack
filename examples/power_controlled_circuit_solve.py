@@ -24,8 +24,8 @@ power = 10.0
 I_map = netlist["desc"].str.find("I") > -1
 Terminal_Node = np.array(netlist[I_map].node1)[0]
 
-V_node, I_batt, terminal_current, terminal_voltage, terminal_power = (
-    lp.solve_circuit(netlist, current=10.0, power=None)
+V_node, I_batt, terminal_current, terminal_voltage, terminal_power = lp.solve_circuit(
+    netlist, current=10.0, power=None
 )
 V_Terminal = V_node[Terminal_Node]
 print("Terminal voltage [V]:", terminal_voltage)
