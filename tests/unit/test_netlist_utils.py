@@ -76,7 +76,7 @@ class netlist_utilsTest(unittest.TestCase):
             I=1.0,
             configuration="series-groups",
         )
-        V_node, I_batt, t_c, t_v, t_p = lp.solve_circuit_vectorized(netlist)
+        V_node, I_batt, t_c, t_v, t_p = lp.solve_circuit(netlist)
         assert np.all(I_batt) == 1.0
 
     def test_setup_circuit_terminals(self):

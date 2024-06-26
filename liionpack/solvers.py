@@ -184,7 +184,7 @@ class GenericManager:
             power = None
 
         V_node, I_batt, terminal_current, terminal_voltage, terminal_power = (
-            lp.solve_circuit_vectorized(netlist, current=current, power=power)
+            lp.solve_circuit(netlist, current=current, power=power)
         )
 
         # The simulation output variables calculated at each step for each battery
@@ -328,7 +328,7 @@ class GenericManager:
                 current = protocol[step]
                 power = None
             V_node, I_batt, terminal_current, terminal_voltage, terminal_power = (
-                lp.solve_circuit_vectorized(self.netlist, current=current, power=power)
+                lp.solve_circuit(self.netlist, current=current, power=power)
             )
             lp.power_loss(self.netlist)
             self.record_times[self.global_step] = self.global_step * self.dt
