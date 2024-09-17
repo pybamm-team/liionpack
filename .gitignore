@@ -3,6 +3,9 @@
 # Learn more about .gitignore:
 #     https://www.atlassian.com/git/tutorials/saving-changes/gitignore
 
+# env
+.micromamba/
+
 # Node artifact files
 node_modules/
 

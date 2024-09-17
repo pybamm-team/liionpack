@@ -3,6 +3,8 @@ import pybamm
 import numpy as np
 import matplotlib.pyplot as plt
 import unittest
+from liionpack.solver_utils import _create_casadi_objects
+import casadi
 
 
 class solver_utilsTest(unittest.TestCase):
@@ -35,7 +37,61 @@ class solver_utilsTest(unittest.TestCase):
         pass
 
     def test_create_casadi_objects(self):
-        pass
+        # Setup
+        model = pybamm.lithium_ion.SPM()
+        parameter_values = pybamm.ParameterValues("Chen2020")
+        solver = pybamm.CasadiSolver()
+        sim = pybamm.Simulation(model, parameter_values=parameter_values, solver=solver)
+        
+        dt = 10.0
+        Nspm = 4
+        nproc = 2
+        variable_names = ["Terminal voltage [V]"]
+        mapped = True
+
+        inputs = [{} for _ in range(Nspm)]  # Empty inputs for this test
+
+        # Call the function
+        result = _create_casadi_objects(inputs, sim, dt, Nspm, nproc, variable_names, mapped)
+
+        # Assertions
+        self.assertIn("integrator", result)
+        self.assertIn("variables_fn", result)
+        self.assertIn("t_eval", result)
+        self.assertIn("event_names", result)
+        self.assertIn("events_fn", result)
+        self.assertIn("initial_solutions", result)
+
+        # Check types and shapes
+        self.assertIsInstance(result["integrator"], casadi.Function)
+        self.assertIsInstance(result["variables_fn"], casadi.Function)
+        self.assertIsInstance(result["t_eval"], np.ndarray)
+        self.assertEqual(len(result["t_eval"]), 11)  # 11 points for 10 second interval
+        self.assertIsInstance(result["event_names"], list)
+        self.assertIsInstance(result["initial_solutions"], list)
+        self.assertEqual(len(result["initial_solutions"]), Nspm)
+
+        # Check the number of inputs
+        n_inputs = result["variables_fn"].n_in()
+        print(f"Number of inputs to variables_fn: {n_inputs}")
+        self.assertEqual(n_inputs, 4, "Expected 4 inputs for the mapped function")
+        
+        # Check the names of the inputs
+        expected_input_names = ['i0', 'i1', 'i2', 'i3']
+        for i, expected_name in enumerate(expected_input_names):
+            self.assertEqual(result['variables_fn'].name_in(i), expected_name, 
+                             f"Expected input {i} to be named {expected_name}")
+
+        # Check if the variables function is mapped
+        self.assertTrue("map" in result["variables_fn"].name())
+
+        # Check that the function is mapped to the correct number of batteries
+        self.assertEqual(result["variables_fn"].n_in(), Nspm, 
+                         "The function should be mapped to Nspm batteries")
+        
+        # Print out the names of the inputs for debugging
+        for i in range(n_inputs):
+            print(f"Input {i}: {result['variables_fn'].name_in(i)}")
 
     def test_solve(self):
         output1 = lp.solve(
