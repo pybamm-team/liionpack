@@ -23,10 +23,13 @@ def generate_protocol_from_experiment(experiment):
     protocol = []
     terminations = []
     step_types = []
+    experiment_period = experiment.period
     for i, step in enumerate(experiment.steps):
         proto = []
         t = step.duration
         dt = step.period
+        if step.period != experiment_period:
+            raise ValueError("Step period must be equal to experiment period")
         step_dict = step.to_dict()
         typ = step_dict['type']
         termination = step.termination
