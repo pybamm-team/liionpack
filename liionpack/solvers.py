@@ -299,12 +299,14 @@ class GenericManager:
     ):
         vlims_ok = True
         # 01 Calculate whether resting or restarting
-        self.resting = (self.global_step > 0 
-                        and self.flattened_protocol[self.global_step] == 0.0 
-                        and self.flattened_protocol[self.global_step - 1] == 0.0)
+        self.resting = (
+            self.global_step > 0
+            and self.flattened_protocol[self.global_step] == 0.0
+            and self.flattened_protocol[self.global_step - 1] == 0.0
+        )
         self.restarting = (
-            self.global_step > 0 
-            and self.flattened_protocol[self.global_step] != 0.0 
+            self.global_step > 0
+            and self.flattened_protocol[self.global_step] != 0.0
             and self.flattened_protocol[self.global_step - 1] == 0.0
         )
         if self.restarting:
