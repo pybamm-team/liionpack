@@ -299,10 +299,16 @@ class GenericManager:
     ):
         vlims_ok = True
         # 01 Calculate whether resting or restarting
-        self.resting = step > 0 and protocol[step] == 0.0 and protocol[step - 1] == 0.0
+        self.resting = (self.global_step > 0 
+                        and self.flattened_protocol[self.global_step] == 0.0 
+                        and self.flattened_protocol[self.global_step - 1] == 0.0)
         self.restarting = (
-            step > 0 and protocol[step] != 0.0 and protocol[step - 1] == 0.0
+            self.global_step > 0 
+            and self.flattened_protocol[self.global_step] != 0.0 
+            and self.flattened_protocol[self.global_step - 1] == 0.0
         )
+        if self.restarting:
+            lp.logger.notice("Restarting step")
         # 02 Get the actor output - Battery state info
         self.get_actor_output(self.global_step)
         # 03 Get the ocv and internal resistance
