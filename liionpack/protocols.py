@@ -4,7 +4,7 @@
 
 import numpy as np
 import pybamm
-from pybamm.experiment.step.steps import Current, Voltage, Power
+
 
 def generate_protocol_from_experiment(experiment):
     """
@@ -31,9 +31,9 @@ def generate_protocol_from_experiment(experiment):
         if step.period != experiment_period:
             raise ValueError("Step period must be equal to experiment period")
         step_dict = step.to_dict()
-        typ = step_dict['type']
+        typ = step_dict["type"]
         termination = step.termination
-        if typ not in ['Current', 'Power']:
+        if typ not in ["Current", "Power"]:
             raise ValueError("Only current operations are supported")
         else:
             if not isinstance(step.value, pybamm.Interpolant):
@@ -43,8 +43,8 @@ def generate_protocol_from_experiment(experiment):
                     # Include initial state when not drive cycle, first op
                     proto = [proto[0]] + proto
             else:
-                ts = np.linspace(0, t, int(np.round(t, 5) / np.round(dt, 5))+1)
-                I = step.value.evaluate(ts, inputs={'start time': 0})
+                ts = np.linspace(0, t, int(np.round(t, 5) / np.round(dt, 5)) + 1)
+                I = step.value.evaluate(ts, inputs={"start time": 0})
                 proto.extend(I.tolist())
             if len(termination) > 0:
                 for term in termination:
