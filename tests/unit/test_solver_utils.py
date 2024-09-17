@@ -42,7 +42,7 @@ class solver_utilsTest(unittest.TestCase):
         parameter_values = pybamm.ParameterValues("Chen2020")
         solver = pybamm.CasadiSolver()
         sim = pybamm.Simulation(model, parameter_values=parameter_values, solver=solver)
-        
+
         dt = 10.0
         Nspm = 4
         nproc = 2
@@ -52,7 +52,9 @@ class solver_utilsTest(unittest.TestCase):
         inputs = [{} for _ in range(Nspm)]  # Empty inputs for this test
 
         # Call the function
-        result = _create_casadi_objects(inputs, sim, dt, Nspm, nproc, variable_names, mapped)
+        result = _create_casadi_objects(
+            inputs, sim, dt, Nspm, nproc, variable_names, mapped
+        )
 
         # Assertions
         self.assertIn("integrator", result)
@@ -75,20 +77,26 @@ class solver_utilsTest(unittest.TestCase):
         n_inputs = result["variables_fn"].n_in()
         print(f"Number of inputs to variables_fn: {n_inputs}")
         self.assertEqual(n_inputs, 4, "Expected 4 inputs for the mapped function")
-        
+
         # Check the names of the inputs
-        expected_input_names = ['i0', 'i1', 'i2', 'i3']
+        expected_input_names = ["i0", "i1", "i2", "i3"]
         for i, expected_name in enumerate(expected_input_names):
-            self.assertEqual(result['variables_fn'].name_in(i), expected_name, 
-                             f"Expected input {i} to be named {expected_name}")
+            self.assertEqual(
+                result["variables_fn"].name_in(i),
+                expected_name,
+                f"Expected input {i} to be named {expected_name}",
+            )
 
         # Check if the variables function is mapped
         self.assertTrue("map" in result["variables_fn"].name())
 
         # Check that the function is mapped to the correct number of batteries
-        self.assertEqual(result["variables_fn"].n_in(), Nspm, 
-                         "The function should be mapped to Nspm batteries")
-        
+        self.assertEqual(
+            result["variables_fn"].n_in(),
+            Nspm,
+            "The function should be mapped to Nspm batteries",
+        )
+
         # Print out the names of the inputs for debugging
         for i in range(n_inputs):
             print(f"Input {i}: {result['variables_fn'].name_in(i)}")
