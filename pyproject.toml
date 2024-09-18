@@ -9,10 +9,10 @@ build-backend = "hatchling.build"
 name = "liionpack"
 description = "A battery pack simulator for PyBaMM"
 readme = "README.md"
-license = "MIT"
 authors = [
     { name = "Tom Tranter", email = "t.g.tranter@gmail.com" },
 ]
+version = "3.11.0"
 requires-python = ">=3.10, <3.13"
 classifiers = [
     "Development Status :: 4 - Beta",
@@ -45,9 +45,7 @@ dependencies = [
     "tqdm",
     "nbconvert",
 ]
-dynamic = [
-    "version",
-]
+
 
 [project.urls]
 "Bug Tracker" = "https://github.com/pybamm-team/liionpack/issues"
@@ -55,6 +53,3 @@ Changelog = "https://github.com/pybamm-team/liionpack/blob/develop/CHANGELOG.md"
 Documentation = "https://liionpack.readthedocs.io/en/latest/"
 Homepage = "https://github.com/pybamm-team/liionpack"
 
-[tool.hatch]
-version.source = "vcs"
-build.hooks.vcs.version-file = "liionpack/_version.py"
