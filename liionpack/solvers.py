@@ -204,6 +204,7 @@ class GenericManager:
         # Storage variables for simulation data
         self.shm_i_app = np.zeros([self.Nsteps, self.Nspm], dtype=np.float32)
         self.shm_Ri = np.zeros([self.Nsteps, self.Nspm], dtype=np.float32)
+        # self.temp_Ri = np.ones_like(self.shm_Ri[0,:])*100
         self.output = np.zeros([self.Nvar, self.Nsteps, self.Nspm], dtype=np.float32)
         self.node_voltages = np.zeros([self.Nsteps, len(V_node)], dtype=np.float32)
 
@@ -311,6 +312,8 @@ class GenericManager:
         )
         if self.restarting:
             lp.logger.notice("Restarting step")
+        if self.resting:
+            lp.logger.notice("Resting step")
         # 02 Get the actor output - Battery state info
         self.get_actor_output(self.global_step)
         # 03 Get the ocv and internal resistance
@@ -320,6 +323,7 @@ class GenericManager:
         # resistance calculation can diverge as it's R = V / I
         # At rest the internal resistance should not change greatly
         # so for now just don't recalculate it.
+        # print(self.temp_Ri)
         if not self.resting and not self.restarting:
             self.temp_Ri = self.calculate_internal_resistance(self.global_step)
         self.shm_Ri[self.global_step, :] = self.temp_Ri
@@ -327,6 +331,7 @@ class GenericManager:
         self.netlist.loc[self.V_map, ("value")] = temp_ocv
         self.netlist.loc[self.Ri_map, ("value")] = self.temp_Ri
 
+        Nsteps = len(protocol)
         # 05 Solve the circuit with updated netlist
         if step <= self.Nsteps:
             if step_type == "power":
@@ -335,6 +340,8 @@ class GenericManager:
             else:
                 current = protocol[step]
                 power = None
+            # if self.resting:
+            #     current = 1e-6
             V_node, I_batt, terminal_current, terminal_voltage, terminal_power = (
                 lp.solve_circuit(self.netlist, current=current, power=power)
             )
