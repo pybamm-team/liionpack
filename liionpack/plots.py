@@ -177,7 +177,7 @@ def plot_pack(output, color="dark"):
         ax2.set_title("Pack Summary")
 
 
-def plot_cells(output, color="dark"):
+def plot_cells(output, cell_vars=None, color="dark"):
     """
     Plot results for the battery cells.
 
@@ -190,7 +190,7 @@ def plot_cells(output, color="dark"):
 
     # Get time and results for battery cells
     time = output["Time [s]"]
-    cell_vars = [
+    cell_vars = cell_vars or [
         k for k in output.keys() if len(output[k].shape) > 1 and k != "Node voltage [V]"
     ]
 
