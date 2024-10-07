@@ -212,7 +212,7 @@ def plot_cells(output, cell_vars=None, color="dark"):
             ax.ticklabel_format(axis="y", scilimits=[-5, 5])
 
 
-def plot_output(output, color="dark"):
+def plot_output(output, cell_vars=None, color="dark"):
     """
     Plot all results for pack and cells
 
@@ -223,8 +223,8 @@ def plot_output(output, color="dark"):
             The color-scheme for plotting, default="dark"
 
     """
-    plot_pack(output, color)
-    plot_cells(output, color)
+    plot_pack(output, color=color)
+    plot_cells(output, cell_vars=None, color=color)
 
 
 def show_plots():  # pragma: no cover
