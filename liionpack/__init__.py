@@ -45,4 +45,4 @@ from .solvers import RayManager
 from .solvers import GenericActor
 from .solvers import RayActor
 
-from ._version import __version__
+# from ._version import __version__
