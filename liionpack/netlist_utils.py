@@ -1,9 +1,3 @@
-#
-# Utility functions for loading and creating and solving circuits defined by
-# netlists
-#
-
-
 import numpy as np
 import codecs
 import pandas as pd
