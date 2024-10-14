@@ -49,7 +49,7 @@ jobs:
     - name: Install liionpack and dependencies
       run: |
         python -m pip install --upgrade pip wheel coverage
-        python -m pip install .
+        python -m pip install ".[dev]"
 
     - name: Run tests and generate coverage report
       run: |
@@ -57,7 +57,6 @@ jobs:
 
     - name: Run notebooks
       run: |
-        pip install pytest nbmake
         shopt -s globstar
         pytest --nbmake docs/examples/*.ipynb
 

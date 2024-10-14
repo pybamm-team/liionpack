@@ -27,6 +27,9 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
     "Topic :: Scientific/Engineering",
 ]
+dynamic = [
+    "version",
+]
 dependencies = [
     "Ipython",
     "lcapy",
@@ -43,10 +46,13 @@ dependencies = [
     "scipy",
     "textwrapper",
     "tqdm",
-    "nbconvert",
+    "ipywidgets",
 ]
-dynamic = [
-    "version",
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "nbmake",
 ]
 
 [project.urls]
