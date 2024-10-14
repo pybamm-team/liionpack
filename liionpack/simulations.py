@@ -1,7 +1,3 @@
-#
-# Simulation
-#
-
 import pybamm
 import liionpack as lp
 
