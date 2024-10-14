@@ -24,7 +24,7 @@ def generate_protocol_from_experiment(experiment):
         t = step.duration
         dt = step.period
         termination = step.termination
-        step_type = step.__name__
+        step_type = type(step).__name__
         if step_type not in ["Current", "Power"]:
             raise ValueError("Only current operations are supported")
         else:
