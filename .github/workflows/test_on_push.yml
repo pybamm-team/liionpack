@@ -27,12 +27,12 @@ jobs:
     - name: Setup python
       uses: actions/setup-python@v4
       with:
-        python-version: 3.8
+        python-version: 3.12
 
     - name: Lint with ruff
       run: |
         python -m pip install --upgrade pip pre-commit
-        pre-commit run ruff
+        pre-commit run --all
 
   pip-build:
     needs: style
@@ -40,7 +40,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.10.x"]
+        python-version: ["3.10"]
 
     steps:
     - uses: actions/checkout@v3
