@@ -36,7 +36,7 @@ class protocolsTest(unittest.TestCase):
     def test_generate_protocol_from_drive_cycle(self):
         os.chdir(pybamm.__path__[0] + "/..")
         drive_cycle = pd.read_csv(
-            "pybamm/input/drive_cycles/US06.csv", comment="#", header=None
+            pybamm.DataLoader().get_data("US06.csv"), comment="#", header=None
         ).to_numpy()
 
         experiment = pybamm.Experiment(

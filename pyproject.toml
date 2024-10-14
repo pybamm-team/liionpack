@@ -31,6 +31,7 @@ dynamic = [
     "version",
 ]
 dependencies = [
+    "pybamm==24.9",
     "Ipython",
     "lcapy",
     "matplotlib",
@@ -39,7 +40,6 @@ dependencies = [
     "openpyxl",
     "pandas",
     "plotly",
-    "pybamm==24.1",
     "ray",
     "redis",
     "scikit-spatial",
