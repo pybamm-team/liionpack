@@ -28,7 +28,7 @@ def generate_protocol_from_experiment(experiment):
         if step_type not in ["Current", "Power"]:
             raise ValueError("Only current operations are supported")
         else:
-            if not step.is_drive_cycle:
+            if not isinstance(step.value, pybamm.Interpolant):
                 I = step.value
                 proto.extend([I] * int(np.round(t, 5) / np.round(dt, 5)))
                 if i == 0:
