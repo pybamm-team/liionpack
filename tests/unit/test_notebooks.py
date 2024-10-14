@@ -1,6 +1,3 @@
-#
-# Tests jupyter notebooks
-#
 import os
 import subprocess
 import unittest
@@ -43,7 +40,7 @@ class TestNotebooks(unittest.TestCase):
                     stderr=subprocess.PIPE,
                 )
 
-                self.assertEqual(p.returncode, 0)
+                self.assertEqual(p.returncode, 0, f"Failed for {filename}")
 
 
 if __name__ == "__main__":
