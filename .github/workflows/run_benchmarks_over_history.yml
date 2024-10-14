@@ -1,10 +1,3 @@
-# GitHub actions workflow that runs the benchmark suite in benchmarks/
-# from "commit_start" to "commit_end".  It pushes the results to the
-# liionpack-bench repo and updates the display website.
-
-# This workflow is meant to be triggered manually, see
-# https://docs.github.com/en/enterprise-server@3.0/actions/managing-workflow-runs/manually-running-a-workflow
-
 name: Manual benchmarks
 on:
   workflow_dispatch:
