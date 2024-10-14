@@ -81,7 +81,7 @@ def draw_circuit(
     node_spacing=2.0,
     scale=1.0,
     help_lines=0.0,
-    font="\scriptsize",
+    font=r"\scriptsize",
     label_ids=True,
     label_values=True,
     draw_nodes=True,

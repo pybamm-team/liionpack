@@ -55,7 +55,6 @@ __pycache__/
 # Sphinx build files
 docs/_build/
 docs/build/
-build/
 
 # Unit test and coverage reports
 htmlcov/
@@ -73,8 +72,8 @@ coverage.xml
 cover/
 
 # Distribution and packaging
-.Python
 build/
+.Python
 develop-eggs/
 dist/
 downloads/
