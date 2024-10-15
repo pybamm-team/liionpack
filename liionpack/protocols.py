@@ -1,7 +1,3 @@
-#
-# Experimental protocol
-#
-
 import numpy as np
 import pybamm
 
@@ -23,16 +19,16 @@ def generate_protocol_from_experiment(experiment):
     protocol = []
     terminations = []
     step_types = []
-    for i, step in enumerate(experiment.operating_conditions_steps):
+    for i, step in enumerate(experiment.steps):
         proto = []
         t = step.duration
         dt = step.period
-        typ = step.type
         termination = step.termination
-        if typ not in ["current", "power"]:
-            raise ValueError("Only current operations are supported")
+        step_type = type(step).__name__
+        if step_type not in ["Current", "Power"]:
+            raise ValueError("Only current and power operations are supported")
         else:
-            if not step.is_drive_cycle:
+            if not isinstance(step.value, pybamm.Interpolant):
                 I = step.value
                 proto.extend([I] * int(np.round(t, 5) / np.round(dt, 5)))
                 if i == 0:
@@ -50,6 +46,6 @@ def generate_protocol_from_experiment(experiment):
                 terminations.append([])
 
         protocol.append(proto)
-        step_types.append(typ)
+        step_types.append(step_type)
 
     return protocol, terminations, step_types
