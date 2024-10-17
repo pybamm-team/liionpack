@@ -1,7 +1,7 @@
 # [Unreleased](https://github.com/pybamm-team/liionpack/)
 
 
-# [v0.3.11](https://github.com/pybamm-team/liionpack/) - 2024-10-18
+# [v0.3.11](https://github.com/pybamm-team/liionpack/tree/v0.3.11) - 2024-10-18
 
 ## Features
 
@@ -11,7 +11,7 @@
 - Update PyBaMM version [#332](https://github.com/pybamm-team/liionpack/pull/332)
 
 
-# [v0.3.10](https://github.com/pybamm-team/liionpack/) - 2024-05-09
+# [v0.3.10](https://github.com/pybamm-team/liionpack/tree/v0.3.10) - 2024-05-09
 
 ## Features
 
