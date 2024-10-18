@@ -18,10 +18,10 @@ jobs:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0
-      - name: Set up Python 3.8
+      - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: 3.8
+          python-version: 3.11
       - name: Install tox and asv
         run: pip install -U pip tox asv
       - name: Fetch develop branch
@@ -47,10 +47,10 @@ jobs:
     needs: benchmarks
     runs-on: ubuntu-latest
     steps:
-      - name: Set up Python 3.8
+      - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: 3.8
+          python-version: 3.11
       - name: Install asv
         run: pip install asv
       - name: Checkout liionpack-bench repo

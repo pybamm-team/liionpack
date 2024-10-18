@@ -1,18 +1,17 @@
 # [Unreleased](https://github.com/pybamm-team/liionpack/)
 
+
+# [v0.3.11](https://github.com/pybamm-team/liionpack/tree/v0.3.11) - 2024-10-18
+
 ## Features
 
-- ([#PR](link))
+- Node voltages [#309](https://github.com/pybamm-team/liionpack/pull/309))
+- Power controlled cycling [262](https://github.com/pybamm-team/liionpack/pull/262)
+- Fix test workflows [331](https://github.com/pybamm-team/liionpack/pull/331)
+- Update PyBaMM version [#332](https://github.com/pybamm-team/liionpack/pull/332)
 
-## Bug fixes
 
-- ([#PR](link))
-
-## Breaking changes
-
-- ([#PR](link))
-
-# [v0.3.10](https://github.com/pybamm-team/liionpack/) - 2024-05-09
+# [v0.3.10](https://github.com/pybamm-team/liionpack/tree/v0.3.10) - 2024-05-09
 
 ## Features
 
@@ -30,7 +29,6 @@
 - Fix event reporting ([#288](https://github.com/pybamm-team/liionpack/pull/288))
 - Fix experiments with small time steps ([#289](https://github.com/pybamm-team/liionpack/pull/289))
 - Remove the Jax install from CI ([#287](https://github.com/pybamm-team/liionpack/pull/287))
-- ([#PR](link))
 
 
 # [v0.3.8](https://github.com/pybamm-team/liionpack/tree/v0.3.8) - 2024-01-20
