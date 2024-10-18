@@ -31,7 +31,7 @@ jobs:
         run: python -m build
 
       - name: Upload package
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4.4.3
         with:
           name: files
           path: ./dist/
@@ -43,7 +43,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Download package
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v4
         with:
           name: files
           path: dist
