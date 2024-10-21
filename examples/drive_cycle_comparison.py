@@ -19,7 +19,7 @@ if __name__ == "__main__":
 
     # import drive cycle from file
     drive_cycle = pd.read_csv(
-        "pybamm/input/drive_cycles/US06.csv", comment="#", header=None
+        pybamm.DataLoader().get_data("US06.csv"), comment="#", header=None
     ).to_numpy()
 
     timestep = 1
@@ -35,9 +35,6 @@ if __name__ == "__main__":
         "X-averaged negative particle surface concentration [mol.m-3]",
         "X-averaged positive particle surface concentration [mol.m-3]",
     ]
-
-    # PyBaMM parameters
-    parameter_values = pybamm.ParameterValues("Chen2020")
 
     init_SoC = 0.5
 
