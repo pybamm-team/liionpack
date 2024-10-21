@@ -4,7 +4,6 @@ Example of running a simulation with two batteries of different initial SOC.
 
 import liionpack as lp
 import pybamm
-import numpy as np
 
 lp.logger.setLevel("NOTICE")
 
@@ -34,9 +33,7 @@ experiment = pybamm.Experiment(
 # PyBaMM parameters
 param = pybamm.ParameterValues("Chen2020")
 
-c_s_n_init, c_s_p_init = lp.update_init_conc(
-    param, SoC=np.array([0.5, 0.6]), update=False
-)
+concentrations = [lp.update_init_conc(param, SoC=x, update=False) for x in [0.5, 0.6]]
 
 param.update(
     {
@@ -46,8 +43,12 @@ param.update(
 )
 
 inputs = {
-    "Initial concentration in negative electrode [mol.m-3]": c_s_n_init,
-    "Initial concentration in positive electrode [mol.m-3]": c_s_p_init,
+    "Initial concentration in negative electrode [mol.m-3]": [
+        r[0] for r in concentrations
+    ],
+    "Initial concentration in positive electrode [mol.m-3]": [
+        r[1] for r in concentrations
+    ],
 }
 
 # Solve pack
