@@ -26,9 +26,8 @@ if __name__ == "__main__":
     drive_cycle[:, 0] *= timestep
 
     experiment = pybamm.Experiment(
-        operating_conditions=["Run US06 (A)"],
+        [pybamm.step.current(drive_cycle)],
         period=f"{timestep} seconds",
-        drive_cycles={"US06": drive_cycle},
     )
 
     output_variables = [
@@ -48,8 +47,6 @@ if __name__ == "__main__":
         manager="casadi",
         nproc=8,
     )
-
-    parameter_values = pybamm.ParameterValues("Chen2020")
 
     sim = pybamm.Simulation(
         model=pybamm.lithium_ion.SPM(),
