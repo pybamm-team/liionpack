@@ -24,7 +24,10 @@ drive_cycle = pd.read_csv(
     pybamm.DataLoader().get_data("US06.csv"), comment="#", header=None
 ).to_numpy()
 
-experiment = pybamm.Experiment([pybamm.step.current(drive_cycle)])
+experiment = pybamm.Experiment(
+    [pybamm.step.current(drive_cycle)],
+    period="1 second",
+)
 
 # Solve pack
 output = lp.solve(
