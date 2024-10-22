@@ -21,13 +21,13 @@ parameter_values = pybamm.ParameterValues("Chen2020")
 
 # Import drive cycle from file
 drive_cycle = pd.read_csv(
-    "pybamm/input/drive_cycles/US06.csv", comment="#", header=None
+    pybamm.DataLoader().get_data("US06.csv"), comment="#", header=None
 ).to_numpy()
 
-experiment = pybamm.Experiment([pybamm.step.current(drive_cycle)])
-
-# PyBaMM parameters
-parameter_values = pybamm.ParameterValues("Chen2020")
+experiment = pybamm.Experiment(
+    [pybamm.step.current(drive_cycle)],
+    period="1 second",
+)
 
 # Solve pack
 output = lp.solve(
