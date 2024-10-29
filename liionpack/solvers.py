@@ -311,9 +311,9 @@ class GenericManager:
             and self.flattened_protocol[self.global_step - 1] == 0.0
         )
         if self.restarting:
-            lp.logger.notice("Restarting step")
+            lp.logger.debug("Restarting step")
         if self.resting:
-            lp.logger.notice("Resting step")
+            lp.logger.debug("Resting step")
         # 02 Get the actor output - Battery state info
         self.get_actor_output(self.global_step)
         # 03 Get the ocv and internal resistance
