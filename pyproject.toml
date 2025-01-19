@@ -31,7 +31,7 @@ dynamic = [
     "version",
 ]
 dependencies = [
-    "pybamm==24.9",
+    "pybamm>=24.9",
     "Ipython",
     "lcapy",
     "matplotlib",
