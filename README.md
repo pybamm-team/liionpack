@@ -16,6 +16,9 @@
 the configuration e.g. 16 cells in parallel and 2 in series (16p2s) or load a
 netlist.
 
+> [!IMPORTANT]
+> This repository is currently in "maintenance mode" and is no longer actively developed. Updates will be made to fix critical bugs and keep the package working with new versions of PyBaMM, but no new features will be added.
+
 ## Installation
 
 Follow the steps given below to install `liionpack`. The package must be installed to run the included examples. It is recommended to create a virtual environment for the installation, see [the documentation](https://liionpack.readthedocs.io/en/main/install/).
