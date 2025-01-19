@@ -34,7 +34,7 @@ class plotsTest(unittest.TestCase):
         # Solve pack
         output = lp.solve(
             netlist=self.netlist,
-            parameter_values=parameter_values,
+            parameter_values=parameter_values.copy(),
             experiment=experiment,
             output_variables=None,
             inputs=None,
@@ -43,7 +43,7 @@ class plotsTest(unittest.TestCase):
         self.output = output
         self.sim = pybamm.Simulation(
             model=pybamm.lithium_ion.SPM(),
-            parameter_values=parameter_values,
+            parameter_values=parameter_values.copy(),
             experiment=experiment,
         )
 
