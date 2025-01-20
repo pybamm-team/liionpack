@@ -16,10 +16,10 @@ I = -2
 V = 4.0
 
 net1 = lp.read_netlist(filepath="4p1s.cir", Rb=Rb, Ri=Ri, Rc=Rc, Rt=Rt, I=I, V=V)
-V1, I1 = lp.solve_circuit(net1)
+V1, I1, _, _, _ = lp.solve_circuit(net1)
 
 net2 = lp.setup_circuit(Np=4, Ns=1, Rb=Rb, Ri=Ri, Rc=Rc, Rt=Rt2, I=I, V=V)
-V2, I2 = lp.solve_circuit(net2)
+V2, I2, _, _, _ = lp.solve_circuit(net2)
 
 # Nodal order is different
 print("V match: ", np.allclose(np.sort(V1), np.sort(V2)))

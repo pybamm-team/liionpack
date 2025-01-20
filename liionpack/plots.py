@@ -81,7 +81,7 @@ def draw_circuit(
     node_spacing=2.0,
     scale=1.0,
     help_lines=0.0,
-    font="\scriptsize",
+    font=r"\scriptsize",
     label_ids=True,
     label_values=True,
     draw_nodes=True,
@@ -190,7 +190,9 @@ def plot_cells(output, color="dark"):
 
     # Get time and results for battery cells
     time = output["Time [s]"]
-    cell_vars = [k for k in output.keys() if len(output[k].shape) > 1]
+    cell_vars = [
+        k for k in output.keys() if len(output[k].shape) > 1 and k != "Node voltage [V]"
+    ]
 
     context = lp_context(color)
     cmap = lp_cmap(context)

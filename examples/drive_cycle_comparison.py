@@ -19,25 +19,21 @@ if __name__ == "__main__":
 
     # import drive cycle from file
     drive_cycle = pd.read_csv(
-        "pybamm/input/drive_cycles/US06.csv", comment="#", header=None
+        pybamm.DataLoader().get_data("US06.csv"), comment="#", header=None
     ).to_numpy()
 
     timestep = 1
     drive_cycle[:, 0] *= timestep
 
     experiment = pybamm.Experiment(
-        operating_conditions=["Run US06 (A)"],
+        [pybamm.step.current(drive_cycle)],
         period=f"{timestep} seconds",
-        drive_cycles={"US06": drive_cycle},
     )
 
     output_variables = [
         "X-averaged negative particle surface concentration [mol.m-3]",
         "X-averaged positive particle surface concentration [mol.m-3]",
     ]
-
-    # PyBaMM parameters
-    parameter_values = pybamm.ParameterValues("Chen2020")
 
     init_SoC = 0.5
 
@@ -51,8 +47,6 @@ if __name__ == "__main__":
         manager="casadi",
         nproc=8,
     )
-
-    parameter_values = pybamm.ParameterValues("Chen2020")
 
     sim = pybamm.Simulation(
         model=pybamm.lithium_ion.SPM(),

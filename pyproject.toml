@@ -27,7 +27,11 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
     "Topic :: Scientific/Engineering",
 ]
+dynamic = [
+    "version",
+]
 dependencies = [
+    "pybamm>=24.9",
     "Ipython",
     "lcapy",
     "matplotlib",
@@ -36,17 +40,19 @@ dependencies = [
     "openpyxl",
     "pandas",
     "plotly",
-    "pybamm==24.1",
     "ray",
     "redis",
     "scikit-spatial",
     "scipy",
     "textwrapper",
     "tqdm",
-    "nbconvert",
+    "ipywidgets",
 ]
-dynamic = [
-    "version",
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "nbmake",
 ]
 
 [project.urls]
