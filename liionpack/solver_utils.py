@@ -37,17 +37,18 @@ def _serial_eval(model, solutions, inputs_dict, variables, t_eval):
     N = len(solutions)
     t_min = 0.0
     var_eval = []
+    t_end = float(t_eval[-1])
     for k in range(N):
         if solutions[k] is None:
             # First pass
-            xend = model.y0[:len_rhs]
+            xend = model.y0
         else:
             xend = solutions[k].y[:, -1]
 
         temp = inputs_dict[k]
         inputs = casadi.vertcat(*[x for x in temp.values()] + [t_min])
         ninputs = len(temp.values())
-        var_eval.append(variables(0, xend[:len_rhs], xend[len_rhs:], inputs[0:ninputs]))
+        var_eval.append(variables(t_end, xend[:len_rhs], xend[len_rhs:], inputs[0:ninputs]))
 
     return casadi.horzcat(*var_eval)
 
@@ -88,6 +89,7 @@ def _serial_step(model, solutions, inputs_dict, integrator, variables, t_eval, e
     sol = []
     var_eval = []
     events_eval = []
+    t_end = float(t_eval[-1])
     for k in range(N):
         if solutions[k] is None:
             # First pass
@@ -106,13 +108,13 @@ def _serial_step(model, solutions, inputs_dict, integrator, variables, t_eval, e
         if zf.is_empty():
             y_sol = xf
         else:
-            y_sol = casadi.vertcat(xf, zf)
+            y_sol = casadi.vertcat(xf, casadi.horzcat(z0, zf))
         xend = y_sol[:, -1]
         sol.append(pybamm.Solution(t_eval, y_sol, model, inputs_dict[k]))
-        var_eval.append(variables(0, xend[:len_rhs], xend[len_rhs:], inputs[0:ninputs]))
+        var_eval.append(variables(t_end, xend[:len_rhs], xend[len_rhs:], inputs[0:ninputs]))
         if events is not None:
             events_eval.append(
-                events(0, xend[:len_rhs], xend[len_rhs:], inputs[0:ninputs])
+                events(t_end, xend[:len_rhs], xend[len_rhs:], inputs[0:ninputs])
             )
         integration_time = timer.time()
         sol[-1].integration_time = integration_time
@@ -144,19 +146,20 @@ def _mapped_eval(model, solutions, inputs_dict, variables, t_eval):
 
     """
     len_rhs = model.concatenated_rhs.size
+    t_end = float(t_eval[-1])
     N = len(solutions)
     if solutions[0] is None:
         # First pass
-        xend = casadi.horzcat(*[model.y0[:len_rhs] for i in range(N)])
+        xend = casadi.horzcat(*[model.y0 for i in range(N)])
     else:
-        xend = casadi.horzcat(*[sol.y[:len_rhs, -1] for sol in solutions])
+        xend = casadi.horzcat(*[sol.y[:, -1] for sol in solutions])
     t_min = 0.0
     inputs = []
     for temp in inputs_dict:
         inputs.append(casadi.vertcat(*[x for x in temp.values()] + [t_min]))
     ninputs = len(temp.values())
     inputs = casadi.horzcat(*inputs)
-    var_eval = variables(0, xend[:len_rhs, :], xend[len_rhs:, :], inputs[0:ninputs, :])
+    var_eval = variables(t_end, xend[:len_rhs, :], xend[len_rhs:, :], inputs[0:ninputs, :])
 
     return var_eval
 
@@ -194,6 +197,7 @@ def _mapped_step(model, solutions, inputs_dict, integrator, variables, t_eval, e
     """
     len_rhs = model.concatenated_rhs.size
     N = len(solutions)
+    t_end = float(t_eval[-1])
     if solutions[0] is None:
         # First pass
         x0 = casadi.horzcat(*[model.y0[:len_rhs] for i in range(N)])
@@ -227,7 +231,7 @@ def _mapped_step(model, solutions, inputs_dict, integrator, variables, t_eval, e
         if zf.is_empty():
             y_sol = y_diff
         else:
-            y_alg = zf[:, start : start + nt]
+            y_alg = casadi.horzcat(z0[:, i], zf[:, start : start + nt])
             y_sol = casadi.vertcat(y_diff, y_alg)
         xend.append(y_sol[:, -1])
         # Not sure how to index into zf - need an example
@@ -236,10 +240,10 @@ def _mapped_step(model, solutions, inputs_dict, integrator, variables, t_eval, e
     toc = timer.time()
     lp.logger.debug(f"Mapped step completed in {toc - tic}")
     xend = casadi.horzcat(*xend)
-    var_eval = variables(0, xend[:len_rhs, :], xend[len_rhs:, :], inputs[0:ninputs, :])
+    var_eval = variables(t_end, xend[:len_rhs, :], xend[len_rhs:, :], inputs[0:ninputs, :])
     if events is not None:
         events_eval = events(
-            0, xend[:len_rhs, :], xend[len_rhs:, :], inputs[0:ninputs, :]
+            t_end, xend[:len_rhs, :], xend[len_rhs:, :], inputs[0:ninputs, :]
         )
     return sol, var_eval, events_eval
 
