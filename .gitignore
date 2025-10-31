@@ -113,3 +113,5 @@ results/
 
 # VCS versioning
 _version.py
+
+my_examples/papers/*

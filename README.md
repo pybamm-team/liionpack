@@ -113,3 +113,27 @@ The development work carried out by members at Oak Ridge National Laboratory was
 ## License
 
 liionpack is fully open source. For more information about its license, see [LICENSE](https://github.com/pybamm-team/liionpack/blob/main/LICENSE).
+
+## Update on installation
+Install liionpack from pip
+see if it gives an error. If the error is related to importlib.abc then do this
+
+# in your 'liionpack' env
+
+pip uninstall -y importlib
+pip cache purge
+
+conda install -c conda-forge lcapy
+pip install -U pip setuptools wheel
+pip install liionpack
+
+# Then 
+
+pip install pybamm==24.9
+
+# Finally
+
+go in the folder of the repo from the terminal and install the current version with
+pip install -e .
+
+Then it should work.
