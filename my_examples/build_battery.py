@@ -2,6 +2,7 @@ import pybamm
 import numpy as np
 import matplotlib.pyplot as plt
 import time
+from ocps import *
 
 # Script to build the model akin to the battery of Stock et al 2023.
 # The thermal model slows down everything by 5 times. 
@@ -9,14 +10,20 @@ import time
 
 # Also, at the moment the advance model has differnt OCVs, better to change the one of prada to get the same at 0.1C
 
-simple_model = pybamm.lithium_ion.DFN(options = {"particle": ("quadratic profile","uniform profile"),
+base_model = pybamm.lithium_ion.DFN(options = {"particle": ("quadratic profile","uniform profile"),
                                                 #  "thermal": "lumped",
-                                                # "working electrode": "positive",
-                                                 })
+                                                "open-circuit potential": ("current sigmoid", "current sigmoid"),
+                                                 },
+                                    name="Sigmoid OCPs")
+
+advanced_model = pybamm.lithium_ion.DFN(options = {"particle": ("quadratic profile","uniform profile"),
+                                                  # "thermal": "lumped",
+                                                  },
+                                        name="Phase field OCPs")
 
 discret_points = {"x_n": 20, 
            "x_s": 3, 
-           "x_p": 40, 
+           "x_p": 100, 
            "r_p": 10, 
            "r_n": 10,
            }
@@ -43,7 +50,7 @@ def electrolyte_conductivity_Nyman2008_arrhenius(c_e, T):
     return sigma_e * arrhenius
 
 def LFP_ecd(c_e, c_s_surf, c_s_max, T):
-    k_0 = 0.4
+    k_0 = 0.1
     E_r = 39570
     arrhenius = np.exp(E_r / pybamm.constants.R * (1 / 298.15 - 1 / T))
     c_e_ref = 1000 
@@ -69,71 +76,6 @@ def graphite_ecd(c_e, c_s_surf, c_s_max, T):
         * (c_s_surf / c_s_max) ** alpha
         * (1 - c_s_surf / c_s_max) ** (1 - alpha)
     )
-
-def LFP_ocp(sto):
-    return 3.43 - 0.0257*(np.log(sto/(1-sto)) + 3.8*(1-2*sto))
-
-def LFP_ocp_Afshar2017_modified(sto):
-
-    c1 = -150 * sto
-    c2 = -30 * (1.1 - sto)
-    k = 3.4077 - 0.020269 * sto + 0.5 * np.exp(c1) - 0.9 * np.exp(c2)
-
-    return k
-
-def graphite_ocp(sto):
-    kB = 1.380649e-23  # J/K
-    T = 298.15  # K
-    e = 1.602176634e-19  # C
-    e_o_kbT = e/(kB*T)
-
-    Omga = 3.4
-    Omgb = 1.6
-    
-    width = 5e-2
-    muLtail = -5e-2*1./(sto**(0.85))
-    muRtail = 5e-2*1./((1-sto)**(0.85))
-    muRtail = 1.0e1*0.5*(np.tanh((sto - 1.0)/0.045) + 1)
-    muLlin = (0.15*Omga*12*(0.40-sto**0.98)
-                * 0.5*(-np.tanh((sto - 0.49)/(0.9*width)) + 1)
-                * 0.5*(np.tanh((sto - 0.35)/width) + 1)) 
-    muRlin = (0.1*Omga*4*(0.74-sto) + 0.90*Omgb)* 0.5*(np.tanh((sto - 0.5)/(0.4*width)) + 1)
-    muLMod = (0.
-                + 40*(-np.exp(-sto/0.015))
-                + 0.75*(np.tanh((sto-0.17)/0.02) - 1)
-                + 1.0*(np.tanh((sto-0.22)/0.040) - 1)
-                )* 0.5*(-np.tanh((sto - 0.35)/(width)) + 1)
-
-    muR = 0.18 + muLMod + muLtail + muRtail + muLlin + muRlin
-    V = 0.12 - muR/e_o_kbT
-    return V
-
-def graphite_ocp_flat(sto):
-    kB = 1.380649e-23  # J/K
-    T = 298.15  # K
-    e = 1.602176634e-19  # C
-    e_o_kbT = e/(kB*T)
-
-    Omga = 0
-    Omgb = 1.6
-    
-    width = 5e-2
-    muLtail = -5e-2*1./(sto**(0.85))
-    muRtail = 5e-2*1./((1-sto)**(0.85))
-    muRtail = 1.0e1*0.5*(np.tanh((sto - 1.0)/0.045) + 1)
-    muLlin = (0.15*Omga*12*(0.40-sto**0.98)
-                * 0.5*(-np.tanh((sto - 0.49)/(0.9*width)) + 1)
-                * 0.5*(np.tanh((sto - 0.35)/width) + 1)) 
-    muRlin = (0.1*Omga*4*(0.74-sto) + 0.90*Omgb)* 0.5*(np.tanh((sto - 0.5)/(0.4*width)) + 1)
-    muLMod = (0.
-                + 40*(-np.exp(-sto/0.015))
-                + 0.75*(np.tanh((sto-0.17)/0.02) - 1)
-                + 1.0*(np.tanh((sto-0.22)/0.040) - 1)
-                )* 0.5*(-np.tanh((sto - 0.35)/(width)) + 1)
-
-    muR = 0.18 + muLMod + muLtail + muRtail + muLlin + muRlin
-    V = 0.12 - muR/e_o_kbT
-    return V
 
 def graphite_diffusivity_Chen2020(sto, T):
     D_ref = 3.3e-14
@@ -231,40 +173,54 @@ param_battery.update({
 
 param_base = param_battery.copy()
 param_base.update({
-    "Negative electrode OCP [V]": graphite_ocp_flat,
-    "Positive electrode OCP [V]": LFP_ocp_Afshar2017_modified,
-})
+    "Negative electrode OCP [V]": graphite_ocp_avg,
+    "Negative electrode lithiation OCP [V]": graphite_ocp_lithi,
+    "Negative electrode delithiation OCP [V]": graphite_ocp_delithi,
+
+    "Positive electrode OCP [V]": LFP_ocp_avg,
+    "Positive electrode lithiation OCP [V]": LFP_ocp_lithi,
+    "Positive electrode delithiation OCP [V]": LFP_ocp_delithi,
+}, check_already_exists=False)
 
 param_adv = param_battery.copy()
 param_adv.update({
-    "Negative electrode OCP [V]": graphite_ocp,
-    "Positive electrode OCP [V]": LFP_ocp,
+    "Negative electrode OCP [V]": graphite_ocp_phase_field,
+    "Positive electrode OCP [V]": LFP_ocp_phase_field,
 })
 
 
 # if this is main script, run a test simulation
 if __name__ == "__main__":
     rate = 0.5
+    initial_state_of_charge = 0.001
     current = rate * param_battery["Nominal cell capacity [A.h]"] # 1C in A
 
     experiment = pybamm.Experiment(
         [   
             # f"Discharge at {current} A until {param_battery["Lower voltage cut-off [V]"]} V",
-            "Rest for 5 minutes",
+            "Rest for 10 minutes",
+            f"Discharge at {2*current} A for {0.5*10/rate} minutes",
+            f"Charge at {2*current} A for {0.5*10/rate} minutes",
+            "Rest for 200 minutes",
             f"Discharge at {current} A for {30/rate} minutes",
-            "Rest for 60 minutes",
-            # f"Charge at {current} A for {10/rate} minutes",
-            # "Rest for 5 minutes",
-            # f"Discharge at {current} A for {10/rate} minutes",
-            # "Rest for 5 minutes",
+            "Rest for 50 minutes",
+            f"Charge at {current} A for {20/rate} minutes",
+            "Rest for 50 minutes",
+            f"Discharge at {current} A for {40/rate} minutes",
+            # f"Charge at {current} A for {1/rate} minutes",
+            # "Rest for 60 minutes",
+            # "Rest for 60 minutes",
+            # f"Charge at {current} A for {30/rate} minutes",
+            # "Rest for 50 minutes",
+            # f"Discharge at {current} A until {param_battery['Lower voltage cut-off [V]']} V",
+            # "Rest for 50 minutes",
             # f"Charge at {current} A until {param_battery["Upper voltage cut-off [V]"]} V",
         ],
-        period = f"{0.1/rate} minutes",
     )
 
     # Set up solver and simulation
     sim_adv = pybamm.Simulation(
-        model=simple_model,
+        model=advanced_model,
         parameter_values=param_adv,
         solver=pybamm.CasadiSolver(mode="safe"),
         var_pts=discret_points,
@@ -272,12 +228,12 @@ if __name__ == "__main__":
     )
 
     current_time = time.time()
-    sol_adv = sim_adv.solve()
+    sol_adv = sim_adv.solve(initial_soc=initial_state_of_charge)
     print("Simulation adv:", time.time() - current_time, " sec")
 
     # Set up solver and simulation
     sim_base = pybamm.Simulation(
-        model=simple_model,
+        model=base_model,
         parameter_values=param_base,
         solver=pybamm.CasadiSolver(mode="safe"),
         var_pts=discret_points,
@@ -285,7 +241,7 @@ if __name__ == "__main__":
     )
 
     current_time = time.time()
-    sol_base = sim_base.solve()
+    sol_base = sim_base.solve(initial_soc=initial_state_of_charge)
     print("Simulation base:", time.time() - current_time, " sec")
 
     output_variables = [
@@ -294,6 +250,7 @@ if __name__ == "__main__":
         "Voltage [V]",
         "Discharge capacity [A.h]",
         # "X-averaged cell temperature [C]",
+        "Electrolyte concentration [mol.m-3]",
     ]
 
     pybamm.dynamic_plot(
@@ -301,39 +258,61 @@ if __name__ == "__main__":
         output_variables=output_variables,
     )
 
+    print("Plotting voltage components of the advanced model...")
     sol_adv.plot_voltage_components(split_by_electrode=True)
+
+    print("Plotting voltage components of the base model...")
     sol_base.plot_voltage_components(split_by_electrode=True)
 
     # Rate tests, to be expanded with temperature variations
+    print("Running rate tests...")
     plt.figure()
-    for rate in [0.05, 0.5, 2]:
+    for rate in [0.1, 0.5, 1]:
+        print(f"Running rate test at: {rate}C")
         current = rate * param_battery["Nominal cell capacity [A.h]"] # 1C in A
 
         experiment = pybamm.Experiment(
             [   
                 f"Discharge at {current} A until {param_battery['Lower voltage cut-off [V]']} V",
-                f"Hold at {param_battery['Lower voltage cut-off [V]']} V until C/50",
+                f"Hold at {param_battery['Lower voltage cut-off [V]']} V until C/20",
                 f"Charge at {current} A until {param_battery['Upper voltage cut-off [V]']} V",
             ],
-            period = f"{0.1/rate} minutes",
         )
 
-        sim = pybamm.Simulation(
-            model=simple_model,
-            parameter_values=param_battery,
+        sim_adv = pybamm.Simulation(
+            model=advanced_model,
+            parameter_values=param_adv,
             solver=pybamm.CasadiSolver(mode="safe"),
             var_pts=discret_points,
             experiment=experiment,
         )
 
         current_time = time.time()
-        sol = sim.solve()
+        sol = sim_adv.solve()
         print(f"Rate: {rate}C, Simulation time: ", time.time() - current_time, " seconds")
 
         plt.plot(
             sol["Discharge capacity [A.h]"].entries/param_battery["Nominal cell capacity [A.h]"],
             sol["Voltage [V]"].entries,
-            label=f"{rate}C",
+            label=f"{rate}C (adv)",
+        )
+
+        sim_base = pybamm.Simulation(
+            model=base_model,
+            parameter_values=param_base,
+            solver=pybamm.CasadiSolver(mode="safe"),
+            var_pts=discret_points,
+            experiment=experiment,
+        )
+
+        current_time = time.time()
+        sol = sim_base.solve()
+        print(f"Rate: {rate}C, Simulation time: ", time.time() - current_time, " seconds")
+        plt.plot(
+            sol["Discharge capacity [A.h]"].entries/param_battery["Nominal cell capacity [A.h]"],
+            sol["Voltage [V]"].entries,
+            "--",
+            label=f"{rate}C (base)",
         )
 
     plt.xlabel("Depth of Discharge")
