@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import os
 
 def graphite_ocp_avg(sto):
     kB = 1.380649e-23  # J/K
@@ -109,24 +110,22 @@ def LFP_ocp_phase_field(sto):
     return 3.43 - 0.0257*(np.log(sto/(1-sto)) + 3.8*(1-2*sto))
 
 def LFP_ocp_lithi(sto):
-
-    c1 = -50 * sto
-    c2 = -150 * (1 - sto)
-    k = 3.406 - 0.01 * sto + 0.1 * np.exp(c1) - 0.1 * np.exp(c2)
+    c1 = -56.0564 * sto
+    c2 = -500.0000 * (1 - sto)
+    k = 3.40723 + (-0.0100 * sto) + (0.1083 * np.exp(c1)) + (-0.0787 * np.exp(c2))
     return k
 
 def LFP_ocp_avg(sto):
-
     c1 = -150 * sto
     c2 = -150 * (1 - sto)
-    k = 3.435 - 0.01 * sto + 0.1 * np.exp(c1) - 0.1 * np.exp(c2)
+    k = (3.4075 + 3.4623)/2 - 0.01 * sto + 0.065 * np.exp(c1) - 0.065 * np.exp(c2)
     return k
 
 def LFP_ocp_delithi(sto):
 
-    c1 = -150 * sto
-    c2 = -50 * (1 - sto)
-    k = 3.464 - 0.01 * sto + 0.1 * np.exp(c1) - 0.1 * np.exp(c2)
+    c1 = -500.0000 * sto
+    c2 = -56.0564 * (1 - sto)
+    k = 3.4623 + (-0.0100 * sto) + (0.0787 * np.exp(c1)) + (-0.1083 * np.exp(c2))
     return k
 
 
@@ -147,6 +146,8 @@ if __name__ == "__main__":
     plt.ylabel("OCP [V]")
     plt.legend()
 
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    plt.savefig(os.path.join(script_dir, "ocp_graphite.png"), dpi=300)
 
     plt.figure()
     plt.plot(sto, LFP_ocp_phase_field(sto), color = 'black',
@@ -163,5 +164,16 @@ if __name__ == "__main__":
 
 
     plt.legend()
+
+
+    val = 0.005
+    print(f"Value of LFP ocp phase field at {val}: " , LFP_ocp_phase_field(val))
+    print(f"Value of LFP ocp avg at {val}: " , LFP_ocp_avg(val))
+    print(f"Value of LFP ocp lithiation at {val}: " , LFP_ocp_lithi(val))
+    print(f"Value of LFP ocp delithiation at {val}: " , LFP_ocp_delithi(val))
+    # save in the directory of this script
+
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    plt.savefig(os.path.join(script_dir, "ocp_lfp.png"), dpi=300)
 
     plt.show()
