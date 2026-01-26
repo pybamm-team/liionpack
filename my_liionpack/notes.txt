@@ -1,0 +1,12 @@
+
+# What if I put an NMC cell in series with an LFP cell?
+# In the lioonpack the assumption is that the cell resistance does not change during a resting phase.
+I think this is not correct since the internal relaxation will chenge charge transfer properties a lot.
+I used the full pybamm simulation to predict the V of the cell during the circuit solution so that it can well compute the resistance during rest.
+
+
+
+ # When we reach a resting point we can modify the hysteresis decay rate to 0 to stop the drift.
+                # We need to set it up as a input so that it can be quickly changed here.
+
+
