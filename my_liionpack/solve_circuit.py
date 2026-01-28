@@ -4,7 +4,7 @@ import scipy as sp
 import numpy as np
 import pybamm
 
-def update_internal_resistance(sims, history=None):
+def update_internal_resistance(sims, Ri, history=None):
     """
     Updates 'R' using R = |(OCV - V) / I|
     Returns default_R if the simulation has not started.
@@ -21,10 +21,10 @@ def update_internal_resistance(sims, history=None):
         # Avoid division by zero if current is 0. Use the previous R value in that case
         # It's physically reasonable to assume R doesn't change if no current is flowing
         if abs(I) < 1e-6:
-            if len(history["resistances"][sims.index(sim)]) > 0:
-                new_R = history["resistances"][sims.index(sim)][-1]
+            if len(history["R_internal"][sims.index(sim)]) > 0:
+                new_R = history["R_internal"][sims.index(sim)][-1]
             else:
-                new_R = 0.03  # Default initial resistance if no history
+                new_R = Ri  # Default initial resistance if no history
         else:
             new_R = abs((OCV - V) / I)
         R_values.append(max(1e-6, new_R))
@@ -84,7 +84,9 @@ def solve_circuit_u_config_linear(R_values, OCV_values, total_current, r_busbar,
 
     return cell_currents
 
-def solve_circuit_u_config_non_lin(sims, total_current, r_busbar, r_conn=1e-5):
+def solve_circuit_u_config_non_lin(R_values, OCV_values, 
+                                   sims, total_current, 
+                                   r_busbar, r_conn=1e-5):
     """
     Solves the U-configuration pack using a numerical root solver (Newton-Hybrid),
     strictly replicating the circuit topology defined in the linear matrix solver.
@@ -98,19 +100,19 @@ def solve_circuit_u_config_non_lin(sims, total_current, r_busbar, r_conn=1e-5):
 
     def equations(I_vector):
         sims_trial = sims.copy()  # To avoid modifying original sims
-        # sims_trial = [sim.copy() for sim in sims]
         V_cells = np.zeros(N)
 
         for i in range(N):
             sims_trial[i].step(
                 dt=2e-9, 
                 # t_eval = [0, 0.1], # even more extreme save of time and data.
-                save = False, # True saves more data but it gets slower at each step
+                # save = False, # True saves more data but it gets slower at each step
+                save = True,
                 inputs={"Current function [A]": I_vector[i]}
                 )
-            sol = sims_trial[i].solution
-            V_cells[i] = sol["Voltage [V]"].entries[-1]
-            del sol
+            sol_trial = sims_trial[i].solution
+            V_cells[i] = sol_trial["Voltage [V]"].entries[-1]
+            del sol_trial
 
         residuals = np.zeros(N)
         
@@ -132,17 +134,18 @@ def solve_circuit_u_config_non_lin(sims, total_current, r_busbar, r_conn=1e-5):
         
         return residuals
 
-    # Initial Guess: Equal distribution
-    x0 = np.ones(N) * (total_current / N)
+    # Initial Guess: Use linear solution
+    x0 = solve_circuit_u_config_linear(R_values, OCV_values, total_current, r_busbar, r_conn = r_conn)
 
     # Solve
-    sol = root(equations, x0, method='hybr')
+    solution_currents = root(equations, x0, method='hybr')
 
-    if not sol.success:
-        print(f"Warning: Non-linear solver failed ({sol.message}). Returning equal split.")
-        return np.ones(N) * (total_current / N)
+    if not solution_currents.success:
+        print(f"Warning: Non-linear solver failed ({solution_currents.message}). Returning linear solution")
+        cell_currents = x0
+        return cell_currents
 
-    cell_currents = sol.x
+    cell_currents = solution_currents.x
     
     return cell_currents
 
@@ -157,7 +160,8 @@ def calculate_currents(t, total_current, r_busbar, r_conn,
         # During rest we need to check the resistance stability over last 3 steps
         use_linear_solver = False
     else:
-        last_3_R = np.array([res[-3:] for res in history["resistances"]])
+        # If the system is resting and the resistances have been stable we can use the linear solver
+        last_3_R = np.array([res[-3:] for res in history["R_internal"]])
         # Calculate variation metrics per cell
         r_max = np.max(last_3_R, axis=1)
         r_min = np.min(last_3_R, axis=1)
@@ -174,6 +178,7 @@ def calculate_currents(t, total_current, r_busbar, r_conn,
         )
     else:
         currents = solve_circuit_u_config_non_lin(
+                                    R_values, OCVs, 
                                     sims, 
                                     total_current, r_busbar, r_conn)
     return currents

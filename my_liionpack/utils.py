@@ -56,8 +56,8 @@ def setup_sims_and_params(model, parameters, solver, var_pts, num_cells_parallel
 
     params = parameters.copy()
     params.update({"Current function [A]": "[input]"})
-    v_cut_lower = params["Lower voltage cut-off [V]"]
-    v_cut_higher = params["Upper voltage cut-off [V]"]
+    v_cut_lower = params["Lower voltage cut-off [V]"] - 0.05
+    v_cut_higher = params["Upper voltage cut-off [V]"] + 0.05 # to avoid breaking when at SOC == 1.0
     # change cut off cell_voltages to avoid the pybamm solver stopping too early
     params.update({"Lower voltage cut-off [V]": v_cut_lower - 0.5,
                 "Upper voltage cut-off [V]": v_cut_higher + 0.5})
@@ -71,10 +71,22 @@ def setup_sims_and_params(model, parameters, solver, var_pts, num_cells_parallel
 def create_hystory_dict(num_cells_parallel):
     history = {
         "time": [],
-        "currents": [[] for _ in range(num_cells_parallel)],
-        "cell_voltages": [[] for _ in range(num_cells_parallel)],
-        "resistances": [[] for _ in range(num_cells_parallel)],
-        "temperatures": [[] for _ in range(num_cells_parallel)],
-        "terminal_voltage": [],
+        "I_cell": [[] for _ in range(num_cells_parallel)],
+        "V_cell": [[] for _ in range(num_cells_parallel)],
+        "R_internal": [[] for _ in range(num_cells_parallel)],
+        "T_cell": [[] for _ in range(num_cells_parallel)],
+        "SOC": [[] for _ in range(num_cells_parallel)],
+        "V_pack": [],
     }
     return history
+
+def get_soc(sim):
+    """
+    Calculates the State of Charge (SOC) from the output dictionary.
+    Assumes a linear relationship between extent of lithiation and SOC.
+    Adjust the stoichiometry values as per the specific battery chemistry.
+    """
+    sto_at_100 = 0.005
+    sto_at_0 = 0.813
+    ext_of_lith = sim.solution["X-averaged positive electrode extent of lithiation"].entries[-1]
+    return 100*(1 - (ext_of_lith - sto_at_100) / (sto_at_0 - sto_at_100))
