@@ -1,21 +1,22 @@
 from main_src import *
 import pybamm
 import liionpack as lp
-# 1. Setup Model and Parameters
+
+# This code needs the old pybamm version and liionpack installed
+
 model = pybamm.lithium_ion.SPMe()
 
 params = pybamm.ParameterValues("Prada2013")
-# params['Positive particle diffusivity [m2.s-1]'] = 3e-15
 
 rate = 1
 initial_soc = 0.9
 total_time = 0.4*abs(3600/rate)
-print(f"Total simulation time: {total_time} seconds.")
+
 delta_t = 10  # seconds
 time_steps = int(total_time/delta_t)
 # Pack configuration
 num_cells_parallel = 4
-# configuration = 'U'
+# configuration = 'U' by default in my pack
 
 r_busbar = 50*2.5e-5  # Busbar resistance between cells
 r_terminal = 1e-4  # Terminal resistance
@@ -103,6 +104,7 @@ def sim_ida(parameter_values=None):
         solver = pybamm.CasadiSolver(mode='safe'),
     )
     return sim
+
 netlist = lp.setup_circuit(
     Np=num_cells_parallel, 
     Ns=1, 
@@ -114,6 +116,7 @@ netlist = lp.setup_circuit(
     I=total_current,
     terminals='left'
 )
+
 out = lp.solve(
     sim_func = sim_ida,
     netlist=netlist,

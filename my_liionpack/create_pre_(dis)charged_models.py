@@ -3,6 +3,7 @@ import time
 from my_liionpack.params_and_ocps.base_battery_param import *
 import pickle
 
+# Define models
 advanced_model = pybamm.lithium_ion.DFN(options = {"particle": ("quadratic profile","uniform profile"),
                                                   # "thermal": "lumped",
                                                   "particle size": ("single","distribution"),
@@ -17,6 +18,7 @@ base_model = pybamm.lithium_ion.DFN(options = {"particle": ("quadratic profile",
                                                  },
                                     name="Sigmoid OCPs")
 
+# Define experiments
 slow_charge = pybamm.Experiment(
         [   
             f"Charge at {param_battery["Nominal cell capacity [A.h]"]/10} A for 6000 minutes or until 3.5 V",
@@ -38,7 +40,7 @@ labels = ['adv', 'base']
 inital_socs = [0.1, 0.9]
 
 solutions = []
-for model in models[1:]:
+for model in models:
     index_model = models.index(model)
     model_copy = model.new_copy()
     model_names = [f"Charged_{labels[index_model]}_model.pkl",
@@ -60,19 +62,20 @@ for model in models[1:]:
         print("Simulation adv:", time.time() - current_time, " sec")
         solutions.append(sol)
 
+        # Initialize the model from the final state of the simulation
         model_to_save = model_copy.set_initial_conditions_from(sol, inplace=False)
 
+        # Save the model as a pickle file
         with open(f"my_liionpack/models/{model_names[index]}", "wb") as f:
             pickle.dump(model_to_save, f)
         print(f"Saved model: my_liionpack/models/{model_names[index]}")
 
-
+        # plotting to check everything was fine
         outputs = [
             "Voltage [V]",
             "Current [A]",
             "Positive particle surface concentration",
             "Negative particle surface concentration",
-            "X-averaged positive electrode hysteresis state",
         ]
 
 

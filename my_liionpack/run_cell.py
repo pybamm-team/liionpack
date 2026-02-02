@@ -25,7 +25,7 @@ advanced_model = pybamm.lithium_ion.DFN(options = {"particle": ("quadratic profi
 # if this is main script, run a test simulation
 if __name__ == "__main__":
     rate = 2
-    initial_state_of_charge = 0.9
+    initial_state_of_charge = 0.01
     current = rate * param_battery["Nominal cell capacity [A.h]"] # 1C in A
 
     experiment = pybamm.Experiment(
@@ -33,7 +33,7 @@ if __name__ == "__main__":
             # "Discharge at 0.1 C for 600 minutes or until 2.8 V",
             # "Rest for 180 minutes",
             # f"Charge at {current} A for {60*0.5/rate} minutes",
-            # "Rest for 180 minutes",
+            "Rest for 180 minutes",
             # f"Discharge at {current} A until 2.6 V",
 
             f"Charge at {param_battery["Nominal cell capacity [A.h]"]/10} A for 600 minutes or until 3.5 V",

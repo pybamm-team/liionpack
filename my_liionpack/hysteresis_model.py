@@ -1,8 +1,9 @@
 import matplotlib.pyplot as plt
 import time
 from my_liionpack.params_and_ocps.base_battery_param import *
-import pickle
 
+
+# observe the behavior of the one-state hysteresis model alone so you can plot the hysteresis state as well.
 
 
 model = pybamm.lithium_ion.DFN(options = {"particle": ("quadratic profile","uniform profile"),
@@ -29,7 +30,6 @@ slow_discharge =  pybamm.Experiment(
 
 experiments = [slow_charge, slow_discharge]
 
-labels = ['adv', 'base']
 inital_socs = [0.1, 0.9]
 solutions = []
 for exp in experiments:

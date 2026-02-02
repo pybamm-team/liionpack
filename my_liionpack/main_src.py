@@ -14,9 +14,11 @@ def run_pack(model,
              var_pts = None,
              Ri = 0.01):
     
+    # Setup simulations and parameters.
     sims, v_cut_lower, v_cut_higher, _ = setup_sims_and_params(
         model, parameters, solver, var_pts, num_cells_parallel)
 
+    # transfrom the protocol in natural language into vectors of currents and termination conditions
     (total_current_in_each_section, 
      termination_conditions, _, dt) = generate_protocol_from_experiment(experiment)
 
@@ -26,12 +28,14 @@ def run_pack(model,
     print(f"Starting simulation for {num_cells_parallel} cells in parallel...")
     # Initialize all simulations
     for i in range(num_cells_parallel):
-        if initial_soc is not None:
+
+        if initial_soc is not None: # if inital soc is given.
             sims[i].build(initial_soc=initial_soc,
                         inputs={"Current function [A]": total_current_in_each_section[0][0] / num_cells_parallel})
-        else:
+        else: # otherwise use whatever was in the model
             sims[i].build(inputs={"Current function [A]": total_current_in_each_section[0][0] / num_cells_parallel})
-        
+
+        # mini step to initialize everything properly and get internal resistances
         sims[i].step(dt=1e-4, 
                      t_eval = [0, 1e-4], # even more extreme save of time and data.
                      save = False, # True saves more data but it gets slower at each step

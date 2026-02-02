@@ -1,6 +1,6 @@
 import pybamm
 import numpy as np
-from my_examples.ocps import *
+from my_liionpack.params_and_ocps.ocps import *
 
 def lognormal(x, x_av, sd):
     mu_ln = pybamm.log(x_av**2 / pybamm.sqrt(x_av**2 + sd**2))

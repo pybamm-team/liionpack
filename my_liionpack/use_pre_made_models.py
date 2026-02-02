@@ -3,6 +3,8 @@ import time
 from my_liionpack.params_and_ocps.base_battery_param import *
 import pickle
 
+# this script is to check if the created models behave as expected
+
 # import the pre made model pickle from the models folder
 with open("my_liionpack/models/Charged_adv_model.pkl", "rb") as f:
     model_adv_charged = pickle.load(f)
@@ -19,10 +21,12 @@ current = rate * param_battery["Nominal cell capacity [A.h]"] # 1C in A
 
 experiment = pybamm.Experiment(
     [      
-        "Rest for 180 minutes",
-        *([f"Discharge at {current} A for {60*0.2/rate} minutes",
-        "Rest for 30 minutes"]*4)
-        # "Discharge at 0.01C for 6000 minutes or until 2.5 V",
+        "Rest for 30 minutes", # check if OCV is close
+        *([f"Discharge at {current} A for {60*0.2/rate} minutes", # pulses 
+        "Rest for 60 minutes",]*3),
+        *([f"Charge at {current} A for {60*0.2/rate} minutes", # pulses 
+        "Rest for 60 minutes",]*2),
+        f"Discharge at {current} A until 2.5 V",
     ],
 )
 
@@ -33,7 +37,7 @@ output_variables = [
     "Discharge capacity [A.h]",
     # "X-averaged cell temperature [C]",
     "Electrolyte concentration [mol.m-3]",
-    # "X-averaged positive electrode hysteresis state",
+    # "X-averaged positive electrode hysteresis state", # this only work in base model
 ]
 
 solutions = []
