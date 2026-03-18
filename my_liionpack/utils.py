@@ -1,7 +1,6 @@
 import pybamm
 import numpy as np
-import matplotlib.pyplot as plt
-import time
+
 
 def generate_protocol_from_experiment(experiment):
     """
@@ -41,7 +40,9 @@ def generate_protocol_from_experiment(experiment):
         termination_info = None
         if len(step.termination) > 0:
             for term in step.termination:
-                if isinstance(term, pybamm.experiment.step.step_termination.VoltageTermination):
+                if isinstance(
+                    term, pybamm.experiment.step.step_termination.VoltageTermination
+                ):
                     termination_info = {
                         "type": "pack_voltage",
                         "value": float(term.value),
@@ -55,7 +56,6 @@ def generate_protocol_from_experiment(experiment):
     return protocol, terminations, step_types, dt_out
 
 
-
 def setup_sims_and_params(model, parameters, solver, var_pts, num_cells_parallel):
     if var_pts is None:
         var_pts = model.default_var_pts
@@ -63,16 +63,28 @@ def setup_sims_and_params(model, parameters, solver, var_pts, num_cells_parallel
     params = parameters.copy()
     params.update({"Current function [A]": "[input]"})
     v_cut_lower = params["Lower voltage cut-off [V]"] - 0.05
-    v_cut_higher = params["Upper voltage cut-off [V]"] + 0.05 # to avoid breaking when at SOC == 1.0
+    v_cut_higher = (
+        params["Upper voltage cut-off [V]"] + 0.05
+    )  # to avoid breaking when at SOC == 1.0
     # change cut off cell_voltages to avoid the pybamm solver stopping too early
-    params.update({"Lower voltage cut-off [V]": v_cut_lower - 0.5,
-                "Upper voltage cut-off [V]": v_cut_higher + 0.5})
+    params.update(
+        {
+            "Lower voltage cut-off [V]": v_cut_lower - 0.5,
+            "Upper voltage cut-off [V]": v_cut_higher + 0.5,
+        }
+    )
     # Simulation settings
-    sims = [pybamm.Simulation(model, parameter_values = params,
-                            solver = solver.copy(),
-                            var_pts = var_pts,
-                            ) for _ in range(num_cells_parallel)]
+    sims = [
+        pybamm.Simulation(
+            model,
+            parameter_values=params,
+            solver=solver.copy(),
+            var_pts=var_pts,
+        )
+        for _ in range(num_cells_parallel)
+    ]
     return sims, v_cut_lower, v_cut_higher, params
+
 
 def create_hystory_dict(num_cells_parallel):
     history = {
@@ -86,6 +98,7 @@ def create_hystory_dict(num_cells_parallel):
     }
     return history
 
+
 def get_soc(sim):
     """
     Calculates the State of Charge (SOC) from the output dictionary.
@@ -94,5 +107,7 @@ def get_soc(sim):
     """
     sto_at_100 = 0.005
     sto_at_0 = 0.813
-    ext_of_lith = sim.solution["X-averaged positive electrode extent of lithiation"].entries[-1]
-    return 100*(1 - (ext_of_lith - sto_at_100) / (sto_at_0 - sto_at_100))
+    ext_of_lith = sim.solution[
+        "X-averaged positive electrode extent of lithiation"
+    ].entries[-1]
+    return 100 * (1 - (ext_of_lith - sto_at_100) / (sto_at_0 - sto_at_100))

@@ -1,21 +1,44 @@
 import numpy as np
-import matplotlib.pyplot as plt
 
 
-def plot_results(history, num_cells, fig, axes, linestyle='--', lab = None):
+def plot_results(history, num_cells, fig, axes, linestyle="--", lab=None):
     axes = axes.flatten()
 
     time = np.array(history["time"])
 
     # Plot Currents
     for i in range(num_cells):
-        color = f'C{i}'
+        color = f"C{i}"
         if lab is not None:
-            label = f'{lab} - Cell {i+1}'
-        axes[0].plot(time+time[1], history["I_cell"][i], label=label, color=color, linestyle=linestyle)
-        axes[1].plot(time+time[1], history["V_cell"][i], label=label, color=color, linestyle=linestyle)
-        axes[2].plot(time, history["R_internal"][i], label=label, color=color, linestyle=linestyle)
-        axes[3].plot(time+time[1], history["SOC"][i], label=label, color=color, linestyle=linestyle)
+            label = f"{lab} - Cell {i + 1}"
+        axes[0].plot(
+            time + time[1],
+            history["I_cell"][i],
+            label=label,
+            color=color,
+            linestyle=linestyle,
+        )
+        axes[1].plot(
+            time + time[1],
+            history["V_cell"][i],
+            label=label,
+            color=color,
+            linestyle=linestyle,
+        )
+        axes[2].plot(
+            time,
+            history["R_internal"][i],
+            label=label,
+            color=color,
+            linestyle=linestyle,
+        )
+        axes[3].plot(
+            time + time[1],
+            history["SOC"][i],
+            label=label,
+            color=color,
+            linestyle=linestyle,
+        )
 
     # axes[1].plot(time, history["terminal_voltage"], 'o', label='Mine Terminal V', alpha=0.7)
 
@@ -33,7 +56,7 @@ def plot_results(history, num_cells, fig, axes, linestyle='--', lab = None):
     # axes[2].set_title("Internal Resistance (Linearized)")
     axes[2].set_xlabel("Time [s]")
     axes[2].set_ylabel("Resistance [Ohm]")
-    
+
     axes[2].grid(True, alpha=0.5)
 
     # axes[3].set_title("Cell State of Charge")

@@ -40,7 +40,7 @@ total_current = rate * capacity * num_cells_parallel
 experiment = pybamm.Experiment(
     [
         "Rest for 3 minutes",
-        f"Discharge at {total_current} A for {60*0.5/rate} minutes",
+        f"Discharge at {total_current} A for {60 * 0.5 / rate} minutes",
         "Rest for 6 minutes",
     ],
     period=f"{delta_t} seconds",
@@ -120,7 +120,7 @@ def plot_case_on_axes(ax_current, ax_voltage, history, style="-", prefix=""):
             linestyle=style,
             linewidth=1.7,
             color=f"C{i}",
-            label=f"{prefix} Cell {i+1}"
+            label=f"{prefix} Cell {i + 1}",
         )
 
     # # Pack voltage
@@ -140,7 +140,7 @@ def plot_case_on_axes(ax_current, ax_voltage, history, style="-", prefix=""):
             linestyle=style,
             linewidth=1.7,
             color=f"C{i}",
-            label=f"{prefix} Cell {i+1}"
+            label=f"{prefix} Cell {i + 1}",
         )
 
 
@@ -150,8 +150,12 @@ def make_comparison_figure(history_a, history_b, label_a, label_b, title):
     ax_current = axes[0]
     ax_voltage = axes[1]
 
-    plot_case_on_axes(ax_current, ax_voltage, history_a, style="--", prefix=f"{label_a} |")
-    plot_case_on_axes(ax_current, ax_voltage, history_b, style="-", prefix=f"{label_b} |")
+    plot_case_on_axes(
+        ax_current, ax_voltage, history_a, style="--", prefix=f"{label_a} |"
+    )
+    plot_case_on_axes(
+        ax_current, ax_voltage, history_b, style="-", prefix=f"{label_b} |"
+    )
 
     ax_current.set_title(f"{title} - Currents")
     ax_current.set_ylabel("Current [A]")

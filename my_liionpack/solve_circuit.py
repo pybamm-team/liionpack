@@ -44,7 +44,7 @@ def _build_nodes(N, terminals="left"):
     nodes["PT"] = k  # negative external terminal in the netlist convention
     k += 1
 
-    use_true_middle = (terminals == "middle" and N % 2 == 0)
+    use_true_middle = terminals == "middle" and N % 2 == 0
     if use_true_middle:
         nodes["TM"] = k  # top midpoint node
         k += 1
@@ -120,8 +120,10 @@ def _resolve_terminal_contact_nodes(N, terminals):
 # ==========================================================
 # Shared rail / terminal stamping
 # ==========================================================
-def _append_busbars_and_terminal_contacts(net, N, r_busbar, r_terminal_contact, terminals):
-    use_true_middle = (terminals == "middle" and N % 2 == 0)
+def _append_busbars_and_terminal_contacts(
+    net, N, r_busbar, r_terminal_contact, terminals
+):
+    use_true_middle = terminals == "middle" and N % 2 == 0
 
     # --------------------------------------------------
     # TRUE MIDDLE CONTACT FOR EVEN N
@@ -132,25 +134,25 @@ def _append_busbars_and_terminal_contacts(net, N, r_busbar, r_terminal_contact, 
 
         # ---------- top rail ----------
         for i in range(left_mid):
-            net.append(("R", f"T{i}", f"T{i+1}", float(r_busbar)))
+            net.append(("R", f"T{i}", f"T{i + 1}", float(r_busbar)))
 
         net.append(("R", f"T{left_mid}", "TM", float(r_busbar) / 2.0))
         net.append(("R", "TM", f"T{right_mid}", float(r_busbar) / 2.0))
 
         for i in range(right_mid, N - 1):
-            net.append(("R", f"T{i}", f"T{i+1}", float(r_busbar)))
+            net.append(("R", f"T{i}", f"T{i + 1}", float(r_busbar)))
 
         net.append(("R", "NT", "TM", float(r_terminal_contact)))
 
         # ---------- bottom rail ----------
         for i in range(left_mid):
-            net.append(("R", f"B{i}", f"B{i+1}", float(r_busbar)))
+            net.append(("R", f"B{i}", f"B{i + 1}", float(r_busbar)))
 
         net.append(("R", f"B{left_mid}", "BM", float(r_busbar) / 2.0))
         net.append(("R", "BM", f"B{right_mid}", float(r_busbar) / 2.0))
 
         for i in range(right_mid, N - 1):
-            net.append(("R", f"B{i}", f"B{i+1}", float(r_busbar)))
+            net.append(("R", f"B{i}", f"B{i + 1}", float(r_busbar)))
 
         net.append(("R", "BM", "PT", float(r_terminal_contact)))
 
@@ -158,16 +160,18 @@ def _append_busbars_and_terminal_contacts(net, N, r_busbar, r_terminal_contact, 
     # ALL OTHER CASES (existing node-based contacts)
     # --------------------------------------------------
     else:
-        top_contact_node, bottom_contact_node = _resolve_terminal_contact_nodes(N, terminals)
+        top_contact_node, bottom_contact_node = _resolve_terminal_contact_nodes(
+            N, terminals
+        )
 
         net.append(("R", "NT", top_contact_node, float(r_terminal_contact)))
         net.append(("R", bottom_contact_node, "PT", float(r_terminal_contact)))
 
         for i in range(N - 1):
-            net.append(("R", f"T{i}", f"T{i+1}", float(r_busbar)))
+            net.append(("R", f"T{i}", f"T{i + 1}", float(r_busbar)))
 
         for i in range(N - 1):
-            net.append(("R", f"B{i}", f"B{i+1}", float(r_busbar)))
+            net.append(("R", f"B{i}", f"B{i + 1}", float(r_busbar)))
 
     return net
 
@@ -189,7 +193,9 @@ def _build_liionpack_like_netlist(
 
     # pack current source: PT -> NT
     net.append(("I", "PT", "NT", float(I_pack)))
-    _append_busbars_and_terminal_contacts(net, N, r_busbar, r_terminal_contact, terminals)
+    _append_busbars_and_terminal_contacts(
+        net, N, r_busbar, r_terminal_contact, terminals
+    )
 
     # per-cell elements
     for i in range(N):
@@ -225,7 +231,9 @@ def _build_voltage_driven_netlist(
     net = []
 
     net.append(("I", "PT", "NT", float(I_pack)))
-    _append_busbars_and_terminal_contacts(net, N, r_busbar, r_terminal_contact, terminals)
+    _append_busbars_and_terminal_contacts(
+        net, N, r_busbar, r_terminal_contact, terminals
+    )
 
     for i in range(N):
         V_cell = float(V_cell_values[i])
@@ -326,7 +334,9 @@ def _solve_mna_full(netlist, nodes, ground="PT"):
 # ==========================================================
 # Pack terminal voltage
 # ==========================================================
-def _compute_pack_terminal_voltage(V, nodes, positive_terminal="NT", negative_terminal="PT"):
+def _compute_pack_terminal_voltage(
+    V, nodes, positive_terminal="NT", negative_terminal="PT"
+):
     return float(-V[nodes[positive_terminal]] + V[nodes[negative_terminal]])
 
 
@@ -528,7 +538,9 @@ def calculate_currents(
         if history is not None and "R_internal" in history:
             enough_history = all(len(res) >= 3 for res in history["R_internal"])
             if enough_history:
-                last_3_R = np.array([res[-3:] for res in history["R_internal"]], dtype=float)
+                last_3_R = np.array(
+                    [res[-3:] for res in history["R_internal"]], dtype=float
+                )
                 r_max = np.max(last_3_R, axis=1)
                 r_min = np.min(last_3_R, axis=1)
                 variation = (r_max - r_min) / (r_min + 1e-9)

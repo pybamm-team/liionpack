@@ -11,7 +11,7 @@ def current_spread_metric(history):
         spread_abs : max(I_cell) - min(I_cell) at each time step
         spread_rel : (max - min) / mean(|I|) at each time step
     """
-    I = np.array(history["I_cell"], dtype=float)   # shape = (N_cells, N_time)
+    I = np.array(history["I_cell"], dtype=float)  # shape = (N_cells, N_time)
     max_I = np.max(I, axis=0)
     min_I = np.min(I, axis=0)
     mean_abs_I = np.mean(np.abs(I), axis=0)
@@ -59,7 +59,7 @@ def run_case(terminals, label):
     initial_soc = 0.90
 
     # Make topology effect visible
-    r_busbar = 50 * 2.5e-5   # = 0.00125 ohm between adjacent rail nodes
+    r_busbar = 50 * 2.5e-5  # = 0.00125 ohm between adjacent rail nodes
     r_terminal = 1e-10
 
     rate = 1.0
@@ -106,7 +106,7 @@ def plot_histories(histories, labels):
 
         # Cell currents
         for i in range(I.shape[0]):
-            axes[0, 0].plot(time, I[i], label=f"{label} - Cell {i+1}")
+            axes[0, 0].plot(time, I[i], label=f"{label} - Cell {i + 1}")
         axes[0, 0].set_title("Cell currents")
         axes[0, 0].set_ylabel("Current [A]")
         axes[0, 0].grid(True, alpha=0.3)

@@ -1,4 +1,3 @@
-import matplotlib.pyplot as plt
 import time
 from my_liionpack.params_and_ocps.base_battery_param import *
 import pickle
@@ -13,19 +12,29 @@ with open("my_liionpack/models/Charged_base_model.pkl", "rb") as f:
     model_base_charged = pickle.load(f)
 
 models = [model_base_charged, model_adv_charged]
-parameters = [param_base , param_adv]
+parameters = [param_base, param_adv]
 # Now we can use this model to run a simulation starting from the pre-charged state
 
 rate = 2
-current = rate * param_battery["Nominal cell capacity [A.h]"] # 1C in A
+current = rate * param_battery["Nominal cell capacity [A.h]"]  # 1C in A
 
 experiment = pybamm.Experiment(
-    [      
-        "Rest for 30 minutes", # check if OCV is close
-        *([f"Discharge at {current} A for {60*0.2/rate} minutes", # pulses 
-        "Rest for 60 minutes",]*3),
-        *([f"Charge at {current} A for {60*0.2/rate} minutes", # pulses 
-        "Rest for 60 minutes",]*2),
+    [
+        "Rest for 30 minutes",  # check if OCV is close
+        *(
+            [
+                f"Discharge at {current} A for {60 * 0.2 / rate} minutes",  # pulses
+                "Rest for 60 minutes",
+            ]
+            * 3
+        ),
+        *(
+            [
+                f"Charge at {current} A for {60 * 0.2 / rate} minutes",  # pulses
+                "Rest for 60 minutes",
+            ]
+            * 2
+        ),
         f"Discharge at {current} A until 2.5 V",
     ],
 )
@@ -46,7 +55,7 @@ for model, param in zip(models, parameters):
     sim = pybamm.Simulation(
         model=model,
         parameter_values=param,
-        solver = pybamm.IDAKLUSolver(),
+        solver=pybamm.IDAKLUSolver(),
         var_pts=discret_points,
         experiment=experiment,
     )

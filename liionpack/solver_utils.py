@@ -48,7 +48,9 @@ def _serial_eval(model, solutions, inputs_dict, variables, t_eval):
         temp = inputs_dict[k]
         inputs = casadi.vertcat(*[x for x in temp.values()] + [t_min])
         ninputs = len(temp.values())
-        var_eval.append(variables(t_end, xend[:len_rhs], xend[len_rhs:], inputs[0:ninputs]))
+        var_eval.append(
+            variables(t_end, xend[:len_rhs], xend[len_rhs:], inputs[0:ninputs])
+        )
 
     return casadi.horzcat(*var_eval)
 
@@ -111,7 +113,9 @@ def _serial_step(model, solutions, inputs_dict, integrator, variables, t_eval, e
             y_sol = casadi.vertcat(xf, casadi.horzcat(z0, zf))
         xend = y_sol[:, -1]
         sol.append(pybamm.Solution(t_eval, y_sol, model, inputs_dict[k]))
-        var_eval.append(variables(t_end, xend[:len_rhs], xend[len_rhs:], inputs[0:ninputs]))
+        var_eval.append(
+            variables(t_end, xend[:len_rhs], xend[len_rhs:], inputs[0:ninputs])
+        )
         if events is not None:
             events_eval.append(
                 events(t_end, xend[:len_rhs], xend[len_rhs:], inputs[0:ninputs])
@@ -159,7 +163,9 @@ def _mapped_eval(model, solutions, inputs_dict, variables, t_eval):
         inputs.append(casadi.vertcat(*[x for x in temp.values()] + [t_min]))
     ninputs = len(temp.values())
     inputs = casadi.horzcat(*inputs)
-    var_eval = variables(t_end, xend[:len_rhs, :], xend[len_rhs:, :], inputs[0:ninputs, :])
+    var_eval = variables(
+        t_end, xend[:len_rhs, :], xend[len_rhs:, :], inputs[0:ninputs, :]
+    )
 
     return var_eval
 
@@ -240,7 +246,9 @@ def _mapped_step(model, solutions, inputs_dict, integrator, variables, t_eval, e
     toc = timer.time()
     lp.logger.debug(f"Mapped step completed in {toc - tic}")
     xend = casadi.horzcat(*xend)
-    var_eval = variables(t_end, xend[:len_rhs, :], xend[len_rhs:, :], inputs[0:ninputs, :])
+    var_eval = variables(
+        t_end, xend[:len_rhs, :], xend[len_rhs:, :], inputs[0:ninputs, :]
+    )
     if events is not None:
         events_eval = events(
             t_end, xend[:len_rhs, :], xend[len_rhs:, :], inputs[0:ninputs, :]
