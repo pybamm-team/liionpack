@@ -24,6 +24,8 @@ delta_t = 60  # seconds
 num_cells_parallel = 4
 r_busbar = 2.5e-5  # Busbar resistance between cells
 r_terminal = 1e-6  # Terminal resistance
+terminals = "left"   # choose from:
+# "left", "right", "left-right", "right-left", "middle"
 
 capacity = param_base["Nominal cell capacity [A.h]"]
 total_current = rate * capacity * num_cells_parallel  
@@ -60,6 +62,7 @@ sols_base, history_base = run_pack(
     num_cells_parallel = num_cells_parallel,
     r_busbar = r_busbar,
     r_terminal = r_terminal,
+    terminals = terminals,
     # save_memory = True, # this reduces memory usage but does not allow to plot all variables
     var_pts = discret_points,
     # solver = pybamm.CasadiSolver(mode='safe'),
@@ -73,6 +76,7 @@ sols_adv, history_adv = run_pack(
     num_cells_parallel = num_cells_parallel,
     r_busbar = r_busbar,
     r_terminal = r_terminal,
+    terminals = terminals,
     # save_memory = True, # this reduces memory usage but does not allow to plot all variables
     var_pts = discret_points,
     # solver = pybamm.CasadiSolver(mode='safe'),

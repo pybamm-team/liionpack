@@ -16,10 +16,15 @@ delta_t = 10  # seconds
 time_steps = int(total_time/delta_t)
 # Pack configuration
 num_cells_parallel = 4
-# configuration = 'U' by default in my pack
+terminals = "left-right"   # choose from:
+# "left", "right", "left-right", "right-left", "middle"
+# or a custom pair like [1, 1], [2, 0], [2, 2]
+
+## additional middle configuration. Resistance split in case of even number of cells.
+
 
 r_busbar = 50*2.5e-5  # Busbar resistance between cells
-r_terminal = 1e-4  # Terminal resistance
+r_terminal = 1e-10  # Terminal resistance    #changed
 
 capacity = params["Nominal cell capacity [A.h]"]
 total_current = rate * capacity * num_cells_parallel  
@@ -30,9 +35,30 @@ experiment = pybamm.Experiment(
     # f"Rest for {100*60} seconds",
     f"Discharge at {total_current} A for {total_time} seconds or until 2.2 V",
     f"Rest for {10*60} seconds",
+#     f"Discharge at {total_current} A for 120 seconds or until 2.2 V",
+#     f"Rest for {60} seconds",
+#     f"Discharge at {total_current} A for 120 seconds or until 2.2 V",
+#     f"Rest for {60} seconds",
+#     f"Discharge at {total_current} A for 120 seconds or until 2.2 V",
+#     f"Rest for {60} seconds",
+#     f"Discharge at {total_current} A for 120 seconds or until 2.2 V",
+#     f"Rest for {60} seconds",
     # f"Charge at {total_current/2} A for {2*total_time} seconds or until 4.2 V",
+    # "Rest for 3 minutes",
+    # f"Discharge at {total_current} A for {60*0.5/rate} minutes",
+    # "Rest for 6 minutes",
     ],
     period=f"{delta_t} seconds",)
+
+# t_pulse = 300   # s
+# t_rest = 300    # s
+# n_cycles = 8
+
+# cycle = [
+#     f"Discharge at {total_current} A for {t_pulse} seconds or until 2.2 V",
+#     f"Rest for {t_rest} seconds",
+# ]
+# experiment = pybamm.Experiment(cycle * n_cycles, period=f"{delta_t} seconds")
 
 sols, history = run_pack(
     model = model, 
@@ -41,6 +67,7 @@ sols, history = run_pack(
     num_cells_parallel = num_cells_parallel,
     r_busbar = r_busbar,
     r_terminal = r_terminal,
+    terminals = terminals,
     initial_soc = initial_soc,
     save_memory = True,
     solver = pybamm.CasadiSolver(mode='safe'),
@@ -63,7 +90,7 @@ def plot_results(history, num_cells):
 
     # Plot Currents
     for i in range(num_cells):
-        axes[0].plot(time+time[1], history["currents"][i], label=f'Cell {i+1}', color=f'C{i}')
+        axes[0].plot(time+time[1], history["I_cell"][i], label=f'Cell {i+1}', color=f'C{i}')
     axes[0].set_title("Cell Currents")
     axes[0].set_xlabel("Time [s]")
     axes[0].set_ylabel("Current [A]")
@@ -71,7 +98,7 @@ def plot_results(history, num_cells):
 
     # Plot Voltages
     for i in range(num_cells):
-        axes[1].plot(time+time[1], history["cell_voltages"][i], label=f'Cell {i+1}', color=f'C{i}')
+        axes[1].plot(time+time[1], history["V_cell"][i], label=f'Cell {i+1}', color=f'C{i}')
     axes[1].set_title("Terminal Voltages")
     axes[1].set_xlabel("Time [s]")
     axes[1].set_ylabel("Voltage [V]")
@@ -80,7 +107,7 @@ def plot_results(history, num_cells):
 
     # Plot Resistances
     for i in range(num_cells):
-        axes[2].plot(time, history["resistances"][i], label=f'Cell {i+1}', color=f'C{i}')
+        axes[2].plot(time, history["R_internal"][i], label=f'Cell {i+1}', color=f'C{i}')
     axes[2].set_title("Internal Resistance (Linearized)")
     axes[2].set_xlabel("Time [s]")
     axes[2].set_ylabel("Resistance [Ohm]")
@@ -114,7 +141,7 @@ netlist = lp.setup_circuit(
     Rt=r_terminal,
     V=3.8, 
     I=total_current,
-    terminals='left'
+    terminals=terminals,
 )
 
 out = lp.solve(
@@ -144,4 +171,39 @@ for i in range(num_cells_parallel):
 # ax[1].plot(t, v_term, 'o', label='Liionpack Terminal Voltage', alpha=0.7)
 
 plt.tight_layout()
+plt.show()
+
+#=========================================================
+#Cell and pack voltage plots
+#=========================================================
+time = history["time"]
+
+plt.figure(figsize=(8, 5))
+
+# Cell voltages
+for i in range(len(history["V_cell"])):
+    plt.plot(time, history["V_cell"][i], label=f"Cell {i+1}")
+
+# Pack voltage
+plt.plot(time, history["V_pack"], label="Pack voltage", linewidth=2, linestyle="--")
+
+plt.xlabel("Time [s]")
+plt.ylabel("Voltage [V]")
+plt.title("Cell and Pack Voltages")
+plt.legend()
+plt.grid(True)
+plt.show()
+
+#=========================================================
+### Pack voltage comparison with liionpack circuit solver
+#=========================================================
+plt.figure(figsize=(8, 5))
+plt.plot(history["time"], history["V_pack"], linewidth=2, label="Pack voltage (my model)")
+plt.plot(out["Time [s]"], out["Pack terminal voltage [V]"], "--", linewidth=2, label="Pack voltage (liionpack)")
+
+plt.xlabel("Time [s]")
+plt.ylabel("Voltage [V]")
+plt.title("Pack Voltage Comparison")
+plt.legend()
+plt.grid(True)
 plt.show()

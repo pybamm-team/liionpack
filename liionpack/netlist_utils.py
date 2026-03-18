@@ -603,7 +603,7 @@ def power_loss(netlist, include_Ri=False):
     if not include_Ri:
         Ri_map = netlist["desc"].str.find("Ri") > -1
         Ri_map = Ri_map.values
-        R_map *= ~Ri_map
+        R_map = R_map * (~Ri_map)
     R_value = netlist[R_map].value.values
     R_node1 = netlist[R_map].node1.values
     R_node2 = netlist[R_map].node2.values

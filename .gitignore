@@ -47,6 +47,8 @@ ehthumbs_vista.db
 *.mov
 *.wmv
 
+my_liionpack.zip
+
 # Compiled Python bytecode
 __pycache__/
 *.py[cod]
@@ -102,6 +104,8 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+.venv_alt/
+.testing_env/
 
 # Generated documentation directory
 site/

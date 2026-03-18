@@ -5,50 +5,56 @@ import time
 
 def generate_protocol_from_experiment(experiment):
     """
-    Args:
-        experiment (pybamm.Experiment):
-            The experiment to generate the protocol from.
+    Convert a pybamm.Experiment into per-section current protocols
+    and pack-level terminal voltage termination targets.
 
     Returns:
-        protocol (list):
-            a sequence of terminal currents to apply at each timestep
-        terminations (list):
-            a sequence voltage terminations for each step
-
+        protocol: list of lists of applied pack currents
+        terminations: list of dicts, one per section
+        step_types: list of step types
+        dt: step period
     """
     protocol = []
     terminations = []
     step_types = []
+    dt_out = None
+
     for i, step in enumerate(experiment.steps):
         proto = []
         t = step.duration
         dt = step.period
-        termination = step.termination
+        dt_out = dt
         step_type = type(step).__name__.lower()
+
         if step_type not in ["current", "power"]:
             raise ValueError("Only current and power operations are supported")
+
+        if not isinstance(step.value, pybamm.Interpolant):
+            I = step.value
+            proto.extend([I] * int(np.round(t, 5) / np.round(dt, 5)))
+            if i == 0:
+                proto = [proto[0]] + proto
         else:
-            if not isinstance(step.value, pybamm.Interpolant):
-                I = step.value
-                proto.extend([I] * int(np.round(t, 5) / np.round(dt, 5)))
-                if i == 0:
-                    # Include initial state when not drive cycle, first op
-                    proto = [proto[0]] + proto
-            else:
-                proto.extend(step.value.y.tolist())
-            if len(termination) > 0:
-                for term in termination:
-                    if isinstance(
-                        term, pybamm.experiment.step.step_termination.VoltageTermination
-                    ):
-                        terminations.append(term.value)
-            else:
-                terminations.append([])
+            proto.extend(step.value.y.tolist())
+
+        # Store one clean termination object per section
+        termination_info = None
+        if len(step.termination) > 0:
+            for term in step.termination:
+                if isinstance(term, pybamm.experiment.step.step_termination.VoltageTermination):
+                    termination_info = {
+                        "type": "pack_voltage",
+                        "value": float(term.value),
+                    }
+                    break
 
         protocol.append(proto)
+        terminations.append(termination_info)
         step_types.append(step_type)
 
-    return protocol, terminations, step_types, dt
+    return protocol, terminations, step_types, dt_out
+
+
 
 def setup_sims_and_params(model, parameters, solver, var_pts, num_cells_parallel):
     if var_pts is None:

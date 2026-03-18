@@ -8,6 +8,7 @@ def run_pack(model,
              r_busbar = 1e-4,
              r_conn = 1e-5,
              r_terminal = 1e-5,
+             terminals = "left",
              initial_soc = None,
              save_memory=False,
              solver = pybamm.IDAKLUSolver(atol=1e-4, rtol=1e-4),
@@ -44,26 +45,48 @@ def run_pack(model,
     updated_time = 0
     for s in range(len(total_current_in_each_section)):
         print(f"Starting section {s+1}/{len(total_current_in_each_section)}...")
+        v_cut_lower = None
+        v_cut_higher = None
         # If there is a termination condition on top of the time duration only
-        if termination_conditions[s]: 
-            if total_current_in_each_section[s][0] < 0:
-                print(f"Termination: charge until {termination_conditions[s]} V")
-                v_cut_higher = termination_conditions[s]
-            elif total_current_in_each_section[s][0] > 0:
-                print(f"Termination: discharge until {termination_conditions[s]} V")
-                v_cut_lower = termination_conditions[s]
+        section_profile = total_current_in_each_section[s]
+        section_termination = termination_conditions[s]
+
+        section_current = next((val for val in section_profile if abs(val) > 1e-12), 0.0)
+
+        if section_termination is not None:
+            if section_termination["type"] == "pack_voltage":
+                if section_current < 0:
+                    print(f"Termination: charge until pack terminal voltage reaches {section_termination['value']} V")
+                    v_cut_higher = section_termination["value"]
+                elif section_current > 0:
+                    print(f"Termination: discharge until pack terminal voltage reaches {section_termination['value']} V")
+                    v_cut_lower = section_termination["value"]
             
 
-        for t in range(len(total_current_in_each_section[s])):
-            total_current = total_current_in_each_section[s][t]
+        for t in range(len(section_profile)):
+            total_current = section_profile[t]
             use_linear_solver = False
             print(f"Time step {t+1}/{len(total_current_in_each_section[s])} at t={updated_time:.2f}s", end='\r')
 
             R_values, OCVs = update_internal_resistance(sims, Ri, history)
-            currents = calculate_currents(
-                       t, total_current, r_busbar, r_conn,
-                       R_values, OCVs, sims,
-                       use_linear_solver, history)
+            circuit_out = calculate_currents(
+                t=t,
+                total_current=total_current,
+                r_busbar=r_busbar,
+                r_conn=r_conn,
+                R_values=R_values,
+                OCVs=OCVs,
+                sims=sims,
+                use_linear_solver=use_linear_solver,
+                history=history,
+                positive_terminal="NT",
+                negative_terminal="PT",
+                r_terminal_contact=r_terminal,
+                terminals=terminals,
+            )
+
+            currents = circuit_out["I_cells"]
+            pack_voltage = circuit_out["pack_voltage"]
             
             for i in range(num_cells_parallel):
                 if save_memory:
@@ -86,18 +109,27 @@ def run_pack(model,
                 history["T_cell"][i].append(sims[i].solution["Cell temperature [C]"].entries[-1])
                 history["SOC"][i].append(get_soc(sims[i]))
 
-            terminal_volt = sims[0].solution["Voltage [V]"].entries[-1] - total_current * r_terminal * 2
-            history["V_pack"].append(terminal_volt)
+            # terminal_volt = sims[0].solution["Voltage [V]"].entries[-1] - total_current * r_terminal * 2
+            history["V_pack"].append(pack_voltage)
             history["time"].append(updated_time)
 
-            if terminal_volt <= v_cut_lower:
-                print(f"\nLower cut-off voltage at time {updated_time:.2f}s. Starting next section.")
-                break
+            updated_time += dt #If code breaks, displayed time be one step ahead.
 
-            if terminal_volt >= v_cut_higher:
-                print(f"\nUpper cut-off voltage at time {updated_time:.2f}s. Starting next section.")
-                break
-            updated_time += dt
+            # print(f"time = {updated_time:.2f} s")
+            # print(f"total_current = {total_current}")
+            # print(f"pack_voltage = {pack_voltage}")
+            # print(f"v_cut_lower = {v_cut_lower}")
+            # print(f"v_cut_higher = {v_cut_higher}")
+
+            if t > 0:
+                if v_cut_lower is not None and pack_voltage <= v_cut_lower:
+                    print(f"\nLower cut-off voltage at time {updated_time:.2f}s. Starting next section.")
+                    break
+
+                if v_cut_higher is not None and pack_voltage >= v_cut_higher:
+                    print(f"\nUpper cut-off voltage at time {updated_time:.2f}s. Starting next section.")
+                    break
+            # updated_time += dt
 
     sols = [sim.solution for sim in sims]
 
