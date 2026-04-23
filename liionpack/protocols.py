@@ -25,8 +25,8 @@ def generate_protocol_from_experiment(experiment):
         dt = step.period
         termination = step.termination
         step_type = type(step).__name__.lower()
-        if step_type not in ["current", "power"]:
-            raise ValueError("Only current and power operations are supported")
+        if step_type not in ("rest", "current", "power"):
+            raise ValueError("Only rest, current and power operations are supported")
         else:
             if not isinstance(step.value, pybamm.Interpolant):
                 I = step.value
