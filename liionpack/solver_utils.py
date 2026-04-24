@@ -310,7 +310,10 @@ def _create_casadi_objects(inputs, sim, dt, Nspm, nproc, variable_names, mapped)
 
     # Code to create mapped integrator
     integrator = solver.create_integrator(
-        sim.built_model, inputs=inp_and_ext, t_eval=t_eval
+        sim.built_model,
+        y0=sim.built_model.y0_list[0],
+        inputs=inp_and_ext,
+        t_eval=t_eval,
     )
     if mapped:
         integrator = integrator.map(Nspm, "thread", nproc)
