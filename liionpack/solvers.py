@@ -43,7 +43,9 @@ class GenericActor:
                 or (isinstance(initial_soc, list) and len(initial_soc) == 1)
                 or (isinstance(initial_soc, np.ndarray) and len(initial_soc) == 1)
             ):
-                _, _ = lp.update_init_conc(parameter_values, initial_soc, update=True)
+                _, _ = lp.update_init_conc(
+                    parameter_values, SoC=initial_soc, update=True, inputs=inputs[0]
+                )
             else:
                 lp.logger.warning(
                     "Using a list or an array of initial_soc "
