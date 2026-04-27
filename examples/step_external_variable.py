@@ -83,6 +83,5 @@ def external_stepper(manager, T0):
 external_stepper(rm, T0)
 output = rm.step_output()
 # Plot the pack and individual cell results
-lp.plot_pack(output)
-lp.plot_cells(output)
+lp.plot_output(output)
 lp.show_plots()

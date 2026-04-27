@@ -88,7 +88,7 @@ def draw_circuit(
     label_nodes="primary",
     style="american",
 ):
-    """
+    r"""
     Draw a latex version of netlist circuit
     N.B only works with generated netlists not imported ones.
 
@@ -112,7 +112,7 @@ def draw_circuit(
         label_values (bool):
             Display component values, default True
         draw_nodes (bool):
-            True to show all nodes (default), False to show no nodes,'primary' to show
+            True to show all nodes (default), False to show no nodes, 'primary' to show
             primary nodes, 'connections' to show nodes that connect more than
             two components, 'all' to show all nodes.
         label_nodes (bool):

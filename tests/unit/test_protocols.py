@@ -2,7 +2,6 @@ import pybamm
 import liionpack as lp
 import numpy as np
 import unittest
-import os
 import pandas as pd
 
 
@@ -34,7 +33,6 @@ class protocolsTest(unittest.TestCase):
         self.assertEqual(np.sign(p[0][0]), 1)
 
     def test_generate_protocol_from_drive_cycle(self):
-        os.chdir(pybamm.__path__[0] + "/..")
         drive_cycle = pd.read_csv(
             pybamm.DataLoader().get_data("US06.csv"), comment="#", header=None
         ).to_numpy()

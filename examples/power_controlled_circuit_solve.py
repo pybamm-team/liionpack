@@ -54,3 +54,4 @@ output = lp.solve(
     initial_soc=0.5,
 )
 lp.plot_output(output)
+lp.show_plots()

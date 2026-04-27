@@ -50,6 +50,5 @@ output = lp.solve(
 )
 
 # Plot the pack and individual cell results
-lp.plot_pack(output)
-lp.plot_cells(output)
+lp.plot_output(output)
 lp.show_plots()

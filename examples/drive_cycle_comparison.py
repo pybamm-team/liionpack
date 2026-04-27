@@ -40,7 +40,7 @@ if __name__ == "__main__":
     # Solve pack
     output = lp.solve(
         netlist=netlist,
-        parameter_values=parameter_values,
+        parameter_values=parameter_values.copy(),
         experiment=experiment,
         output_variables=output_variables,
         initial_soc=init_SoC,
