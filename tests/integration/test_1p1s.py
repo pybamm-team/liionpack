@@ -29,6 +29,7 @@ class Test1p1s(unittest.TestCase):
             model=pybamm.lithium_ion.SPM(),
             parameter_values=parameter_values,
             experiment=experiment,
+            solver=pybamm.CasadiSolver(mode="safe"),
         )
 
         sol = sim.solve()

@@ -35,7 +35,7 @@ for terminals in combos:
             initial_soc=0.5,
         )
 
-        plt.plot(range(Np), output["Cell current [A]"][-1, :], lines[i], label=t)
+        plt.plot(range(Np), output["Cell current [A]"][-1, :], lines[i], label=str(t))
 
     plt.legend()
 

@@ -291,9 +291,7 @@ def _create_casadi_objects(inputs, sim, dt, Nspm, nproc, variable_names, mapped)
     ).last_state
     # evaluate initial condition
     model = sim.built_model
-    y0_total_size = (
-        model.len_rhs + model.len_rhs_sens + model.len_alg + model.len_alg_sens
-    )
+    y0_total_size = model.len_rhs_and_alg
     y_zero = np.zeros((y0_total_size, 1))
     for inpt in inputs:
         inputs_casadi = casadi.vertcat(*[x for x in inpt.values()])
@@ -312,7 +310,10 @@ def _create_casadi_objects(inputs, sim, dt, Nspm, nproc, variable_names, mapped)
 
     # Code to create mapped integrator
     integrator = solver.create_integrator(
-        sim.built_model, inputs=inp_and_ext, t_eval=t_eval
+        sim.built_model,
+        y0=sim.built_model.y0_list[0],
+        inputs=inp_and_ext,
+        t_eval=t_eval,
     )
     if mapped:
         integrator = integrator.map(Nspm, "thread", nproc)

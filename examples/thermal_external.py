@@ -40,3 +40,4 @@ output = lp.solve(
 
 # Display the results
 lp.plot_output(output, color="white")
+lp.show_plots()

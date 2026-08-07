@@ -110,7 +110,7 @@ class solver_utilsTest(unittest.TestCase):
         output = lp.solve(
             netlist=self.netlist,
             sim_func=bespoke_sim,
-            parameter_values=self.parameter_values,
+            parameter_values=self.parameter_values.copy(),
             experiment=self.experiment,
             output_variables=None,
             inputs=inputs,

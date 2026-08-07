@@ -1,5 +1,4 @@
 import numpy as np
-import codecs
 import pandas as pd
 import liionpack as lp
 import os
@@ -17,7 +16,7 @@ def read_netlist(
     I=None,
     V=None,
 ):
-    """
+    r"""
     Assumes netlist has been saved by LTSpice with format Descriptor Node1 Node2 Value
     Any lines starting with * are comments and . are commands so ignore them
     Nodes begin with N so remove that
@@ -47,7 +46,7 @@ def read_netlist(
         else:
             filepath = temp
     if ".cir" in filepath:
-        with codecs.open(filepath, "r", "utf-16LE") as fd:
+        with open(filepath, "r", encoding="utf-16LE") as fd:
             Lines = fd.readlines()
     elif ".txt" in filepath:
         with open(filepath, "r") as f:
@@ -110,7 +109,7 @@ def setup_circuit(
     terminals="left",
     configuration="parallel-strings",
 ):
-    """
+    r"""
     Define a netlist from a number of batteries in parallel and series
 
     Args:
@@ -599,14 +598,12 @@ def power_loss(netlist, include_Ri=False):
     """
     V_node, I_batt, t_c, t_v, t_p = lp.solve_circuit(netlist)
     R_map = netlist["desc"].str.find("R") > -1
-    R_map = R_map.values
     if not include_Ri:
         Ri_map = netlist["desc"].str.find("Ri") > -1
-        Ri_map = Ri_map.values
-        R_map *= ~Ri_map
-    R_value = netlist[R_map].value.values
-    R_node1 = netlist[R_map].node1.values
-    R_node2 = netlist[R_map].node2.values
+        R_map &= ~Ri_map
+    R_value = netlist.loc[R_map, "value"]
+    R_node1 = netlist.loc[R_map, "node1"]
+    R_node2 = netlist.loc[R_map, "node2"]
     R_node1_V = V_node[R_node1]
     R_node2_V = V_node[R_node2]
     V_diff = np.abs(R_node1_V - R_node2_V)

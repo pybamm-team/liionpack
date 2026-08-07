@@ -19,13 +19,13 @@ jobs:
   benchmarks:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v6
         with:
-          python-version: 3.11
+          python-version: 3.14
       - name: Install tox and asv
         run: pip install -U pip tox asv
       - name: Run benchmarks
@@ -33,7 +33,7 @@ jobs:
           asv machine --machine "GitHubRunner"
           asv run --machine "GitHubRunner" NEW
       - name: Upload results as artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v7
         with:
           name: asv_new_results
           path: results
@@ -44,18 +44,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v6
         with:
-          python-version: 3.11
+          python-version: 3.14
       - name: Install asv
         run: pip install asv
       - name: Checkout liionpack-bench repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v6
         with:
           repository: pybamm-team/liionpack-bench
           token: ${{ secrets.BENCH_PAT }}
       - name: Download results artifact
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v8
         with:
           name: asv_new_results
           path: new_results

@@ -39,6 +39,7 @@ output = lp.solve(
 
 # Display the results
 lp.plot_output(output, color="white")
+lp.show_plots()
 
 # Draw the circuit at final state
 lp.draw_circuit(netlist, cpt_size=1.0, node_spacing=2.2)

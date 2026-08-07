@@ -25,9 +25,9 @@ def lp_cmap(color="dark"):
 
     """
     if color == "dark":
-        return plt.cm.cool
+        return plt.get_cmap("cool")
     else:
-        return plt.cm.coolwarm
+        return plt.get_cmap("coolwarm")
 
 
 def lp_context(color="dark"):
@@ -88,7 +88,7 @@ def draw_circuit(
     label_nodes="primary",
     style="american",
 ):
-    """
+    r"""
     Draw a latex version of netlist circuit
     N.B only works with generated netlists not imported ones.
 
@@ -112,7 +112,7 @@ def draw_circuit(
         label_values (bool):
             Display component values, default True
         draw_nodes (bool):
-            True to show all nodes (default), False to show no nodes,'primary' to show
+            True to show all nodes (default), False to show no nodes, 'primary' to show
             primary nodes, 'connections' to show nodes that connect more than
             two components, 'all' to show all nodes.
         label_nodes (bool):
@@ -161,7 +161,7 @@ def plot_pack(output, color="dark"):
     i_pack = output["Pack current [A]"]
 
     context = lp_context(color)
-    cmap = lp_cmap(context)
+    cmap = lp_cmap(color)
 
     colors = cmap(np.linspace(0, 1, 2))
     with plt.rc_context(context):
@@ -195,7 +195,7 @@ def plot_cells(output, color="dark"):
     ]
 
     context = lp_context(color)
-    cmap = lp_cmap(context)
+    cmap = lp_cmap(color)
 
     # Get number of cells and setup colormap
     n = output[cell_vars[0]].shape[-1]
@@ -209,7 +209,7 @@ def plot_cells(output, color="dark"):
                 ax.plot(time, output[var][:, i], color=colors[i])
             ax.set_xlabel("Time [s]")
             ax.set_ylabel(textwrap.fill(var, 45))
-            ax.ticklabel_format(axis="y", scilimits=[-5, 5])
+            ax.ticklabel_format(axis="y", scilimits=(-5, 5))
 
 
 def plot_output(output, color="dark"):

@@ -6,7 +6,7 @@ import liionpack as lp
 import numpy as np
 
 
-def get_initial_stoichiometries(initial_soc, parameter_values):
+def get_initial_stoichiometries(initial_soc, parameter_values, inputs=None):
     """
     Calculate initial stoichiometries to start off the simulation at a particular
     state of charge, given voltage limits, open-circuit potentials, etc defined by
@@ -18,6 +18,8 @@ def get_initial_stoichiometries(initial_soc, parameter_values):
         parameter_values (pybamm.ParameterValues):
             The parameter values class that will be used for the simulation.
             Required for calculating appropriate initial stoichiometries.
+        inputs (dict):
+            A dictionary of input parameters passed to the model.
 
     Returns:
         x, y (float):
@@ -27,11 +29,11 @@ def get_initial_stoichiometries(initial_soc, parameter_values):
         raise ValueError("Initial SOC should be between 0 and 1")
 
     param = pybamm.LithiumIonParameters()
-    esoh_solver = pybamm.lithium_ion.ElectrodeSOHSolver(parameter_values, param)
-    return esoh_solver.get_initial_stoichiometries(initial_soc)
+    esoh_solver = pybamm.lithium_ion.ElectrodeSOHSolver(parameter_values, param=param)
+    return esoh_solver.get_initial_stoichiometries(initial_soc, inputs=inputs)
 
 
-def update_init_conc(param, SoC=None, update=True):
+def update_init_conc(param, SoC=None, update=True, inputs=None):
     """
     Update initial concentration parameters
 
@@ -43,6 +45,8 @@ def update_init_conc(param, SoC=None, update=True):
             case the initial concentrations are set using the target OCV.
         update (bool):
             Update the initial concentrations in place if True
+        inputs (dict):
+            A dictionary of input parameters passed to the model.
 
     Returns:
         c_s_n_init (float):
@@ -52,7 +56,7 @@ def update_init_conc(param, SoC=None, update=True):
     """
     c_n_max = param["Maximum concentration in negative electrode [mol.m-3]"]
     c_p_max = param["Maximum concentration in positive electrode [mol.m-3]"]
-    x, y = lp.get_initial_stoichiometries(SoC, param)
+    x, y = lp.get_initial_stoichiometries(SoC, param, inputs=inputs)
     if x is not None:
         c_s_n_init, c_s_p_init = x * c_n_max, y * c_p_max
     else:
