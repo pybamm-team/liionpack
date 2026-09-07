@@ -2,10 +2,11 @@
 # External thermal example
 #
 
-import liionpack as lp
-import pybamm
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
+import pybamm
+
+import liionpack as lp
 
 plt.close("all")
 

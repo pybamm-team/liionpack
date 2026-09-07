@@ -1,9 +1,10 @@
 #
 # Tests the logger class.
 #
-import liionpack as lp
-import unittest
 import os
+import unittest
+
+import liionpack as lp
 
 
 class TestLogger(unittest.TestCase):
