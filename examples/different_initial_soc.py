@@ -2,8 +2,9 @@
 Example of running a simulation with two batteries of different initial SOC.
 """
 
-import liionpack as lp
 import pybamm
+
+import liionpack as lp
 
 lp.logger.setLevel("NOTICE")
 

@@ -3,8 +3,9 @@
 #
 
 import casadi
-import pybamm
 import numpy as np
+import pybamm
+
 import liionpack as lp
 
 

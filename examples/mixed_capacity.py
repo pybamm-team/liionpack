@@ -2,9 +2,10 @@
 Example of running a simulation with batteries of different size.
 """
 
-import liionpack as lp
-import pybamm
 import numpy as np
+import pybamm
+
+import liionpack as lp
 
 lp.logger.setLevel("NOTICE")
 
