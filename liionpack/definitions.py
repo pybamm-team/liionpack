@@ -1,10 +1,10 @@
 #
 # Definitions
 #
-import liionpack as lp
 import os
 import pathlib
 
+import liionpack as lp
 
 ROOT_DIR = str(pathlib.Path(lp.__path__[0]).parent)
 MODULE_DIR = os.path.dirname(os.path.abspath(lp.__file__))
