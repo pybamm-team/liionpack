@@ -3,10 +3,12 @@ A basic example of a pack simulation consisting of two sets of 16 parallel
 cells connected in series for a total of 32 cells.
 """
 
-import liionpack as lp
-import pybamm
-import numpy as np
 import os
+
+import numpy as np
+import pybamm
+
+import liionpack as lp
 
 lp.set_logging_level("NOTICE")
 

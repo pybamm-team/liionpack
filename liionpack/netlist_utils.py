@@ -1,11 +1,13 @@
-import numpy as np
 import codecs
-import pandas as pd
-import liionpack as lp
 import os
+
+import numpy as np
+import pandas as pd
 import pybamm
 import scipy as sp
 from lcapy import Circuit
+
+import liionpack as lp
 
 
 def read_netlist(
@@ -17,7 +19,7 @@ def read_netlist(
     I=None,
     V=None,
 ):
-    """
+    r"""
     Assumes netlist has been saved by LTSpice with format Descriptor Node1 Node2 Value
     Any lines starting with * are comments and . are commands so ignore them
     Nodes begin with N so remove that
@@ -110,7 +112,7 @@ def setup_circuit(
     terminals="left",
     configuration="parallel-strings",
 ):
-    """
+    r"""
     Define a netlist from a number of batteries in parallel and series
 
     Args:
@@ -327,7 +329,7 @@ def setup_circuit(
         "node2_y": ys[1:],
     }
 
-    for key in main_grid.keys():
+    for key in main_grid:
         main_grid[key] = np.concatenate((main_grid[key], current_loop[key]))
     netlist = pd.DataFrame(main_grid)
 
