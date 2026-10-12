@@ -1,9 +1,11 @@
-import liionpack as lp
+import pathlib
+import unittest
+
 import numpy as np
 import pandas as pd
-import pathlib
 import pybamm
-import unittest
+
+import liionpack as lp
 
 
 class utilsTest(unittest.TestCase):

@@ -8,7 +8,6 @@
 #
 import logging
 
-
 format = (
     "%(asctime)s - [%(levelname)s] %(module)s.%(funcName)s(%(lineno)d): "
     + "%(message)s"
@@ -22,7 +21,7 @@ def set_logging_level(level):
 def log_to_file(filename):
     logFormatter = logging.Formatter(datefmt="%Y-%m-%d %H:%M:%S", fmt=format)
     rootLogger = logging.getLogger()
-    fileHandler = logging.FileHandler("{0}.log".format(filename))
+    fileHandler = logging.FileHandler(f"{filename}.log")
     fileHandler.setFormatter(logFormatter)
     rootLogger.addHandler(fileHandler)
 

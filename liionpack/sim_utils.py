@@ -1,9 +1,10 @@
 #
 # Simulation utilities
 #
-import pybamm
-import liionpack as lp
 import numpy as np
+import pybamm
+
+import liionpack as lp
 
 
 def get_initial_stoichiometries(initial_soc, parameter_values):
