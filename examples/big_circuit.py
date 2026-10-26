@@ -2,10 +2,12 @@
 Simulate a big circuit containing 384 battery cells.
 """
 
-import liionpack as lp
-import pybamm
 import os
 import pickle
+
+import pybamm
+
+import liionpack as lp
 
 lp.log_to_file("logger_info")
 

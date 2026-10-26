@@ -2,12 +2,14 @@
 Compare a drive-cycle simulation between PyBaMM and Liionpack.
 """
 
-import pybamm
 import os
-import pandas as pd
-import liionpack as lp
+
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
+import pybamm
+
+import liionpack as lp
 
 if __name__ == "__main__":
     lp.set_logging_level("NOTICE")

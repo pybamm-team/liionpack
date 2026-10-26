@@ -3,9 +3,9 @@
 # generated one
 #
 
-import liionpack as lp
 import numpy as np
 
+import liionpack as lp
 
 Rb = 1e-3
 Ri = 1e-2
