@@ -2,9 +2,10 @@
 # Mixed location of terminals and effect on current distribution
 #
 
-import liionpack as lp
-import pybamm
 import matplotlib.pyplot as plt
+import pybamm
+
+import liionpack as lp
 
 plt.close("all")
 

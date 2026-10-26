@@ -1,8 +1,10 @@
-import liionpack as lp
-import pybamm
-import numpy as np
-import matplotlib.pyplot as plt
 import unittest
+
+import matplotlib.pyplot as plt
+import numpy as np
+import pybamm
+
+import liionpack as lp
 
 
 class solver_utilsTest(unittest.TestCase):
