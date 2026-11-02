@@ -1,8 +1,10 @@
-import liionpack as lp
-import numpy as np
-import matplotlib.pyplot as plt
-import unittest
 import os
+import unittest
+
+import matplotlib.pyplot as plt
+import numpy as np
+
+import liionpack as lp
 
 
 class netlist_utilsTest(unittest.TestCase):

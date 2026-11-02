@@ -2,9 +2,11 @@
 # Test solvers give the same output
 #
 
-import pybamm
-import numpy as np
 import unittest
+
+import numpy as np
+import pybamm
+
 import liionpack as lp
 
 
