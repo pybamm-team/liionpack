@@ -2,11 +2,13 @@
 # Postprocessing plot functions
 #
 
-import liionpack as lp
-import numpy as np
-import matplotlib.pyplot as plt
-from sympy import init_printing
 import textwrap
+
+import matplotlib.pyplot as plt
+import numpy as np
+from sympy import init_printing
+
+import liionpack as lp
 
 init_printing(pretty_print=False)
 
@@ -88,7 +90,7 @@ def draw_circuit(
     label_nodes="primary",
     style="american",
 ):
-    """
+    r"""
     Draw a latex version of netlist circuit
     N.B only works with generated netlists not imported ones.
 

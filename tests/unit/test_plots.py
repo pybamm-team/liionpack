@@ -1,8 +1,10 @@
-import liionpack as lp
-import matplotlib.pyplot as plt
-import pybamm
 import unittest
+
+import matplotlib.pyplot as plt
 import numpy as np
+import pybamm
+
+import liionpack as lp
 
 
 class plotsTest(unittest.TestCase):

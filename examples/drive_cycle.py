@@ -2,9 +2,11 @@
 Example of using US06 drive cycle data for a battery pack simulation.
 """
 
-import pybamm
 import os
+
 import pandas as pd
+import pybamm
+
 import liionpack as lp
 
 os.chdir(pybamm.__path__[0] + "/..")
