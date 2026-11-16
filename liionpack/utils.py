@@ -2,8 +2,9 @@
 # General utility functions
 #
 
-import numpy as np
 import pathlib
+
+import numpy as np
 from scipy.interpolate import interp1d
 
 

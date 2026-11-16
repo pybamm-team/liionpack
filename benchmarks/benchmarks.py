@@ -1,8 +1,9 @@
 # Write the benchmarking functions here.
 # See "Writing benchmarks" in the asv docs for more information.
 
-import liionpack as lp
 import pybamm
+
+import liionpack as lp
 
 
 class BasicBenchmark:

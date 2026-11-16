@@ -1,6 +1,8 @@
-import liionpack as lp
-import pybamm
 import unittest
+
+import pybamm
+
+import liionpack as lp
 
 
 class simulationsTest(unittest.TestCase):

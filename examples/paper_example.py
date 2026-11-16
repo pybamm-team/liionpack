@@ -2,8 +2,9 @@
 # Paper example
 #
 
-import liionpack as lp
 import pybamm
+
+import liionpack as lp
 
 # Generate the netlist
 netlist = lp.setup_circuit(Np=4, Ns=1, Rb=1e-3, Rc=1e-2)
