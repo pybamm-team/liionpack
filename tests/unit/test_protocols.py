@@ -1,9 +1,11 @@
-import pybamm
-import liionpack as lp
-import numpy as np
-import unittest
 import os
+import unittest
+
+import numpy as np
 import pandas as pd
+import pybamm
+
+import liionpack as lp
 
 
 class protocolsTest(unittest.TestCase):

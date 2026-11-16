@@ -3,10 +3,12 @@ Example of saving the output from a 16p2s battery pack simulation. Examples
 are given for CSV, NumPy `.npy`, and NumPy `.npz` file formats.
 """
 
-import liionpack as lp
-import pybamm
-import numpy as np
 import os
+
+import numpy as np
+import pybamm
+
+import liionpack as lp
 
 # Define parameters
 Np = 16

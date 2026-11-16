@@ -2,8 +2,9 @@
 Set up a simulation and draw the circuit.
 """
 
-import liionpack as lp
 import pybamm
+
+import liionpack as lp
 
 lp.logger.setLevel("NOTICE")
 

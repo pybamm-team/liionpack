@@ -2,12 +2,13 @@
 # A basic example of a pack simulation with varying external temperature.
 #
 
-import liionpack as lp
-import pybamm
-import numpy as np
 import time as ticker
+
+import numpy as np
+import pybamm
 from tqdm import tqdm
 
+import liionpack as lp
 
 lp.set_logging_level("NOTICE")
 

@@ -1,17 +1,19 @@
 #
 # Solvers
 #
+import time as ticker
+
+import numpy as np
+import pybamm
+import ray
+from tqdm import tqdm
+
 import liionpack as lp
 from liionpack.solver_utils import _create_casadi_objects as cco
-from liionpack.solver_utils import _serial_step as ss
+from liionpack.solver_utils import _mapped_eval as me
 from liionpack.solver_utils import _mapped_step as ms
 from liionpack.solver_utils import _serial_eval as se
-from liionpack.solver_utils import _mapped_eval as me
-import ray
-import numpy as np
-import time as ticker
-from tqdm import tqdm
-import pybamm
+from liionpack.solver_utils import _serial_step as ss
 
 
 class GenericActor:

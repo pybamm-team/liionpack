@@ -2,10 +2,11 @@
 # Test Power Controlled Circuit Solve
 #
 
-import liionpack as lp
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
 import pybamm
+
+import liionpack as lp
 
 plt.close("all")
 
